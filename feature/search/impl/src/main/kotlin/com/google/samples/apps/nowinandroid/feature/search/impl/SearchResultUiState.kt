@@ -17,7 +17,6 @@
 package com.google.samples.apps.nowinandroid.feature.search.impl
 
 import com.google.samples.apps.nowinandroid.core.model.data.FollowableTopic
-import com.google.samples.apps.nowinandroid.core.model.data.UserNewsResource
 
 sealed interface SearchResultUiState {
     data object Loading : SearchResultUiState
@@ -33,9 +32,8 @@ sealed interface SearchResultUiState {
 
     data class Success(
         val topics: List<FollowableTopic> = emptyList(),
-        val newsResources: List<UserNewsResource> = emptyList(),
     ) : SearchResultUiState {
-        fun isEmpty(): Boolean = topics.isEmpty() && newsResources.isEmpty()
+        fun isEmpty(): Boolean = topics.isEmpty()
     }
 
     /**

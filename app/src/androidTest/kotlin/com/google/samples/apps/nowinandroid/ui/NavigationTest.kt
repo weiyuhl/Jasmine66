@@ -36,7 +36,6 @@ import androidx.test.espresso.Espresso
 import androidx.test.espresso.NoActivityResumedException
 import com.google.samples.apps.nowinandroid.MainActivity
 import com.google.samples.apps.nowinandroid.R
-import com.google.samples.apps.nowinandroid.core.data.repository.NewsRepository
 import com.google.samples.apps.nowinandroid.core.data.repository.TopicsRepository
 import com.google.samples.apps.nowinandroid.core.model.data.Topic
 import com.google.samples.apps.nowinandroid.core.rules.GrantPostNotificationsPermissionRule
@@ -82,8 +81,6 @@ class NavigationTest {
     @Inject
     lateinit var topicsRepository: TopicsRepository
 
-    @Inject
-    lateinit var newsRepository: NewsRepository
 
     // The strings used for matching in these tests
     private val navigateUp by composeTestRule.stringResource(FeatureForyouR.string.feature_foryou_api_navigate_up)
@@ -283,43 +280,4 @@ class NavigationTest {
         }
     }
 
-    @Test
-    fun navigatingToTopicFromForYou_showsTopicDetails() {
-        composeTestRule.apply {
-            // Get the first news resource
-            val newsResource = runBlocking {
-                newsRepository.getNewsResources().first().first()
-            }
-
-            // Get its first topic and follow it
-            val topic = newsResource.topics.first()
-            onNodeWithText(topic.name).performClick()
-
-            // Get the news feed and scroll to the news resource
-            // Note: Possible flakiness. If the content of the news resource is long then the topic
-            // tag might not be visible meaning it cannot be clicked
-            onNodeWithTag("forYou:feed")
-                .performScrollToNode(hasTestTag("newsResourceCard:${newsResource.id}"))
-                .fetchSemanticsNode()
-                .apply {
-                    val newsResourceCardNode = onNodeWithTag("newsResourceCard:${newsResource.id}")
-                        .fetchSemanticsNode()
-                    config[ScrollBy].action?.invoke(
-                        0f,
-                        // to ensure the bottom of the card is visible,
-                        // manually scroll the difference between the height of
-                        // the scrolling node and the height of the card
-                        (newsResourceCardNode.size.height - size.height).coerceAtLeast(0).toFloat(),
-                    )
-                }
-
-            // Click the first topic tag
-            onAllNodesWithTag("topicTag:${topic.id}", useUnmergedTree = true)
-                .onFirst()
-                .performClick()
-
-            // Verify that we're on the correct topic details screen
-            onNodeWithTag("topic:${topic.id}").assertExists()
-        }
-    }
 }

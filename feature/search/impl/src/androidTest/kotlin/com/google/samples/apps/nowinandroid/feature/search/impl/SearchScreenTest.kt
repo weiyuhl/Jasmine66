@@ -29,12 +29,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollToIndex
 import com.google.samples.apps.nowinandroid.core.data.model.RecentSearchQuery
-import com.google.samples.apps.nowinandroid.core.model.data.DarkThemeConfig.DARK
-import com.google.samples.apps.nowinandroid.core.model.data.ThemeBrand.ANDROID
-import com.google.samples.apps.nowinandroid.core.model.data.UserData
-import com.google.samples.apps.nowinandroid.core.model.data.UserNewsResource
 import com.google.samples.apps.nowinandroid.core.testing.data.followableTopicTestData
-import com.google.samples.apps.nowinandroid.core.testing.data.newsResourcesTestData
 import com.google.samples.apps.nowinandroid.core.ui.R.string
 import com.google.samples.apps.nowinandroid.feature.search.api.R
 import org.junit.Before
@@ -54,19 +49,8 @@ class SearchScreenTest {
     private lateinit var unfollowButtonContentDesc: String
     private lateinit var clearRecentSearchesContentDesc: String
     private lateinit var topicsString: String
-    private lateinit var updatesString: String
     private lateinit var tryAnotherSearchString: String
     private lateinit var searchNotReadyString: String
-
-    private val userData: UserData = UserData(
-        bookmarkedNewsResources = setOf("1", "3"),
-        viewedNewsResources = setOf("1", "2", "4"),
-        followedTopics = emptySet(),
-        themeBrand = ANDROID,
-        darkThemeConfig = DARK,
-        shouldHideOnboarding = true,
-        useDynamicColor = false,
-    )
 
     @Before
     fun setup() {
@@ -78,7 +62,6 @@ class SearchScreenTest {
             unfollowButtonContentDesc =
                 getString(string.core_ui_interests_card_unfollow_button_content_desc)
             topicsString = getString(R.string.feature_search_api_topics)
-            updatesString = getString(R.string.feature_search_api_updates)
             tryAnotherSearchString = getString(R.string.feature_search_api_try_another_search) +
                 " " + getString(R.string.feature_search_api_interests) + " " + getString(R.string.feature_search_api_to_browse_topics)
             searchNotReadyString = getString(R.string.feature_search_api_not_ready)
@@ -162,29 +145,6 @@ class SearchScreenTest {
         composeTestRule
             .onAllNodesWithContentDescription(unfollowButtonContentDesc)
             .assertCountEquals(1)
-    }
-
-    @Test
-    fun searchResultWithNewsResources_firstNewsResourcesIsVisible() {
-        composeTestRule.setContent {
-            SearchScreen(
-                searchResultUiState = SearchResultUiState.Success(
-                    newsResources = newsResourcesTestData.map {
-                        UserNewsResource(
-                            newsResource = it,
-                            userData = userData,
-                        )
-                    },
-                ),
-            )
-        }
-
-        composeTestRule
-            .onNodeWithText(updatesString)
-            .assertIsDisplayed()
-        composeTestRule
-            .onNodeWithText(newsResourcesTestData[0].title)
-            .assertIsDisplayed()
     }
 
     @Test

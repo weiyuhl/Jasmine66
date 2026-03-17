@@ -19,22 +19,17 @@ package com.google.samples.apps.nowinandroid.feature.foryou.impl
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import com.google.android.apps.common.testing.accessibility.framework.AccessibilityCheckResultUtils
-import com.google.android.apps.common.testing.accessibility.framework.AccessibilityCheckResultUtils.matchesElements
-import com.google.android.apps.common.testing.accessibility.framework.checks.TextContrastCheck
-import com.google.android.apps.common.testing.accessibility.framework.matcher.ElementMatchers.withText
 import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaBackground
 import com.google.samples.apps.nowinandroid.core.designsystem.theme.NiaTheme
 import com.google.samples.apps.nowinandroid.core.testing.util.DefaultTestDevices
 import com.google.samples.apps.nowinandroid.core.testing.util.captureForDevice
 import com.google.samples.apps.nowinandroid.core.testing.util.captureMultiDevice
+import com.google.samples.apps.nowinandroid.core.ui.FollowableTopicPreviewParameterProvider
 import com.google.samples.apps.nowinandroid.core.ui.NewsFeedUiState
 import com.google.samples.apps.nowinandroid.core.ui.NewsFeedUiState.Success
-import com.google.samples.apps.nowinandroid.core.ui.UserNewsResourcePreviewParameterProvider
 import com.google.samples.apps.nowinandroid.feature.foryou.impl.OnboardingUiState.NotShown
 import com.google.samples.apps.nowinandroid.feature.foryou.impl.OnboardingUiState.Shown
 import dagger.hilt.android.testing.HiltTestApplication
-import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -60,7 +55,7 @@ class ForYouScreenScreenshotTests {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
-    private val userNewsResources = UserNewsResourcePreviewParameterProvider().values.first()
+    private val topics = FollowableTopicPreviewParameterProvider().values.first()
 
     @Before
     fun setTimeZone() {
@@ -76,15 +71,11 @@ class ForYouScreenScreenshotTests {
                     isSyncing = false,
                     onboardingUiState = NotShown,
                     feedState = Success(
-                        feed = userNewsResources,
+                        feed = emptyList(),
                     ),
                     onTopicCheckedChanged = { _, _ -> },
                     saveFollowedTopics = {},
-                    onNewsResourcesCheckedChanged = { _, _ -> },
-                    onNewsResourceViewed = {},
                     onTopicClick = {},
-                    deepLinkedUserNewsResource = null,
-                    onDeepLinkOpened = {},
                 )
             }
         }
@@ -100,11 +91,7 @@ class ForYouScreenScreenshotTests {
                     feedState = NewsFeedUiState.Loading,
                     onTopicCheckedChanged = { _, _ -> },
                     saveFollowedTopics = {},
-                    onNewsResourcesCheckedChanged = { _, _ -> },
-                    onNewsResourceViewed = {},
                     onTopicClick = {},
-                    deepLinkedUserNewsResource = null,
-                    onDeepLinkOpened = {},
                 )
             }
         }
@@ -114,17 +101,6 @@ class ForYouScreenScreenshotTests {
     fun forYouScreenTopicSelection() {
         composeTestRule.captureMultiDevice(
             "ForYouScreenTopicSelection",
-            accessibilitySuppressions = Matchers.allOf(
-                AccessibilityCheckResultUtils.matchesCheck(TextContrastCheck::class.java),
-                Matchers.anyOf(
-                    // Disabled Button
-                    matchesElements(withText("Done")),
-
-                    // TODO investigate, seems a false positive
-                    matchesElements(withText("What are you interested in?")),
-                    matchesElements(withText("UI")),
-                ),
-            ),
         ) {
             ForYouScreenTopicSelection()
         }
@@ -142,25 +118,6 @@ class ForYouScreenScreenshotTests {
         }
     }
 
-    @Test
-    fun forYouScreenPopulatedAndLoading() {
-        composeTestRule.captureMultiDevice("ForYouScreenPopulatedAndLoading") {
-            ForYouScreenPopulatedAndLoading()
-        }
-    }
-
-    @Test
-    fun forYouScreenPopulatedAndLoading_dark() {
-        composeTestRule.captureForDevice(
-            deviceName = "phone_dark",
-            deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "ForYouScreenPopulatedAndLoading",
-            darkMode = true,
-        ) {
-            ForYouScreenPopulatedAndLoading()
-        }
-    }
-
     @Composable
     private fun ForYouScreenTopicSelection() {
         NiaTheme {
@@ -168,44 +125,15 @@ class ForYouScreenScreenshotTests {
                 ForYouScreen(
                     isSyncing = false,
                     onboardingUiState = Shown(
-                        topics = userNewsResources.flatMap { news -> news.followableTopics }
-                            .distinctBy { it.topic.id },
+                        topics = topics,
                     ),
                     feedState = Success(
-                        feed = userNewsResources,
+                        feed = emptyList(),
                     ),
                     onTopicCheckedChanged = { _, _ -> },
                     saveFollowedTopics = {},
-                    onNewsResourcesCheckedChanged = { _, _ -> },
-                    onNewsResourceViewed = {},
                     onTopicClick = {},
-                    deepLinkedUserNewsResource = null,
-                    onDeepLinkOpened = {},
                 )
-            }
-        }
-    }
-
-    @Composable
-    private fun ForYouScreenPopulatedAndLoading() {
-        NiaTheme {
-            NiaBackground {
-                NiaTheme {
-                    ForYouScreen(
-                        isSyncing = true,
-                        onboardingUiState = OnboardingUiState.Loading,
-                        feedState = Success(
-                            feed = userNewsResources,
-                        ),
-                        onTopicCheckedChanged = { _, _ -> },
-                        saveFollowedTopics = {},
-                        onNewsResourcesCheckedChanged = { _, _ -> },
-                        onNewsResourceViewed = {},
-                        onTopicClick = {},
-                        deepLinkedUserNewsResource = null,
-                        onDeepLinkOpened = {},
-                    )
-                }
             }
         }
     }

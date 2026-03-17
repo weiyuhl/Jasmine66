@@ -32,8 +32,6 @@ class NiaPreferencesDataSource @Inject constructor(
     val userData = userPreferences.data
         .map {
             UserData(
-                bookmarkedNewsResources = it.bookmarkedNewsResourceIdsMap.keys,
-                viewedNewsResources = it.viewedNewsResourceIdsMap.keys,
                 followedTopics = it.followedTopicIdsMap.keys,
                 themeBrand = when (it.themeBrand) {
                     null,
@@ -120,45 +118,10 @@ class NiaPreferencesDataSource @Inject constructor(
         }
     }
 
-    suspend fun setNewsResourceBookmarked(newsResourceId: String, bookmarked: Boolean) {
-        try {
-            userPreferences.updateData {
-                it.copy {
-                    if (bookmarked) {
-                        bookmarkedNewsResourceIds.put(newsResourceId, true)
-                    } else {
-                        bookmarkedNewsResourceIds.remove(newsResourceId)
-                    }
-                }
-            }
-        } catch (ioException: IOException) {
-            Log.e("NiaPreferences", "Failed to update user preferences", ioException)
-        }
-    }
-
-    suspend fun setNewsResourceViewed(newsResourceId: String, viewed: Boolean) {
-        setNewsResourcesViewed(listOf(newsResourceId), viewed)
-    }
-
-    suspend fun setNewsResourcesViewed(newsResourceIds: List<String>, viewed: Boolean) {
-        userPreferences.updateData { prefs ->
-            prefs.copy {
-                newsResourceIds.forEach { id ->
-                    if (viewed) {
-                        viewedNewsResourceIds.put(id, true)
-                    } else {
-                        viewedNewsResourceIds.remove(id)
-                    }
-                }
-            }
-        }
-    }
-
     suspend fun getChangeListVersions() = userPreferences.data
         .map {
             ChangeListVersions(
                 topicVersion = it.topicChangeListVersion,
-                newsResourceVersion = it.newsResourceChangeListVersion,
             )
         }
         .firstOrNull() ?: ChangeListVersions()
@@ -172,13 +135,11 @@ class NiaPreferencesDataSource @Inject constructor(
                 val updatedChangeListVersions = update(
                     ChangeListVersions(
                         topicVersion = currentPreferences.topicChangeListVersion,
-                        newsResourceVersion = currentPreferences.newsResourceChangeListVersion,
                     ),
                 )
 
                 currentPreferences.copy {
                     topicChangeListVersion = updatedChangeListVersions.topicVersion
-                    newsResourceChangeListVersion = updatedChangeListVersions.newsResourceVersion
                 }
             }
         } catch (ioException: IOException) {
@@ -194,7 +155,7 @@ class NiaPreferencesDataSource @Inject constructor(
 }
 
 private fun UserPreferencesKt.Dsl.updateShouldHideOnboardingIfNecessary() {
-    if (followedTopicIds.isEmpty() && followedAuthorIds.isEmpty()) {
+    if (followedTopicIds.isEmpty()) {
         shouldHideOnboarding = false
     }
 }

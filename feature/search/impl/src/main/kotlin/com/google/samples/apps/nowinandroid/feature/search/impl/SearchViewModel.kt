@@ -68,7 +68,6 @@ class SearchViewModel @Inject constructor(
                                 .map<UserSearchResult, SearchResultUiState> { data ->
                                     SearchResultUiState.Success(
                                         topics = data.topics,
-                                        newsResources = data.newsResources,
                                     )
                                 }
                                 .catch { emit(SearchResultUiState.LoadFailed) }
@@ -115,11 +114,6 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun setNewsResourceBookmarked(newsResourceId: String, isChecked: Boolean) {
-        viewModelScope.launch {
-            userDataRepository.setNewsResourceBookmarked(newsResourceId, isChecked)
-        }
-    }
 
     fun followTopic(followedTopicId: String, followed: Boolean) {
         viewModelScope.launch {
@@ -127,11 +121,6 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun setNewsResourceViewed(newsResourceId: String, viewed: Boolean) {
-        viewModelScope.launch {
-            userDataRepository.setNewsResourceViewed(newsResourceId, viewed)
-        }
-    }
 }
 
 private fun AnalyticsHelper.logEventSearchTriggered(query: String) =

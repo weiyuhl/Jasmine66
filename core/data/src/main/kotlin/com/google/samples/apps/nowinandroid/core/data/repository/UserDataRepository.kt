@@ -39,16 +39,6 @@ interface UserDataRepository {
     suspend fun setTopicIdFollowed(followedTopicId: String, followed: Boolean)
 
     /**
-     * Updates the bookmarked status for a news resource
-     */
-    suspend fun setNewsResourceBookmarked(newsResourceId: String, bookmarked: Boolean)
-
-    /**
-     * Updates the viewed status for a news resource
-     */
-    suspend fun setNewsResourceViewed(newsResourceId: String, viewed: Boolean)
-
-    /**
      * Sets the desired theme brand.
      */
     suspend fun setThemeBrand(themeBrand: ThemeBrand)

@@ -63,22 +63,7 @@ fun TopicsTabContent(
             contentPadding = PaddingValues(vertical = 16.dp),
             state = scrollableState,
         ) {
-            topics.forEach { followableTopic ->
-                val topicId = followableTopic.topic.id
-                item(key = topicId) {
-                    val isSelected = shouldHighlightSelectedTopic && topicId == selectedTopicId
-                    InterestsItem(
-                        name = followableTopic.topic.name,
-                        following = followableTopic.isFollowed,
-                        description = followableTopic.topic.shortDescription,
-                        topicImageUrl = followableTopic.topic.imageUrl,
-                        onClick = { onTopicClick(topicId) },
-                        onFollowButtonClick = { onFollowButtonClick(topicId, it) },
-                        isSelected = isSelected,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
+            // Topics listing removed centrally
 
             if (withBottomSpacer) {
                 item {

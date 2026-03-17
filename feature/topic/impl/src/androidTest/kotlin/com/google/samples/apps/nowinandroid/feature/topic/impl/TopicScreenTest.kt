@@ -17,15 +17,10 @@
 package com.google.samples.apps.nowinandroid.feature.topic.impl
 
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.test.hasScrollToNodeAction
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performScrollToNode
 import com.google.samples.apps.nowinandroid.core.testing.data.followableTopicTestData
-import com.google.samples.apps.nowinandroid.core.testing.data.userNewsResourcesTestData
 import com.google.samples.apps.nowinandroid.feature.topic.api.R
 import org.junit.Before
 import org.junit.Rule
@@ -55,13 +50,10 @@ class TopicScreenTest {
         composeTestRule.setContent {
             TopicScreen(
                 topicUiState = TopicUiState.Loading,
-                newsUiState = NewsUiState.Loading,
                 showBackButton = true,
                 onBackClick = {},
                 onFollowClick = {},
                 onTopicClick = {},
-                onBookmarkChanged = { _, _ -> },
-                onNewsResourceViewed = {},
             )
         }
 
@@ -76,13 +68,10 @@ class TopicScreenTest {
         composeTestRule.setContent {
             TopicScreen(
                 topicUiState = TopicUiState.Success(testTopic),
-                newsUiState = NewsUiState.Loading,
                 showBackButton = true,
                 onBackClick = {},
                 onFollowClick = {},
                 onTopicClick = {},
-                onBookmarkChanged = { _, _ -> },
-                onNewsResourceViewed = {},
             )
         }
 
@@ -95,51 +84,5 @@ class TopicScreenTest {
         composeTestRule
             .onNodeWithText(testTopic.topic.longDescription)
             .assertExists()
-    }
-
-    @Test
-    fun news_whenTopicIsLoading_isNotShown() {
-        composeTestRule.setContent {
-            TopicScreen(
-                topicUiState = TopicUiState.Loading,
-                newsUiState = NewsUiState.Success(userNewsResourcesTestData),
-                showBackButton = true,
-                onBackClick = {},
-                onFollowClick = {},
-                onTopicClick = {},
-                onBookmarkChanged = { _, _ -> },
-                onNewsResourceViewed = {},
-            )
-        }
-
-        // Loading indicator shown
-        composeTestRule
-            .onNodeWithContentDescription(topicLoading)
-            .assertExists()
-    }
-
-    @Test
-    fun news_whenSuccessAndTopicIsSuccess_isShown() {
-        val testTopic = followableTopicTestData.first()
-        composeTestRule.setContent {
-            TopicScreen(
-                topicUiState = TopicUiState.Success(testTopic),
-                newsUiState = NewsUiState.Success(
-                    userNewsResourcesTestData,
-                ),
-                showBackButton = true,
-                onBackClick = {},
-                onFollowClick = {},
-                onTopicClick = {},
-                onBookmarkChanged = { _, _ -> },
-                onNewsResourceViewed = {},
-            )
-        }
-
-        // Scroll to first news title if available
-        composeTestRule
-            .onAllNodes(hasScrollToNodeAction())
-            .onFirst()
-            .performScrollToNode(hasText(userNewsResourcesTestData.first().title))
     }
 }

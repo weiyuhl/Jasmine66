@@ -19,11 +19,8 @@ package com.google.samples.apps.nowinandroid.ui
 import androidx.compose.runtime.remember
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation3.runtime.NavBackStack
-import com.google.samples.apps.nowinandroid.core.data.repository.CompositeUserNewsResourceRepository
 import com.google.samples.apps.nowinandroid.core.navigation.NavigationState
 import com.google.samples.apps.nowinandroid.core.navigation.Navigator
-import com.google.samples.apps.nowinandroid.core.testing.repository.TestNewsRepository
-import com.google.samples.apps.nowinandroid.core.testing.repository.TestUserDataRepository
 import com.google.samples.apps.nowinandroid.core.testing.util.TestNetworkMonitor
 import com.google.samples.apps.nowinandroid.core.testing.util.TestTimeZoneMonitor
 import com.google.samples.apps.nowinandroid.feature.bookmarks.api.navigation.BookmarksNavKey
@@ -59,9 +56,6 @@ class NiaAppStateTest {
 
     private val timeZoneMonitor = TestTimeZoneMonitor()
 
-    private val userNewsResourceRepository =
-        CompositeUserNewsResourceRepository(TestNewsRepository(), TestUserDataRepository())
-
     // Subject under test.
     private lateinit var state: NiaAppState
 
@@ -84,7 +78,6 @@ class NiaAppStateTest {
                 NiaAppState(
                     coroutineScope = backgroundScope,
                     networkMonitor = networkMonitor,
-                    userNewsResourceRepository = userNewsResourceRepository,
                     timeZoneMonitor = timeZoneMonitor,
                     navigationState = navigationState,
                 )
@@ -108,7 +101,6 @@ class NiaAppStateTest {
         composeTestRule.setContent {
             state = rememberNiaAppState(
                 networkMonitor = networkMonitor,
-                userNewsResourceRepository = userNewsResourceRepository,
                 timeZoneMonitor = timeZoneMonitor,
             )
         }
@@ -128,7 +120,6 @@ class NiaAppStateTest {
             state = NiaAppState(
                 coroutineScope = backgroundScope,
                 networkMonitor = networkMonitor,
-                userNewsResourceRepository = userNewsResourceRepository,
                 timeZoneMonitor = timeZoneMonitor,
                 navigationState = testNavigationState(),
             )
@@ -148,7 +139,6 @@ class NiaAppStateTest {
             state = NiaAppState(
                 coroutineScope = backgroundScope,
                 networkMonitor = networkMonitor,
-                userNewsResourceRepository = userNewsResourceRepository,
                 timeZoneMonitor = timeZoneMonitor,
                 navigationState = testNavigationState(),
             )

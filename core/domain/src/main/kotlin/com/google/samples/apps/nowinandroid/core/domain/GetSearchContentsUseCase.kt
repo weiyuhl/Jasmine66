@@ -21,7 +21,6 @@ import com.google.samples.apps.nowinandroid.core.data.repository.UserDataReposit
 import com.google.samples.apps.nowinandroid.core.model.data.FollowableTopic
 import com.google.samples.apps.nowinandroid.core.model.data.SearchResult
 import com.google.samples.apps.nowinandroid.core.model.data.UserData
-import com.google.samples.apps.nowinandroid.core.model.data.UserNewsResource
 import com.google.samples.apps.nowinandroid.core.model.data.UserSearchResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -49,12 +48,6 @@ private fun Flow<SearchResult>.mapToUserSearchResult(userDataStream: Flow<UserDa
                 FollowableTopic(
                     topic = topic,
                     isFollowed = topic.id in userData.followedTopics,
-                )
-            },
-            newsResources = searchResult.newsResources.map { news ->
-                UserNewsResource(
-                    newsResource = news,
-                    userData = userData,
                 )
             },
         )

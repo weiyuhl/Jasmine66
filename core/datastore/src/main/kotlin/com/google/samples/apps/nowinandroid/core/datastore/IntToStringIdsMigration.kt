@@ -34,13 +34,6 @@ internal object IntToStringIdsMigration : DataMigration<UserPreferences> {
             )
             deprecatedIntFollowedTopicIds.clear()
 
-            // Migrate author ids
-            deprecatedFollowedAuthorIds.clear()
-            deprecatedFollowedAuthorIds.addAll(
-                currentData.deprecatedIntFollowedAuthorIdsList.map(Int::toString),
-            )
-            deprecatedIntFollowedAuthorIds.clear()
-
             // Mark migration as complete
             hasDoneIntToStringIdMigration = true
         }

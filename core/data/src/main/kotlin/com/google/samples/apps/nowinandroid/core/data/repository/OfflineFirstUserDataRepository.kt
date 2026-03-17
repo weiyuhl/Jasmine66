@@ -42,17 +42,6 @@ internal class OfflineFirstUserDataRepository @Inject constructor(
         analyticsHelper.logTopicFollowToggled(followedTopicId, followed)
     }
 
-    override suspend fun setNewsResourceBookmarked(newsResourceId: String, bookmarked: Boolean) {
-        niaPreferencesDataSource.setNewsResourceBookmarked(newsResourceId, bookmarked)
-        analyticsHelper.logNewsResourceBookmarkToggled(
-            newsResourceId = newsResourceId,
-            isBookmarked = bookmarked,
-        )
-    }
-
-    override suspend fun setNewsResourceViewed(newsResourceId: String, viewed: Boolean) =
-        niaPreferencesDataSource.setNewsResourceViewed(newsResourceId, viewed)
-
     override suspend fun setThemeBrand(themeBrand: ThemeBrand) {
         niaPreferencesDataSource.setThemeBrand(themeBrand)
         analyticsHelper.logThemeChanged(themeBrand.name)

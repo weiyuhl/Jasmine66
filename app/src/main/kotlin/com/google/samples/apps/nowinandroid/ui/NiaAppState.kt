@@ -21,7 +21,6 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation3.runtime.NavKey
-import com.google.samples.apps.nowinandroid.core.data.repository.UserNewsResourceRepository
 import com.google.samples.apps.nowinandroid.core.data.util.NetworkMonitor
 import com.google.samples.apps.nowinandroid.core.data.util.TimeZoneMonitor
 import com.google.samples.apps.nowinandroid.core.navigation.NavigationState
@@ -41,7 +40,6 @@ import kotlinx.datetime.TimeZone
 @Composable
 fun rememberNiaAppState(
     networkMonitor: NetworkMonitor,
-    userNewsResourceRepository: UserNewsResourceRepository,
     timeZoneMonitor: TimeZoneMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ): NiaAppState {
@@ -53,14 +51,12 @@ fun rememberNiaAppState(
         navigationState,
         coroutineScope,
         networkMonitor,
-        userNewsResourceRepository,
         timeZoneMonitor,
     ) {
         NiaAppState(
             navigationState = navigationState,
             coroutineScope = coroutineScope,
             networkMonitor = networkMonitor,
-            userNewsResourceRepository = userNewsResourceRepository,
             timeZoneMonitor = timeZoneMonitor,
         )
     }
@@ -71,7 +67,6 @@ class NiaAppState(
     val navigationState: NavigationState,
     coroutineScope: CoroutineScope,
     networkMonitor: NetworkMonitor,
-    userNewsResourceRepository: UserNewsResourceRepository,
     timeZoneMonitor: TimeZoneMonitor,
 ) {
     val isOffline = networkMonitor.isOnline
@@ -82,22 +77,8 @@ class NiaAppState(
             initialValue = false,
         )
 
-    /**
-     * The top level nav keys that have unread news resources.
-     */
     val topLevelNavKeysWithUnreadResources: StateFlow<Set<NavKey>> =
-        userNewsResourceRepository.observeAllForFollowedTopics()
-            .combine(userNewsResourceRepository.observeAllBookmarked()) { forYouNewsResources, bookmarkedNewsResources ->
-                setOfNotNull(
-                    ForYouNavKey.takeIf { forYouNewsResources.any { !it.hasBeenViewed } },
-                    BookmarksNavKey.takeIf { bookmarkedNewsResources.any { !it.hasBeenViewed } },
-                )
-            }
-            .stateIn(
-                coroutineScope,
-                SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptySet(),
-            )
+        kotlinx.coroutines.flow.MutableStateFlow(emptySet())
 
     val currentTimeZone = timeZoneMonitor.currentTimeZone
         .stateIn(

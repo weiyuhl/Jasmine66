@@ -39,17 +39,6 @@ fun AnalyticsHelper.logScreenView(screenName: String) {
     )
 }
 
-fun AnalyticsHelper.logNewsResourceOpened(newsResourceId: String) {
-    logEvent(
-        event = AnalyticsEvent(
-            type = "news_resource_opened",
-            extras = listOf(
-                Param("opened_news_resource", newsResourceId),
-            ),
-        ),
-    )
-}
-
 /**
  * A side-effect which records a screen view event.
  */

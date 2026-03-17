@@ -34,20 +34,6 @@ internal object ListToMapMigration : DataMigration<UserPreferences> {
             )
             deprecatedFollowedTopicIds.clear()
 
-            // Migrate author ids
-            followedAuthorIds.clear()
-            followedAuthorIds.putAll(
-                currentData.deprecatedFollowedAuthorIdsList.associateWith { true },
-            )
-            deprecatedFollowedAuthorIds.clear()
-
-            // Migrate bookmarks
-            bookmarkedNewsResourceIds.clear()
-            bookmarkedNewsResourceIds.putAll(
-                currentData.deprecatedBookmarkedNewsResourceIdsList.associateWith { true },
-            )
-            deprecatedBookmarkedNewsResourceIds.clear()
-
             // Mark migration as complete
             hasDoneListToMapMigration = true
         }

@@ -54,33 +54,4 @@ class IntToStringIdsMigrationTest {
         // Assert that the migration has been marked complete
         assertTrue(postMigrationUserPreferences.hasDoneIntToStringIdMigration)
     }
-
-    @Test
-    fun IntToStringIdsMigration_should_migrate_author_ids() = runTest {
-        // Set up existing preferences with author int ids
-        val preMigrationUserPreferences = userPreferences {
-            deprecatedIntFollowedAuthorIds.addAll(listOf(4, 5, 6))
-        }
-        // Assert that there are no string author ids yet
-        assertEquals(
-            emptyList<String>(),
-            preMigrationUserPreferences.deprecatedFollowedAuthorIdsList,
-        )
-
-        // Run the migration
-        val postMigrationUserPreferences =
-            IntToStringIdsMigration.migrate(preMigrationUserPreferences)
-
-        // Assert the deprecated int author ids have been migrated to the string author ids
-        assertEquals(
-            userPreferences {
-                deprecatedFollowedAuthorIds.addAll(listOf("4", "5", "6"))
-                hasDoneIntToStringIdMigration = true
-            },
-            postMigrationUserPreferences,
-        )
-
-        // Assert that the migration has been marked complete
-        assertTrue(postMigrationUserPreferences.hasDoneIntToStringIdMigration)
-    }
 }

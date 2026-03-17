@@ -86,14 +86,11 @@ import com.google.samples.apps.nowinandroid.core.designsystem.component.scrollba
 import com.google.samples.apps.nowinandroid.core.designsystem.icon.NiaIcons
 import com.google.samples.apps.nowinandroid.core.designsystem.theme.NiaTheme
 import com.google.samples.apps.nowinandroid.core.model.data.FollowableTopic
-import com.google.samples.apps.nowinandroid.core.model.data.UserNewsResource
 import com.google.samples.apps.nowinandroid.core.ui.DevicePreviews
 import com.google.samples.apps.nowinandroid.core.ui.InterestsItem
-import com.google.samples.apps.nowinandroid.core.ui.NewsFeedUiState.Success
-import com.google.samples.apps.nowinandroid.core.ui.R.string
 import com.google.samples.apps.nowinandroid.core.ui.TrackScreenViewEvent
-import com.google.samples.apps.nowinandroid.core.ui.newsFeed
 import com.google.samples.apps.nowinandroid.feature.search.api.R as searchR
+import com.google.samples.apps.nowinandroid.core.ui.R as uiR
 
 @Composable
 internal fun SearchScreen(
@@ -114,8 +111,6 @@ internal fun SearchScreen(
         onSearchQueryChanged = searchViewModel::onSearchQueryChanged,
         onSearchTriggered = searchViewModel::onSearchTriggered,
         onClearRecentSearches = searchViewModel::clearRecentSearches,
-        onNewsResourcesCheckedChanged = searchViewModel::setNewsResourceBookmarked,
-        onNewsResourceViewed = { searchViewModel.setNewsResourceViewed(it, true) },
         onFollowButtonClick = searchViewModel::followTopic,
         onBackClick = onBackClick,
         onInterestsClick = onInterestsClick,
@@ -132,8 +127,6 @@ internal fun SearchScreen(
     onSearchQueryChanged: (String) -> Unit = {},
     onSearchTriggered: (String) -> Unit = {},
     onClearRecentSearches: () -> Unit = {},
-    onNewsResourcesCheckedChanged: (String, Boolean) -> Unit = { _, _ -> },
-    onNewsResourceViewed: (String) -> Unit = {},
     onFollowButtonClick: (String, Boolean) -> Unit = { _, _ -> },
     onBackClick: () -> Unit = {},
     onInterestsClick: () -> Unit = {},
@@ -188,11 +181,8 @@ internal fun SearchScreen(
                     SearchResultBody(
                         searchQuery = searchQuery,
                         topics = searchResultUiState.topics,
-                        newsResources = searchResultUiState.newsResources,
                         onSearchTriggered = onSearchTriggered,
                         onTopicClick = onTopicClick,
-                        onNewsResourcesCheckedChanged = onNewsResourcesCheckedChanged,
-                        onNewsResourceViewed = onNewsResourceViewed,
                         onFollowButtonClick = onFollowButtonClick,
                     )
                 }
@@ -285,11 +275,8 @@ private fun SearchNotReadyBody() {
 private fun SearchResultBody(
     searchQuery: String,
     topics: List<FollowableTopic>,
-    newsResources: List<UserNewsResource>,
     onSearchTriggered: (String) -> Unit,
     onTopicClick: (String) -> Unit,
-    onNewsResourcesCheckedChanged: (String, Boolean) -> Unit,
-    onNewsResourceViewed: (String) -> Unit,
     onFollowButtonClick: (String, Boolean) -> Unit,
 ) {
     val state = rememberLazyStaggeredGridState()
@@ -342,33 +329,8 @@ private fun SearchResultBody(
                     }
                 }
             }
-
-            if (newsResources.isNotEmpty()) {
-                item(
-                    span = StaggeredGridItemSpan.FullLine,
-                ) {
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(stringResource(id = searchR.string.feature_search_api_updates))
-                            }
-                        },
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-
-                newsFeed(
-                    feedState = Success(feed = newsResources),
-                    onNewsResourcesCheckedChanged = onNewsResourcesCheckedChanged,
-                    onNewsResourceViewed = onNewsResourceViewed,
-                    onTopicClick = onTopicClick,
-                    onExpandedCardClick = {
-                        onSearchTriggered(searchQuery)
-                    },
-                )
-            }
         }
-        val itemsAvailable = topics.size + newsResources.size
+        val itemsAvailable = topics.size
         val scrollbarState = state.scrollbarState(
             itemsAvailable = itemsAvailable,
         )
@@ -455,7 +417,7 @@ private fun SearchToolbar(
             Icon(
                 imageVector = NiaIcons.ArrowBack,
                 contentDescription = stringResource(
-                    id = string.core_ui_back,
+                    id = uiR.string.core_ui_back,
                 ),
             )
         }

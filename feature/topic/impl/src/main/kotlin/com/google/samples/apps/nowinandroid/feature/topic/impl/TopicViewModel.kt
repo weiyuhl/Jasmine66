@@ -20,13 +20,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.samples.apps.nowinandroid.core.common.result.Result
 import com.google.samples.apps.nowinandroid.core.common.result.asResult
-import com.google.samples.apps.nowinandroid.core.data.repository.NewsResourceQuery
 import com.google.samples.apps.nowinandroid.core.data.repository.TopicsRepository
 import com.google.samples.apps.nowinandroid.core.data.repository.UserDataRepository
-import com.google.samples.apps.nowinandroid.core.data.repository.UserNewsResourceRepository
 import com.google.samples.apps.nowinandroid.core.model.data.FollowableTopic
 import com.google.samples.apps.nowinandroid.core.model.data.Topic
-import com.google.samples.apps.nowinandroid.core.model.data.UserNewsResource
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -43,7 +40,6 @@ import kotlinx.coroutines.launch
 class TopicViewModel @AssistedInject constructor(
     private val userDataRepository: UserDataRepository,
     topicsRepository: TopicsRepository,
-    userNewsResourceRepository: UserNewsResourceRepository,
     @Assisted val topicId: String,
 ) : ViewModel() {
     val topicUiState: StateFlow<TopicUiState> = topicUiState(
@@ -57,32 +53,9 @@ class TopicViewModel @AssistedInject constructor(
             initialValue = TopicUiState.Loading,
         )
 
-    val newsUiState: StateFlow<NewsUiState> = newsUiState(
-        topicId = topicId,
-        userDataRepository = userDataRepository,
-        userNewsResourceRepository = userNewsResourceRepository,
-    )
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = NewsUiState.Loading,
-        )
-
     fun followTopicToggle(followed: Boolean) {
         viewModelScope.launch {
             userDataRepository.setTopicIdFollowed(topicId, followed)
-        }
-    }
-
-    fun bookmarkNews(newsResourceId: String, bookmarked: Boolean) {
-        viewModelScope.launch {
-            userDataRepository.setNewsResourceBookmarked(newsResourceId, bookmarked)
-        }
-    }
-
-    fun setNewsResourceViewed(newsResourceId: String, viewed: Boolean) {
-        viewModelScope.launch {
-            userDataRepository.setNewsResourceViewed(newsResourceId, viewed)
         }
     }
 
@@ -133,39 +106,9 @@ private fun topicUiState(
         }
 }
 
-private fun newsUiState(
-    topicId: String,
-    userNewsResourceRepository: UserNewsResourceRepository,
-    userDataRepository: UserDataRepository,
-): Flow<NewsUiState> {
-    // Observe news
-    val newsStream: Flow<List<UserNewsResource>> = userNewsResourceRepository.observeAll(
-        NewsResourceQuery(filterTopicIds = setOf(element = topicId)),
-    )
-
-    // Observe bookmarks
-    val bookmark: Flow<Set<String>> = userDataRepository.userData
-        .map { it.bookmarkedNewsResources }
-
-    return combine(newsStream, bookmark, ::Pair)
-        .asResult()
-        .map { newsToBookmarksResult ->
-            when (newsToBookmarksResult) {
-                is Result.Success -> NewsUiState.Success(newsToBookmarksResult.data.first)
-                is Result.Loading -> NewsUiState.Loading
-                is Result.Error -> NewsUiState.Error
-            }
-        }
-}
 
 sealed interface TopicUiState {
     data class Success(val followableTopic: FollowableTopic) : TopicUiState
     data object Error : TopicUiState
     data object Loading : TopicUiState
-}
-
-sealed interface NewsUiState {
-    data class Success(val news: List<UserNewsResource>) : NewsUiState
-    data object Error : NewsUiState
-    data object Loading : NewsUiState
 }

@@ -26,8 +26,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filterNotNull
 
 val emptyUserData = UserData(
-    bookmarkedNewsResources = emptySet(),
-    viewedNewsResources = emptySet(),
     followedTopics = emptySet(),
     themeBrand = ThemeBrand.DEFAULT,
     darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
@@ -58,33 +56,6 @@ class TestUserDataRepository : UserDataRepository {
             }
 
             _userData.tryEmit(current.copy(followedTopics = followedTopics))
-        }
-    }
-
-    override suspend fun setNewsResourceBookmarked(newsResourceId: String, bookmarked: Boolean) {
-        currentUserData.let { current ->
-            val bookmarkedNews = if (bookmarked) {
-                current.bookmarkedNewsResources + newsResourceId
-            } else {
-                current.bookmarkedNewsResources - newsResourceId
-            }
-
-            _userData.tryEmit(current.copy(bookmarkedNewsResources = bookmarkedNews))
-        }
-    }
-
-    override suspend fun setNewsResourceViewed(newsResourceId: String, viewed: Boolean) {
-        currentUserData.let { current ->
-            _userData.tryEmit(
-                current.copy(
-                    viewedNewsResources =
-                    if (viewed) {
-                        current.viewedNewsResources + newsResourceId
-                    } else {
-                        current.viewedNewsResources - newsResourceId
-                    },
-                ),
-            )
         }
     }
 

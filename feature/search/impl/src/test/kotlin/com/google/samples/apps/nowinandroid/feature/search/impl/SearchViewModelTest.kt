@@ -20,7 +20,6 @@ import androidx.lifecycle.SavedStateHandle
 import com.google.samples.apps.nowinandroid.core.analytics.NoOpAnalyticsHelper
 import com.google.samples.apps.nowinandroid.core.domain.GetRecentSearchQueriesUseCase
 import com.google.samples.apps.nowinandroid.core.domain.GetSearchContentsUseCase
-import com.google.samples.apps.nowinandroid.core.testing.data.newsResourcesTestData
 import com.google.samples.apps.nowinandroid.core.testing.data.topicsTestData
 import com.google.samples.apps.nowinandroid.core.testing.repository.TestRecentSearchRepository
 import com.google.samples.apps.nowinandroid.core.testing.repository.TestSearchContentsRepository
@@ -84,7 +83,6 @@ class SearchViewModelTest {
 
     @Test
     fun stateIsEmptyQuery_withEmptySearchQuery() = runTest {
-        searchContentsRepository.addNewsResources(newsResourcesTestData)
         searchContentsRepository.addTopics(topicsTestData)
         backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.searchResultUiState.collect() }
 
@@ -98,7 +96,6 @@ class SearchViewModelTest {
         backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.searchResultUiState.collect() }
 
         viewModel.onSearchQueryChanged("XXX")
-        searchContentsRepository.addNewsResources(newsResourcesTestData)
         searchContentsRepository.addTopics(topicsTestData)
 
         val result = viewModel.searchResultUiState.value
@@ -136,7 +133,6 @@ class SearchViewModelTest {
 
     @Test
     fun searchTextWithThreeSpaces_isEmptyQuery() = runTest {
-        searchContentsRepository.addNewsResources(newsResourcesTestData)
         searchContentsRepository.addTopics(topicsTestData)
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchResultUiState.collect() }
 
@@ -149,7 +145,6 @@ class SearchViewModelTest {
 
     @Test
     fun searchTextWithThreeSpacesAndOneLetter_isEmptyQuery() = runTest {
-        searchContentsRepository.addNewsResources(newsResourcesTestData)
         searchContentsRepository.addTopics(topicsTestData)
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.searchResultUiState.collect() }
 
@@ -158,23 +153,5 @@ class SearchViewModelTest {
         assertIs<EmptyQuery>(viewModel.searchResultUiState.value)
 
         collectJob.cancel()
-    }
-
-    @Test
-    fun whenToggleNewsResourceSavedIsCalled_bookmarkStateIsUpdated() = runTest {
-        val newsResourceId = "123"
-        viewModel.setNewsResourceBookmarked(newsResourceId, true)
-
-        assertEquals(
-            expected = setOf(newsResourceId),
-            actual = userDataRepository.userData.first().bookmarkedNewsResources,
-        )
-
-        viewModel.setNewsResourceBookmarked(newsResourceId, false)
-
-        assertEquals(
-            expected = emptySet(),
-            actual = userDataRepository.userData.first().bookmarkedNewsResources,
-        )
     }
 }

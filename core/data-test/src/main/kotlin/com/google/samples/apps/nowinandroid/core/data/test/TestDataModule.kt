@@ -17,12 +17,12 @@
 package com.google.samples.apps.nowinandroid.core.data.test
 
 import com.google.samples.apps.nowinandroid.core.data.di.DataModule
-import com.google.samples.apps.nowinandroid.core.data.repository.NewsRepository
+import com.google.samples.apps.nowinandroid.core.data.di.DataModule
 import com.google.samples.apps.nowinandroid.core.data.repository.RecentSearchRepository
 import com.google.samples.apps.nowinandroid.core.data.repository.SearchContentsRepository
 import com.google.samples.apps.nowinandroid.core.data.repository.TopicsRepository
 import com.google.samples.apps.nowinandroid.core.data.repository.UserDataRepository
-import com.google.samples.apps.nowinandroid.core.data.test.repository.FakeNewsRepository
+import com.google.samples.apps.nowinandroid.core.data.repository.RecentSearchRepository
 import com.google.samples.apps.nowinandroid.core.data.test.repository.FakeRecentSearchRepository
 import com.google.samples.apps.nowinandroid.core.data.test.repository.FakeSearchContentsRepository
 import com.google.samples.apps.nowinandroid.core.data.test.repository.FakeTopicsRepository
@@ -45,10 +45,6 @@ internal interface TestDataModule {
         fakeTopicsRepository: FakeTopicsRepository,
     ): TopicsRepository
 
-    @Binds
-    fun bindsNewsResourceRepository(
-        fakeNewsRepository: FakeNewsRepository,
-    ): NewsRepository
 
     @Binds
     fun bindsUserDataRepository(

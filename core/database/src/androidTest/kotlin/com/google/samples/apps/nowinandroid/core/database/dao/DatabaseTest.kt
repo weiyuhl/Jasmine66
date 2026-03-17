@@ -26,7 +26,6 @@ import org.junit.Before
 internal abstract class DatabaseTest {
 
     private lateinit var db: NiaDatabase
-    protected lateinit var newsResourceDao: NewsResourceDao
     protected lateinit var topicDao: TopicDao
 
     @Before
@@ -38,7 +37,6 @@ internal abstract class DatabaseTest {
                 NiaDatabase::class.java,
             ).build()
         }
-        newsResourceDao = db.newsResourceDao()
         topicDao = db.topicDao()
     }
 

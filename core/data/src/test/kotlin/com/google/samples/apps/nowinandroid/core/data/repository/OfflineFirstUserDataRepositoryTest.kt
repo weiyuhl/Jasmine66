@@ -59,8 +59,6 @@ class OfflineFirstUserDataRepositoryTest {
         testScope.runTest {
             assertEquals(
                 UserData(
-                    bookmarkedNewsResources = emptySet(),
-                    viewedNewsResources = emptySet(),
                     followedTopics = emptySet(),
                     themeBrand = ThemeBrand.DEFAULT,
                     darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
@@ -124,67 +122,6 @@ class OfflineFirstUserDataRepositoryTest {
             )
         }
 
-    @Test
-    fun offlineFirstUserDataRepository_bookmark_news_resource_logic_delegates_to_nia_preferences() =
-        testScope.runTest {
-            subject.setNewsResourceBookmarked(newsResourceId = "0", bookmarked = true)
-
-            assertEquals(
-                setOf("0"),
-                subject.userData
-                    .map { it.bookmarkedNewsResources }
-                    .first(),
-            )
-
-            subject.setNewsResourceBookmarked(newsResourceId = "1", bookmarked = true)
-
-            assertEquals(
-                setOf("0", "1"),
-                subject.userData
-                    .map { it.bookmarkedNewsResources }
-                    .first(),
-            )
-
-            assertEquals(
-                niaPreferencesDataSource.userData
-                    .map { it.bookmarkedNewsResources }
-                    .first(),
-                subject.userData
-                    .map { it.bookmarkedNewsResources }
-                    .first(),
-            )
-        }
-
-    @Test
-    fun offlineFirstUserDataRepository_update_viewed_news_resources_delegates_to_nia_preferences() =
-        runTest {
-            subject.setNewsResourceViewed(newsResourceId = "0", viewed = true)
-
-            assertEquals(
-                setOf("0"),
-                subject.userData
-                    .map { it.viewedNewsResources }
-                    .first(),
-            )
-
-            subject.setNewsResourceViewed(newsResourceId = "1", viewed = true)
-
-            assertEquals(
-                setOf("0", "1"),
-                subject.userData
-                    .map { it.viewedNewsResources }
-                    .first(),
-            )
-
-            assertEquals(
-                niaPreferencesDataSource.userData
-                    .map { it.viewedNewsResources }
-                    .first(),
-                subject.userData
-                    .map { it.viewedNewsResources }
-                    .first(),
-            )
-        }
 
     @Test
     fun offlineFirstUserDataRepository_set_theme_brand_delegates_to_nia_preferences() =
