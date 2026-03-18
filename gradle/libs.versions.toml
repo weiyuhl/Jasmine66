@@ -135,15 +135,15 @@ room = { id = "androidx.room", version.ref = "room" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 
 # Plugins defined by this project
-nowinandroid-android-application = { id = "nowinandroid.android.application" }
-nowinandroid-android-application-compose = { id = "nowinandroid.android.application.compose" }
-nowinandroid-android-application-flavors = { id = "nowinandroid.android.application.flavors" }
-nowinandroid-android-feature-impl = { id = "nowinandroid.android.feature.impl" }
-nowinandroid-android-feature-api = { id = "nowinandroid.android.feature.api" }
-nowinandroid-android-library = { id = "nowinandroid.android.library" }
-nowinandroid-android-library-compose = { id = "nowinandroid.android.library.compose" }
-nowinandroid-android-lint = { id = "nowinandroid.android.lint" }
-nowinandroid-android-room = { id = "nowinandroid.android.room" }
-nowinandroid-hilt = { id = "nowinandroid.hilt" }
-nowinandroid-jvm-library = { id = "nowinandroid.jvm.library" }
-nowinandroid-root = { id = "nowinandroid.root" }
+jasmine-android-application = { id = "jasmine.android.application" }
+jasmine-android-application-compose = { id = "jasmine.android.application.compose" }
+jasmine-android-application-flavors = { id = "jasmine.android.application.flavors" }
+jasmine-android-feature-impl = { id = "jasmine.android.feature.impl" }
+jasmine-android-feature-api = { id = "jasmine.android.feature.api" }
+jasmine-android-library = { id = "jasmine.android.library" }
+jasmine-android-library-compose = { id = "jasmine.android.library.compose" }
+jasmine-android-lint = { id = "jasmine.android.lint" }
+jasmine-android-room = { id = "jasmine.android.room" }
+jasmine-hilt = { id = "jasmine.hilt" }
+jasmine-jvm-library = { id = "jasmine.jvm.library" }
+jasmine-root = { id = "jasmine.root" }

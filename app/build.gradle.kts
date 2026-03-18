@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.lhzkml.jasmine.NiaBuildType
+import com.lhzkml.jasmine.JasmineBuildType
 
 plugins {
-    alias(libs.plugins.nowinandroid.android.application)
-    alias(libs.plugins.nowinandroid.android.application.compose)
-    alias(libs.plugins.nowinandroid.hilt)
+    alias(libs.plugins.jasmine.android.application)
+    alias(libs.plugins.jasmine.android.application.compose)
+    alias(libs.plugins.jasmine.hilt)
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -40,12 +40,12 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = NiaBuildType.DEBUG.applicationIdSuffix
+            applicationIdSuffix = JasmineBuildType.DEBUG.applicationIdSuffix
         }
         release {
             isMinifyEnabled = providers.gradleProperty("minifyWithR8")
                 .map(String::toBooleanStrict).getOrElse(true)
-            applicationIdSuffix = NiaBuildType.RELEASE.applicationIdSuffix
+            applicationIdSuffix = JasmineBuildType.RELEASE.applicationIdSuffix
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),
                           "proguard-rules.pro")
 

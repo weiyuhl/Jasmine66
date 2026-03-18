@@ -15,7 +15,7 @@
  */
 
 plugins {
-    alias(libs.plugins.nowinandroid.android.feature.api)
+    alias(libs.plugins.jasmine.android.feature.api)
 }
 
 android {

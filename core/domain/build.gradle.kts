@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    alias(libs.plugins.nowinandroid.android.library)
+    alias(libs.plugins.jasmine.android.library)
     id("com.google.devtools.ksp")
 }
 

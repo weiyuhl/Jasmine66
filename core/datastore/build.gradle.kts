@@ -15,8 +15,8 @@
  */
 
 plugins {
-    alias(libs.plugins.nowinandroid.android.library)
-    alias(libs.plugins.nowinandroid.hilt)
+    alias(libs.plugins.jasmine.android.library)
+    alias(libs.plugins.jasmine.hilt)
 }
 
 android {

@@ -94,27 +94,27 @@ private class Graph(
  */
 internal enum class PluginType(val id: String, val ref: String, val style: String) {
     AndroidApplication(
-        id = "nowinandroid.android.application",
+        id = "jasmine.android.application",
         ref = "android-application",
         style = "fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000",
     ),
     AndroidFeature(
-        id = "nowinandroid.android.feature",
+        id = "jasmine.android.feature",
         ref = "android-feature",
         style = "fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000",
     ),
     AndroidLibrary(
-        id = "nowinandroid.android.library",
+        id = "jasmine.android.library",
         ref = "android-library",
         style = "fill:#9BF6FF,stroke:#000,stroke-width:2px,color:#000",
     ),
     AndroidTest(
-        id = "nowinandroid.android.test",
+        id = "jasmine.android.test",
         ref = "android-test",
         style = "fill:#A0C4FF,stroke:#000,stroke-width:2px,color:#000",
     ),
     Jvm(
-        id = "nowinandroid.jvm.library",
+        id = "jasmine.jvm.library",
         ref = "jvm-library",
         style = "fill:#BDB2FF,stroke:#000,stroke-width:2px,color:#000",
     ),

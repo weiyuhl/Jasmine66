@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 plugins {
-    alias(libs.plugins.nowinandroid.android.library)
-    alias(libs.plugins.nowinandroid.android.library.compose)
-    alias(libs.plugins.nowinandroid.hilt)
+    alias(libs.plugins.jasmine.android.library)
+    alias(libs.plugins.jasmine.android.library.compose)
+    alias(libs.plugins.jasmine.hilt)
 }
 
 android {
