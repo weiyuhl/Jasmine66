@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.samples.apps.nowinandroid.feature.interests.impl
+package com.lhzkml.jasmine.feature.interests.impl
 
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
@@ -24,12 +24,12 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
-import com.google.samples.apps.nowinandroid.core.testing.data.followableTopicTestData
+import com.lhzkml.jasmine.core.testing.data.followableTopicTestData
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import com.google.samples.apps.nowinandroid.core.ui.R as CoreUiR
-import com.google.samples.apps.nowinandroid.feature.interests.api.R as InterestsR
+import com.lhzkml.jasmine.core.ui.R as CoreUiR
+import com.lhzkml.jasmine.feature.interests.api.R as InterestsR
 
 /**
  * UI test for checking the correct behaviour of the Interests screen;

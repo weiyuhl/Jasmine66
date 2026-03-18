@@ -19,7 +19,7 @@ plugins {
 }
 
 android {
-    namespace = "com.google.samples.apps.nowinandroid.core.designsystem"
+    namespace = "com.lhzkml.jasmine.core.designsystem"
 }
 
 dependencies {

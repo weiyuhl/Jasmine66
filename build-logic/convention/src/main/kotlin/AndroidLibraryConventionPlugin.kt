@@ -16,11 +16,11 @@
 
 import com.android.build.api.dsl.LibraryExtension
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
-import com.google.samples.apps.nowinandroid.configureKotlinAndroid
-import com.google.samples.apps.nowinandroid.configurePrintApksTask
-import com.google.samples.apps.nowinandroid.configureSpotlessForAndroid
-import com.google.samples.apps.nowinandroid.disableUnnecessaryAndroidTests
-import com.google.samples.apps.nowinandroid.libs
+import com.lhzkml.jasmine.configureKotlinAndroid
+import com.lhzkml.jasmine.configurePrintApksTask
+import com.lhzkml.jasmine.configureSpotlessForAndroid
+import com.lhzkml.jasmine.disableUnnecessaryAndroidTests
+import com.lhzkml.jasmine.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply

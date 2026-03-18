@@ -23,7 +23,7 @@ plugins {
 }
 
 android {
-    namespace = "com.google.samples.apps.nowinandroid.core.navigation"
+    namespace = "com.lhzkml.jasmine.core.navigation"
 }
 
 dependencies {

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.samples.apps.nowinandroid.core.network.di
+package com.lhzkml.jasmine.core.network.di
 
-import com.google.samples.apps.nowinandroid.core.network.NiaNetworkDataSource
-import com.google.samples.apps.nowinandroid.core.network.demo.DemoNiaNetworkDataSource
+import com.lhzkml.jasmine.core.network.NiaNetworkDataSource
+import com.lhzkml.jasmine.core.network.demo.DemoNiaNetworkDataSource
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

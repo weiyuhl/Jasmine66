@@ -19,5 +19,5 @@ plugins {
 }
 
 android {
-    namespace = "com.google.samples.apps.nowinandroid.feature.interests.api"
+    namespace = "com.lhzkml.jasmine.feature.interests.api"
 }

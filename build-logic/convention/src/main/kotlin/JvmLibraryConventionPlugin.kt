@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import com.google.samples.apps.nowinandroid.configureKotlinJvm
-import com.google.samples.apps.nowinandroid.configureSpotlessForJvm
-import com.google.samples.apps.nowinandroid.libs
+import com.lhzkml.jasmine.configureKotlinJvm
+import com.lhzkml.jasmine.configureSpotlessForJvm
+import com.lhzkml.jasmine.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply

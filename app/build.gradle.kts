@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.google.samples.apps.nowinandroid.NiaBuildType
+import com.lhzkml.jasmine.NiaBuildType
 
 plugins {
     alias(libs.plugins.nowinandroid.android.application)
@@ -24,7 +24,7 @@ plugins {
 
 android {
     defaultConfig {
-        applicationId = "com.google.samples.apps.nowinandroid"
+        applicationId = "com.lhzkml.jasmine"
         versionCode = 8
         versionName = "0.1.2" // X.Y.Z; X = Major, Y = minor, Z = Patch level
     }
@@ -61,7 +61,7 @@ android {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
     }
-    namespace = "com.google.samples.apps.nowinandroid"
+    namespace = "com.lhzkml.jasmine"
 }
 
 dependencies {

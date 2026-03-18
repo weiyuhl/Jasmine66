@@ -16,10 +16,10 @@
 
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
-import com.google.samples.apps.nowinandroid.configureBadgingTasks
-import com.google.samples.apps.nowinandroid.configureKotlinAndroid
-import com.google.samples.apps.nowinandroid.configurePrintApksTask
-import com.google.samples.apps.nowinandroid.configureSpotlessForAndroid
+import com.lhzkml.jasmine.configureBadgingTasks
+import com.lhzkml.jasmine.configureKotlinAndroid
+import com.lhzkml.jasmine.configurePrintApksTask
+import com.lhzkml.jasmine.configureSpotlessForAndroid
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply

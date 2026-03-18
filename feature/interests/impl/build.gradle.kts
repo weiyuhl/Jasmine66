@@ -19,7 +19,7 @@ plugins {
     alias(libs.plugins.nowinandroid.android.library.compose)
 }
 android {
-    namespace = "com.google.samples.apps.nowinandroid.feature.interests.impl"
+    namespace = "com.lhzkml.jasmine.feature.interests.impl"
 }
 
 dependencies {

@@ -38,19 +38,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaButton
-import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaFilterChip
-import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaIconToggleButton
-import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaNavigationBar
-import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaNavigationBarItem
-import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaOutlinedButton
-import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaTab
-import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaTabRow
-import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaTextButton
-import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaTopicTag
-import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaViewToggleButton
-import com.google.samples.apps.nowinandroid.core.designsystem.icon.NiaIcons
-import com.google.samples.apps.nowinandroid.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.component.NiaButton
+import com.lhzkml.jasmine.core.designsystem.component.NiaFilterChip
+import com.lhzkml.jasmine.core.designsystem.component.NiaIconToggleButton
+import com.lhzkml.jasmine.core.designsystem.component.NiaNavigationBar
+import com.lhzkml.jasmine.core.designsystem.component.NiaNavigationBarItem
+import com.lhzkml.jasmine.core.designsystem.component.NiaOutlinedButton
+import com.lhzkml.jasmine.core.designsystem.component.NiaTab
+import com.lhzkml.jasmine.core.designsystem.component.NiaTabRow
+import com.lhzkml.jasmine.core.designsystem.component.NiaTextButton
+import com.lhzkml.jasmine.core.designsystem.component.NiaTopicTag
+import com.lhzkml.jasmine.core.designsystem.component.NiaViewToggleButton
+import com.lhzkml.jasmine.core.designsystem.icon.NiaIcons
+import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
 
 /**
  * Now in Android component catalog.

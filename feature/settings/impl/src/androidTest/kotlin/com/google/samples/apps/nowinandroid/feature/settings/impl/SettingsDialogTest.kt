@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package com.google.samples.apps.nowinandroid.feature.settings.impl
+package com.lhzkml.jasmine.feature.settings.impl
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import com.google.samples.apps.nowinandroid.core.model.data.DarkThemeConfig.DARK
-import com.google.samples.apps.nowinandroid.core.model.data.ThemeBrand.ANDROID
-import com.google.samples.apps.nowinandroid.core.model.data.ThemeBrand.DEFAULT
-import com.google.samples.apps.nowinandroid.feature.settings.impl.SettingsUiState.Loading
-import com.google.samples.apps.nowinandroid.feature.settings.impl.SettingsUiState.Success
+import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.DARK
+import com.lhzkml.jasmine.core.model.data.ThemeBrand.ANDROID
+import com.lhzkml.jasmine.core.model.data.ThemeBrand.DEFAULT
+import com.lhzkml.jasmine.feature.settings.impl.SettingsUiState.Loading
+import com.lhzkml.jasmine.feature.settings.impl.SettingsUiState.Success
 import org.junit.Rule
 import org.junit.Test
 

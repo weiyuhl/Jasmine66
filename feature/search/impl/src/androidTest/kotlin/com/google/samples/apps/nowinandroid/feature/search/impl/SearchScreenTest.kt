@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.samples.apps.nowinandroid.feature.search.impl
+package com.lhzkml.jasmine.feature.search.impl
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertCountEquals
@@ -28,10 +28,10 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollToIndex
-import com.google.samples.apps.nowinandroid.core.data.model.RecentSearchQuery
-import com.google.samples.apps.nowinandroid.core.testing.data.followableTopicTestData
-import com.google.samples.apps.nowinandroid.core.ui.R.string
-import com.google.samples.apps.nowinandroid.feature.search.api.R
+import com.lhzkml.jasmine.core.data.model.RecentSearchQuery
+import com.lhzkml.jasmine.core.testing.data.followableTopicTestData
+import com.lhzkml.jasmine.core.ui.R.string
+import com.lhzkml.jasmine.feature.search.api.R
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

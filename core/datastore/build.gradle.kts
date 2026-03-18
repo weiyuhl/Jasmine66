@@ -23,7 +23,7 @@ android {
     defaultConfig {
         consumerProguardFiles("consumer-proguard-rules.pro")
     }
-    namespace = "com.google.samples.apps.nowinandroid.core.datastore"
+    namespace = "com.lhzkml.jasmine.core.datastore"
 }
 
 dependencies {

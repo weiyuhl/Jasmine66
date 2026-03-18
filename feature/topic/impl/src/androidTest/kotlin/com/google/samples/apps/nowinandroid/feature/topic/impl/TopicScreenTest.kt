@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.google.samples.apps.nowinandroid.feature.topic.impl
+package com.lhzkml.jasmine.feature.topic.impl
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
-import com.google.samples.apps.nowinandroid.core.testing.data.followableTopicTestData
-import com.google.samples.apps.nowinandroid.feature.topic.api.R
+import com.lhzkml.jasmine.core.testing.data.followableTopicTestData
+import com.lhzkml.jasmine.feature.topic.api.R
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

@@ -19,5 +19,5 @@ plugins {
 }
 
 android {
-    namespace = "com.google.samples.apps.nowinandroid.feature.bookmarks.api"
+    namespace = "com.lhzkml.jasmine.feature.bookmarks.api"
 }

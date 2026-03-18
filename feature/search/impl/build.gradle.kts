@@ -20,7 +20,7 @@ plugins {
 }
 
 android {
-    namespace = "com.google.samples.apps.nowinandroid.feature.search.impl"
+    namespace = "com.lhzkml.jasmine.feature.search.impl"
 }
 
 dependencies {
