@@ -29,6 +29,15 @@ android {
         versionName = "0.1.2" // X.Y.Z; X = Major, Y = minor, Z = Patch level
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("../release.jks")
+            storePassword = "android"
+            keyAlias = "releaseKey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = NiaBuildType.DEBUG.applicationIdSuffix
@@ -43,7 +52,7 @@ android {
             // To publish on the Play store a private signing key is required, but to allow anyone
             // who clones the code to sign and run the release variant, use the debug signing key.
             // TODO: Abstract the signing configuration to a separate file to avoid hardcoding this.
-            signingConfig = signingConfigs.named("debug").get()
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -98,5 +107,5 @@ dependencies {
 }
 
 dependencyGuard {
-    configuration("prodReleaseRuntimeClasspath")
+    configuration("releaseRuntimeClasspath")
 }
