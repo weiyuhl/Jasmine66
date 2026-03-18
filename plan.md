@@ -1,12 +1,16 @@
-# Now in Android 项目分析报告
+# Jasmine 项目分析报告
 
 ## 项目概述
-Now in Android 是 Google 开发的一个现代 Android 应用示例项目，展示了 Android 开发的最新技术和最佳实践。该项目采用模块化架构，遵循官方 Android 架构指南，使用 Jetpack Compose 构建 UI。
+Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设计，遵循官方 Android 架构指南，使用 Jetpack Compose 构建 UI。该项目展示了 Android 开发的最新技术和最佳实践。
+
+- **包名**: `com.lhzkml.jasmine`
+- **应用名称**: Jasmine
+- **版本**: 0.1.2 (版本代码: 8)
 
 ## 技术栈详情
 
 ### 核心技术
-1. **UI 框架**: Jetpack Compose
+1. **UI 框架**: Jetpack Compose 2025.09.01
 2. **架构模式**: MVVM + Clean Architecture
 3. **依赖注入**: Hilt (Dagger) 2.59
 4. **数据层**: Room 2.8.3 (本地数据库), Retrofit 2.11.0 (网络请求)
@@ -99,6 +103,7 @@ Now in Android 是 Google 开发的一个现代 Android 应用示例项目，展
 
 #### 1. App 模块 (`app/`)
 - **功能**: 主应用模块，包含应用入口和主 Activity
+- **包名**: `com.lhzkml.jasmine`
 - **关键文件**:
   - `MainActivity.kt`: 主 Activity，处理应用生命周期
   - `NiaApplication.kt`: 应用类，初始化依赖注入
@@ -437,7 +442,7 @@ core:datastore
 
 ## 总结
 
-Now in Android 是一个优秀的 Android 开发示例项目，展示了现代 Android 开发的最佳实践。项目采用模块化架构，遵循官方架构指南，使用最新的 Android 技术栈，是学习 Android 开发的绝佳参考。
+Jasmine 是一个优秀的 Android 开发示例项目，展示了现代 Android 开发的最佳实践。项目采用模块化架构，遵循官方架构指南，使用最新的 Android 技术栈，是学习 Android 开发的绝佳参考。
 
 项目的主要特点包括：
 - 清晰的架构分层
