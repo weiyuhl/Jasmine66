@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.lhzkml.jasmine.core.designsystem.theme.GradientColors
 import com.lhzkml.jasmine.core.designsystem.theme.LocalBackgroundTheme
 import com.lhzkml.jasmine.core.designsystem.theme.LocalGradientColors
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import kotlin.math.tan
 
 /**
@@ -48,7 +48,7 @@ import kotlin.math.tan
  * @param content The background content.
  */
 @Composable
-fun NiaBackground(
+fun JasmineBackground(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -74,7 +74,7 @@ fun NiaBackground(
  * @param content The background content.
  */
 @Composable
-fun NiaGradientBackground(
+fun JasmineGradientBackground(
     modifier: Modifier = Modifier,
     gradientColors: GradientColors = LocalGradientColors.current,
     content: @Composable () -> Unit,
@@ -151,7 +151,7 @@ annotation class ThemePreviews
 @Composable
 fun BackgroundDefault() {
     NiaTheme(disableDynamicTheming = true) {
-        NiaBackground(Modifier.size(100.dp), content = {})
+        JasmineBackground(Modifier.size(100.dp), content = {})
     }
 }
 
@@ -159,7 +159,7 @@ fun BackgroundDefault() {
 @Composable
 fun BackgroundDynamic() {
     NiaTheme(disableDynamicTheming = false) {
-        NiaBackground(Modifier.size(100.dp), content = {})
+        JasmineBackground(Modifier.size(100.dp), content = {})
     }
 }
 
@@ -167,7 +167,7 @@ fun BackgroundDynamic() {
 @Composable
 fun BackgroundAndroid() {
     NiaTheme(androidTheme = true) {
-        NiaBackground(Modifier.size(100.dp), content = {})
+        JasmineBackground(Modifier.size(100.dp), content = {})
     }
 }
 
@@ -175,7 +175,7 @@ fun BackgroundAndroid() {
 @Composable
 fun GradientBackgroundDefault() {
     NiaTheme(disableDynamicTheming = true) {
-        NiaGradientBackground(Modifier.size(100.dp), content = {})
+        JasmineGradientBackground(Modifier.size(100.dp), content = {})
     }
 }
 
@@ -183,7 +183,7 @@ fun GradientBackgroundDefault() {
 @Composable
 fun GradientBackgroundDynamic() {
     NiaTheme(disableDynamicTheming = false) {
-        NiaGradientBackground(Modifier.size(100.dp), content = {})
+        JasmineGradientBackground(Modifier.size(100.dp), content = {})
     }
 }
 
@@ -191,6 +191,6 @@ fun GradientBackgroundDynamic() {
 @Composable
 fun GradientBackgroundAndroid() {
     NiaTheme(androidTheme = true) {
-        NiaGradientBackground(Modifier.size(100.dp), content = {})
+        JasmineGradientBackground(Modifier.size(100.dp), content = {})
     }
 }

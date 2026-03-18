@@ -18,7 +18,7 @@ package com.lhzkml.jasmine.core.database.di
 
 import android.content.Context
 import androidx.room.Room
-import com.lhzkml.jasmine.core.database.NiaDatabase
+import com.lhzkml.jasmine.core.database.JasmineDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,11 +31,11 @@ import javax.inject.Singleton
 internal object DatabaseModule {
     @Provides
     @Singleton
-    fun providesNiaDatabase(
+    fun providesJasmineDatabase(
         @ApplicationContext context: Context,
-    ): NiaDatabase = Room.databaseBuilder(
+    ): JasmineDatabase = Room.databaseBuilder(
         context,
-        NiaDatabase::class.java,
-        "nia-database",
+        JasmineDatabase::class.java,
+        "jasmine-database",
     ).build()
 }

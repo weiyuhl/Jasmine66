@@ -22,12 +22,12 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.NiaCatalog">
+        android:theme="@style/Theme.JasmineCatalog">
         <activity
-            android:name="com.google.samples.apps.niacatalog.NiaCatalogActivity"
+            android:name="com.lhzkml.jasmine.catalog.JasmineCatalogActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.NiaCatalog">
+            android:theme="@style/Theme.JasmineCatalog">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

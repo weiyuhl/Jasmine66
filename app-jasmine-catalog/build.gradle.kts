@@ -30,13 +30,13 @@
  * limitations under the License.
  */
 plugins {
-    alias(libs.plugins.nowinandroid.android.application)
-    alias(libs.plugins.nowinandroid.android.application.compose)
+    alias(libs.plugins.jasmine.android.application)
+    alias(libs.plugins.jasmine.android.application.compose)
 }
 
 android {
     defaultConfig {
-        applicationId = "com.google.samples.apps.niacatalog"
+        applicationId = "com.lhzkml.jasmine.catalog"
         versionCode = 1
         versionName = "0.0.1" // X.Y.Z; X = Major, Y = minor, Z = Patch level
 
@@ -47,7 +47,7 @@ android {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
     }
-    namespace = "com.google.samples.apps.niacatalog"
+    namespace = "com.lhzkml.jasmine.catalog"
 
     buildTypes {
         release {

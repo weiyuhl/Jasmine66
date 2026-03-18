@@ -190,7 +190,7 @@ val DarkAndroidBackgroundTheme = BackgroundTheme(color = Color.Black)
  *        supported. This parameter has no effect if [androidTheme] is `true`.
  */
 @Composable
-fun NiaTheme(
+fun JasmineTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     androidTheme: Boolean = false,
     disableDynamicTheming: Boolean = true,
@@ -240,7 +240,7 @@ fun NiaTheme(
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = NiaTypography,
+            typography = JasmineTypography,
             content = content,
         )
     }

@@ -55,8 +55,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
-import com.lhzkml.jasmine.core.designsystem.component.NiaTextButton
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.component.JasmineTextButton
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import com.lhzkml.jasmine.core.designsystem.theme.supportsDynamicTheming
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.DARK
@@ -140,7 +140,7 @@ fun SettingsDialog(
             TrackScreenViewEvent(screenName = "Settings")
         },
         confirmButton = {
-            NiaTextButton(
+            JasmineTextButton(
                 onClick = onDismiss,
                 modifier = Modifier.padding(horizontal = 8.dp),
             ) {
@@ -259,7 +259,7 @@ private fun LinksPanel() {
         modifier = Modifier.fillMaxWidth(),
     ) {
         val context = LocalContext.current
-        NiaTextButton(
+        JasmineTextButton(
             onClick = {
                 context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
             },

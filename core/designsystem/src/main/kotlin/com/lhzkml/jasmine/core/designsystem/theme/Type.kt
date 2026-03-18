@@ -27,9 +27,9 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.sp
 
 /**
- * Now in Android typography.
+ * Jasmine typography.
  */
-internal val NiaTypography = Typography(
+internal val JasmineTypography = Typography(
     displayLarge = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 57.sp,

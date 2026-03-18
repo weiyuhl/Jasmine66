@@ -16,7 +16,7 @@
 
 package com.lhzkml.jasmine.core.database.di
 
-import com.lhzkml.jasmine.core.database.NiaDatabase
+import com.lhzkml.jasmine.core.database.JasmineDatabase
 import com.lhzkml.jasmine.core.database.dao.RecentSearchQueryDao
 import com.lhzkml.jasmine.core.database.dao.TopicDao
 import com.lhzkml.jasmine.core.database.dao.TopicFtsDao
@@ -30,18 +30,18 @@ import dagger.hilt.components.SingletonComponent
 internal object DaosModule {
     @Provides
     fun providesTopicsDao(
-        database: NiaDatabase,
+        database: JasmineDatabase,
     ): TopicDao = database.topicDao()
 
 
     @Provides
     fun providesTopicFtsDao(
-        database: NiaDatabase,
+        database: JasmineDatabase,
     ): TopicFtsDao = database.topicFtsDao()
 
 
     @Provides
     fun providesRecentSearchQueryDao(
-        database: NiaDatabase,
+        database: JasmineDatabase,
     ): RecentSearchQueryDao = database.recentSearchQueryDao()
 }

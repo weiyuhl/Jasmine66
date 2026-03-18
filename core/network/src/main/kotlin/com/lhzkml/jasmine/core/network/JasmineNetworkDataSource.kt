@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package com.lhzkml.jasmine.core.common.network
+package com.lhzkml.jasmine.core.network
 
-import javax.inject.Qualifier
-import kotlin.annotation.AnnotationRetention.RUNTIME
+import com.lhzkml.jasmine.core.network.model.NetworkChangeList
 
-@Qualifier
-@Retention(RUNTIME)
-annotation class Dispatcher(val niaDispatcher: NiaDispatchers)
-
-enum class NiaDispatchers {
-    Default,
-    IO,
+/**
+ * Interface representing network calls to the Jasmine backend
+ */
+interface JasmineNetworkDataSource {
 }

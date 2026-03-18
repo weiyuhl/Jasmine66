@@ -39,10 +39,10 @@ import com.lhzkml.jasmine.core.analytics.LocalAnalyticsHelper
 import com.lhzkml.jasmine.core.data.util.NetworkMonitor
 import com.lhzkml.jasmine.core.data.util.TimeZoneMonitor
 import com.lhzkml.jasmine.core.data.repository.SearchContentsRepository
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import com.lhzkml.jasmine.core.ui.LocalTimeZone
-import com.lhzkml.jasmine.ui.NiaApp
-import com.lhzkml.jasmine.ui.rememberNiaAppState
+import com.lhzkml.jasmine.ui.JasmineApp
+import com.lhzkml.jasmine.ui.rememberJasmineAppState
 import com.lhzkml.jasmine.util.isSystemInDarkTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
@@ -138,7 +138,7 @@ class MainActivity : ComponentActivity() {
         splashScreen.setKeepOnScreenCondition { viewModel.uiState.value.shouldKeepSplashScreen() }
 
         setContent {
-            val appState = rememberNiaAppState(
+            val appState = rememberJasmineAppState(
                 networkMonitor = networkMonitor,
                 timeZoneMonitor = timeZoneMonitor,
             )
@@ -149,12 +149,12 @@ class MainActivity : ComponentActivity() {
                 LocalAnalyticsHelper provides analyticsHelper,
                 LocalTimeZone provides currentTimeZone,
             ) {
-                NiaTheme(
+                JasmineTheme(
                     darkTheme = themeSettings.darkTheme,
                     androidTheme = themeSettings.androidTheme,
                     disableDynamicTheming = themeSettings.disableDynamicTheming,
                 ) {
-                    NiaApp(appState)
+                    JasmineApp(appState)
                 }
             }
         }

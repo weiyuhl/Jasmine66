@@ -18,7 +18,7 @@ package com.lhzkml.jasmine.core.network.retrofit
 
 import androidx.tracing.trace
 import com.lhzkml.jasmine.core.network.BuildConfig
-import com.lhzkml.jasmine.core.network.NiaNetworkDataSource
+import com.lhzkml.jasmine.core.network.JasmineNetworkDataSource
 import com.lhzkml.jasmine.core.network.model.NetworkChangeList
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -32,15 +32,15 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Retrofit API declaration for NIA Network API
+ * Retrofit API declaration for Jasmine Network API
  */
-private interface RetrofitNiaNetworkApi {
+private interface RetrofitJasmineNetworkApi {
 }
 
-private const val NIA_BASE_URL = BuildConfig.BACKEND_URL
+private const val JASMINE_BASE_URL = BuildConfig.BACKEND_URL
 
 /**
- * Wrapper for data provided from the [NIA_BASE_URL]
+ * Wrapper for data provided from the [JASMINE_BASE_URL]
  */
 @Serializable
 private data class NetworkResponse<T>(
@@ -48,17 +48,17 @@ private data class NetworkResponse<T>(
 )
 
 /**
- * [Retrofit] backed [NiaNetworkDataSource]
+ * [Retrofit] backed [JasmineNetworkDataSource]
  */
 @Singleton
-internal class RetrofitNiaNetwork @Inject constructor(
+internal class RetrofitJasmineNetwork @Inject constructor(
     networkJson: Json,
     okhttpCallFactory: dagger.Lazy<Call.Factory>,
-) : NiaNetworkDataSource {
+) : JasmineNetworkDataSource {
 
-    private val networkApi = trace("RetrofitNiaNetwork") {
+    private val networkApi = trace("RetrofitJasmineNetwork") {
         Retrofit.Builder()
-            .baseUrl(NIA_BASE_URL)
+            .baseUrl(JASMINE_BASE_URL)
             // We use callFactory lambda here with dagger.Lazy<Call.Factory>
             // to prevent initializing OkHttp on the main thread.
             .callFactory { okhttpCallFactory.get().newCall(it) }
@@ -66,6 +66,6 @@ internal class RetrofitNiaNetwork @Inject constructor(
                 networkJson.asConverterFactory("application/json".toMediaType()),
             )
             .build()
-            .create(RetrofitNiaNetworkApi::class.java)
+            .create(RetrofitJasmineNetworkApi::class.java)
     }
 }

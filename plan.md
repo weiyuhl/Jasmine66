@@ -106,7 +106,7 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
 - **包名**: `com.lhzkml.jasmine`
 - **关键文件**:
   - `MainActivity.kt`: 主 Activity，处理应用生命周期
-  - `NiaApplication.kt`: 应用类，初始化依赖注入
+  - `JasmineApplication.kt`: 应用类，初始化依赖注入
   - `navigation/`: 导航配置
   - `ui/`: 应用级 UI 组件
 

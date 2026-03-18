@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package com.google.samples.apps.niacatalog
+package com.lhzkml.jasmine.catalog
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
-import com.google.samples.apps.niacatalog.ui.NiaCatalog
+import com.lhzkml.jasmine.catalog.ui.JasmineCatalog
 
-class NiaCatalogActivity : ComponentActivity() {
+class JasmineCatalogActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        setContent { NiaCatalog() }
+        setContent { JasmineCatalog() }
     }
 }

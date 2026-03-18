@@ -47,11 +47,11 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import kotlinx.coroutines.launch
 
 @Composable
-fun NiaLoadingWheel(
+fun JasmineLoadingWheel(
     contentDesc: String,
     modifier: Modifier = Modifier,
 ) {
@@ -132,7 +132,7 @@ fun NiaLoadingWheel(
 }
 
 @Composable
-fun NiaOverlayLoadingWheel(
+fun JasmineOverlayLoadingWheel(
     contentDesc: String,
     modifier: Modifier = Modifier,
 ) {
@@ -143,7 +143,7 @@ fun NiaOverlayLoadingWheel(
         modifier = modifier
             .size(60.dp),
     ) {
-        NiaLoadingWheel(
+        JasmineLoadingWheel(
             contentDesc = contentDesc,
         )
     }
@@ -151,20 +151,20 @@ fun NiaOverlayLoadingWheel(
 
 @ThemePreviews
 @Composable
-fun NiaLoadingWheelPreview() {
-    NiaTheme {
+fun JasmineLoadingWheelPreview() {
+    JasmineTheme {
         Surface {
-            NiaLoadingWheel(contentDesc = "LoadingWheel")
+            JasmineLoadingWheel(contentDesc = "LoadingWheel")
         }
     }
 }
 
 @ThemePreviews
 @Composable
-fun NiaOverlayLoadingWheelPreview() {
-    NiaTheme {
+fun JasmineOverlayLoadingWheelPreview() {
+    JasmineTheme {
         Surface {
-            NiaOverlayLoadingWheel(contentDesc = "LoadingWheel")
+            JasmineOverlayLoadingWheel(contentDesc = "LoadingWheel")
         }
     }
 }

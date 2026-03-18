@@ -25,7 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.lhzkml.jasmine.core.designsystem.icon.NiaIcons
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
  * Now in Android toggle button with icon and checked icon content slots. Wraps Material 3
@@ -40,7 +40,7 @@ import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
  * @param checkedIcon The icon content to show when checked.
  */
 @Composable
-fun NiaIconToggleButton(
+fun JasmineIconToggleButton(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
@@ -60,7 +60,7 @@ fun NiaIconToggleButton(
             checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             disabledContainerColor = if (checked) {
                 MaterialTheme.colorScheme.onBackground.copy(
-                    alpha = NiaIconButtonDefaults.DISABLED_ICON_BUTTON_CONTAINER_ALPHA,
+                    alpha = JasmineIconButtonDefaults.DISABLED_ICON_BUTTON_CONTAINER_ALPHA,
                 )
             } else {
                 Color.Transparent
@@ -74,8 +74,8 @@ fun NiaIconToggleButton(
 @ThemePreviews
 @Composable
 fun IconButtonPreview() {
-    NiaTheme {
-        NiaIconToggleButton(
+    JasmineTheme {
+        JasmineIconToggleButton(
             checked = true,
             onCheckedChange = { },
             icon = {
@@ -97,8 +97,8 @@ fun IconButtonPreview() {
 @ThemePreviews
 @Composable
 fun IconButtonPreviewUnchecked() {
-    NiaTheme {
-        NiaIconToggleButton(
+    JasmineTheme {
+        JasmineIconToggleButton(
             checked = false,
             onCheckedChange = { },
             icon = {
@@ -120,7 +120,7 @@ fun IconButtonPreviewUnchecked() {
 /**
  * Now in Android icon button default values.
  */
-object NiaIconButtonDefaults {
+object JasmineIconButtonDefaults {
     // TODO: File bug
     // IconToggleButton disabled container alpha not exposed by IconButtonDefaults
     const val DISABLED_ICON_BUTTON_CONTAINER_ALPHA = 0.12f

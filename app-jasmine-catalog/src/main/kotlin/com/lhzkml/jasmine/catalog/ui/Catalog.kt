@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.samples.apps.niacatalog.ui
+package com.lhzkml.jasmine.catalog.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -38,27 +38,27 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.lhzkml.jasmine.core.designsystem.component.NiaButton
-import com.lhzkml.jasmine.core.designsystem.component.NiaFilterChip
-import com.lhzkml.jasmine.core.designsystem.component.NiaIconToggleButton
-import com.lhzkml.jasmine.core.designsystem.component.NiaNavigationBar
-import com.lhzkml.jasmine.core.designsystem.component.NiaNavigationBarItem
-import com.lhzkml.jasmine.core.designsystem.component.NiaOutlinedButton
-import com.lhzkml.jasmine.core.designsystem.component.NiaTab
-import com.lhzkml.jasmine.core.designsystem.component.NiaTabRow
-import com.lhzkml.jasmine.core.designsystem.component.NiaTextButton
-import com.lhzkml.jasmine.core.designsystem.component.NiaTopicTag
-import com.lhzkml.jasmine.core.designsystem.component.NiaViewToggleButton
-import com.lhzkml.jasmine.core.designsystem.icon.NiaIcons
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.component.JasmineButton
+import com.lhzkml.jasmine.core.designsystem.component.JasmineFilterChip
+import com.lhzkml.jasmine.core.designsystem.component.JasmineIconToggleButton
+import com.lhzkml.jasmine.core.designsystem.component.JasmineNavigationBar
+import com.lhzkml.jasmine.core.designsystem.component.JasmineNavigationBarItem
+import com.lhzkml.jasmine.core.designsystem.component.JasmineOutlinedButton
+import com.lhzkml.jasmine.core.designsystem.component.JasmineTab
+import com.lhzkml.jasmine.core.designsystem.component.JasmineTabRow
+import com.lhzkml.jasmine.core.designsystem.component.JasmineTextButton
+import com.lhzkml.jasmine.core.designsystem.component.JasmineTopicTag
+import com.lhzkml.jasmine.core.designsystem.component.JasmineViewToggleButton
+import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
  * Now in Android component catalog.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun NiaCatalog() {
-    NiaTheme {
+fun JasmineCatalog() {
+    JasmineTheme {
         Surface {
             val contentPadding = WindowInsets
                 .systemBars
@@ -71,7 +71,7 @@ fun NiaCatalog() {
             ) {
                 item {
                     Text(
-                        text = "NiA Catalog",
+                        text = "Jasmine Catalog",
                         style = MaterialTheme.typography.headlineSmall,
                     )
                 }
@@ -81,10 +81,10 @@ fun NiaCatalog() {
                         NiaButton(onClick = {}) {
                             Text(text = "Enabled")
                         }
-                        NiaOutlinedButton(onClick = {}) {
+                        JasmineOutlinedButton(onClick = {}) {
                             Text(text = "Enabled")
                         }
-                        NiaTextButton(onClick = {}) {
+                        JasmineTextButton(onClick = {}) {
                             Text(text = "Enabled")
                         }
                     }
@@ -92,19 +92,19 @@ fun NiaCatalog() {
                 item { Text("Disabled buttons", Modifier.padding(top = 16.dp)) }
                 item {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        NiaButton(
+                        JasmineButton(
                             onClick = {},
                             enabled = false,
                         ) {
                             Text(text = "Disabled")
                         }
-                        NiaOutlinedButton(
+                        JasmineOutlinedButton(
                             onClick = {},
                             enabled = false,
                         ) {
                             Text(text = "Disabled")
                         }
-                        NiaTextButton(
+                        JasmineTextButton(
                             onClick = {},
                             enabled = false,
                         ) {
@@ -115,21 +115,21 @@ fun NiaCatalog() {
                 item { Text("Buttons with leading icons", Modifier.padding(top = 16.dp)) }
                 item {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        NiaButton(
+                        JasmineButton(
                             onClick = {},
                             text = { Text(text = "Enabled") },
                             leadingIcon = {
                                 Icon(imageVector = NiaIcons.Add, contentDescription = null)
                             },
                         )
-                        NiaOutlinedButton(
+                        JasmineOutlinedButton(
                             onClick = {},
                             text = { Text(text = "Enabled") },
                             leadingIcon = {
                                 Icon(imageVector = NiaIcons.Add, contentDescription = null)
                             },
                         )
-                        NiaTextButton(
+                        JasmineTextButton(
                             onClick = {},
                             text = { Text(text = "Enabled") },
                             leadingIcon = {
@@ -141,7 +141,7 @@ fun NiaCatalog() {
                 item { Text("Disabled buttons with leading icons", Modifier.padding(top = 16.dp)) }
                 item {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        NiaButton(
+                        JasmineButton(
                             onClick = {},
                             enabled = false,
                             text = { Text(text = "Disabled") },
@@ -149,7 +149,7 @@ fun NiaCatalog() {
                                 Icon(imageVector = NiaIcons.Add, contentDescription = null)
                             },
                         )
-                        NiaOutlinedButton(
+                        JasmineOutlinedButton(
                             onClick = {},
                             enabled = false,
                             text = { Text(text = "Disabled") },
@@ -157,7 +157,7 @@ fun NiaCatalog() {
                                 Icon(imageVector = NiaIcons.Add, contentDescription = null)
                             },
                         )
-                        NiaTextButton(
+                        JasmineTextButton(
                             onClick = {},
                             enabled = false,
                             text = { Text(text = "Disabled") },
@@ -172,24 +172,24 @@ fun NiaCatalog() {
                 item {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         var firstChecked by rememberSaveable { mutableStateOf(false) }
-                        NiaFilterChip(
+                        JasmineFilterChip(
                             selected = firstChecked,
                             onSelectedChange = { checked -> firstChecked = checked },
                             label = { Text(text = "Enabled") },
                         )
                         var secondChecked by rememberSaveable { mutableStateOf(true) }
-                        NiaFilterChip(
+                        JasmineFilterChip(
                             selected = secondChecked,
                             onSelectedChange = { checked -> secondChecked = checked },
                             label = { Text(text = "Enabled") },
                         )
-                        NiaFilterChip(
+                        JasmineFilterChip(
                             selected = false,
                             onSelectedChange = {},
                             enabled = false,
                             label = { Text(text = "Disabled") },
                         )
-                        NiaFilterChip(
+                        JasmineFilterChip(
                             selected = true,
                             onSelectedChange = {},
                             enabled = false,
@@ -201,7 +201,7 @@ fun NiaCatalog() {
                 item {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         var firstChecked by rememberSaveable { mutableStateOf(false) }
-                        NiaIconToggleButton(
+                        JasmineIconToggleButton(
                             checked = firstChecked,
                             onCheckedChange = { checked -> firstChecked = checked },
                             icon = {
@@ -218,7 +218,7 @@ fun NiaCatalog() {
                             },
                         )
                         var secondChecked by rememberSaveable { mutableStateOf(true) }
-                        NiaIconToggleButton(
+                        JasmineIconToggleButton(
                             checked = secondChecked,
                             onCheckedChange = { checked -> secondChecked = checked },
                             icon = {
@@ -234,7 +234,7 @@ fun NiaCatalog() {
                                 )
                             },
                         )
-                        NiaIconToggleButton(
+                        JasmineIconToggleButton(
                             checked = false,
                             onCheckedChange = {},
                             icon = {
@@ -251,7 +251,7 @@ fun NiaCatalog() {
                             },
                             enabled = false,
                         )
-                        NiaIconToggleButton(
+                        JasmineIconToggleButton(
                             checked = true,
                             onCheckedChange = {},
                             icon = {
@@ -274,20 +274,20 @@ fun NiaCatalog() {
                 item {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         var firstExpanded by rememberSaveable { mutableStateOf(false) }
-                        NiaViewToggleButton(
+                        JasmineViewToggleButton(
                             expanded = firstExpanded,
                             onExpandedChange = { expanded -> firstExpanded = expanded },
                             compactText = { Text(text = "Compact view") },
                             expandedText = { Text(text = "Expanded view") },
                         )
                         var secondExpanded by rememberSaveable { mutableStateOf(true) }
-                        NiaViewToggleButton(
+                        JasmineViewToggleButton(
                             expanded = secondExpanded,
                             onExpandedChange = { expanded -> secondExpanded = expanded },
                             compactText = { Text(text = "Compact view") },
                             expandedText = { Text(text = "Expanded view") },
                         )
-                        NiaViewToggleButton(
+                        JasmineViewToggleButton(
                             expanded = false,
                             onExpandedChange = {},
                             compactText = { Text(text = "Disabled") },
@@ -299,17 +299,17 @@ fun NiaCatalog() {
                 item { Text("Tags", Modifier.padding(top = 16.dp)) }
                 item {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        NiaTopicTag(
+                        JasmineTopicTag(
                             followed = true,
                             onClick = {},
                             text = { Text(text = "Topic 1".uppercase()) },
                         )
-                        NiaTopicTag(
+                        JasmineTopicTag(
                             followed = false,
                             onClick = {},
                             text = { Text(text = "Topic 2".uppercase()) },
                         )
-                        NiaTopicTag(
+                        JasmineTopicTag(
                             followed = false,
                             onClick = {},
                             text = { Text(text = "Disabled".uppercase()) },
@@ -321,9 +321,9 @@ fun NiaCatalog() {
                 item {
                     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
                     val titles = listOf("Topics", "People")
-                    NiaTabRow(selectedTabIndex = selectedTabIndex) {
+                    JasmineTabRow(selectedTabIndex = selectedTabIndex) {
                         titles.forEachIndexed { index, title ->
-                            NiaTab(
+                            JasmineTab(
                                 selected = selectedTabIndex == index,
                                 onClick = { selectedTabIndex = index },
                                 text = { Text(text = title) },
@@ -345,9 +345,9 @@ fun NiaCatalog() {
                         NiaIcons.Bookmarks,
                         NiaIcons.Grid3x3,
                     )
-                    NiaNavigationBar {
+                    JasmineNavigationBar {
                         items.forEachIndexed { index, item ->
-                            NiaNavigationBarItem(
+                            JasmineNavigationBarItem(
                                 icon = {
                                     Icon(
                                         imageVector = icons[index],

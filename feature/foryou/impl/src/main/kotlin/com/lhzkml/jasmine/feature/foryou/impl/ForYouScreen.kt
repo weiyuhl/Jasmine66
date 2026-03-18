@@ -86,15 +86,15 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus.Denied
 import com.google.accompanist.permissions.rememberPermissionState
 import com.lhzkml.jasmine.core.designsystem.component.DynamicAsyncImage
-import com.lhzkml.jasmine.core.designsystem.component.NiaButton
-import com.lhzkml.jasmine.core.designsystem.component.NiaIconToggleButton
-import com.lhzkml.jasmine.core.designsystem.component.NiaOverlayLoadingWheel
+import com.lhzkml.jasmine.core.designsystem.component.JasmineButton
+import com.lhzkml.jasmine.core.designsystem.component.JasmineIconToggleButton
+import com.lhzkml.jasmine.core.designsystem.component.JasmineOverlayLoadingWheel
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.DecorativeScrollbar
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.scrollbarState
-import com.lhzkml.jasmine.core.designsystem.icon.NiaIcons
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import com.lhzkml.jasmine.core.ui.DevicePreviews
 import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
 import com.lhzkml.jasmine.core.ui.TrackScrollJank
@@ -156,7 +156,7 @@ internal fun ForYouScreen(
                 Column {
                     Spacer(modifier = Modifier.height(8.dp))
                     // Add space for the content to clear the "offline" snackbar.
-                    // TODO: Check that the Scaffold handles this correctly in NiaApp
+                    // TODO: Check that the Scaffold handles this correctly in JasmineApp
                     // if (isOffline) Spacer(modifier = Modifier.height(48.dp))
                     Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
                 }
@@ -226,7 +226,7 @@ private fun LazyStaggeredGridScope.onboarding(
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        NiaButton(
+                        JasmineButton(
                             onClick = saveFollowedTopics,
                             enabled = onboardingUiState.isDismissable,
                             modifier = Modifier
@@ -338,18 +338,18 @@ private fun SingleTopicButton(
                     .weight(1f),
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            NiaIconToggleButton(
+            JasmineIconToggleButton(
                 checked = isSelected,
                 onCheckedChange = { checked -> onClick(topicId, checked) },
                 icon = {
                     Icon(
-                        imageVector = NiaIcons.Add,
+                        imageVector = JasmineIcons.Add,
                         contentDescription = name,
                     )
                 },
                 checkedIcon = {
                     Icon(
-                        imageVector = NiaIcons.Check,
+                        imageVector = JasmineIcons.Check,
                         contentDescription = name,
                     )
                 },
@@ -409,7 +409,7 @@ private fun feedItemsSize(
 @DevicePreviews
 @Composable
 fun ForYouScreenLoading() {
-    NiaTheme {
+    JasmineTheme {
         ForYouScreen(
             onboardingUiState = OnboardingUiState.Loading,
             onTopicCheckedChanged = { _, _ -> },

@@ -32,7 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
  * Now in Android tab. Wraps Material 3 [Tab] and shifts text label down.
@@ -45,7 +45,7 @@ import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
  * @param text The text label content.
  */
 @Composable
-fun NiaTab(
+fun JasmineTab(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -62,7 +62,7 @@ fun NiaTab(
             ProvideTextStyle(
                 value = style,
                 content = {
-                    Box(modifier = Modifier.padding(top = NiaTabDefaults.TabTopPadding)) {
+                    Box(modifier = Modifier.padding(top = JasmineTabDefaults.TabTopPadding)) {
                         text()
                     }
                 },
@@ -80,7 +80,7 @@ fun NiaTab(
  * inside this lambda will be measured and placed evenly across the row, each taking up equal space.
  */
 @Composable
-fun NiaTabRow(
+fun JasmineTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
     tabs: @Composable () -> Unit,
@@ -104,11 +104,11 @@ fun NiaTabRow(
 @ThemePreviews
 @Composable
 fun TabsPreview() {
-    NiaTheme {
+    JasmineTheme {
         val titles = listOf("Topics", "People")
-        NiaTabRow(selectedTabIndex = 0) {
+        JasmineTabRow(selectedTabIndex = 0) {
             titles.forEachIndexed { index, title ->
-                NiaTab(
+                JasmineTab(
                     selected = index == 0,
                     onClick = { },
                     text = { Text(text = title) },
@@ -118,6 +118,6 @@ fun TabsPreview() {
     }
 }
 
-object NiaTabDefaults {
+object JasmineTabDefaults {
     val TabTopPadding = 7.dp
 }

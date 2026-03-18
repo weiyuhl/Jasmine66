@@ -55,7 +55,7 @@ import com.lhzkml.jasmine.core.database.util.InstantConverter
 @TypeConverters(
     InstantConverter::class,
 )
-internal abstract class NiaDatabase : RoomDatabase() {
+internal abstract class JasmineDatabase : RoomDatabase() {
     abstract fun topicDao(): TopicDao
     abstract fun topicFtsDao(): TopicFtsDao
     abstract fun recentSearchQueryDao(): RecentSearchQueryDao

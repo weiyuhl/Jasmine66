@@ -57,7 +57,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.lhzkml.jasmine.core.designsystem.component.NiaLoadingWheel
+import com.lhzkml.jasmine.core.designsystem.component.JasmineLoadingWheel
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.scrollbarState
@@ -104,7 +104,7 @@ internal fun BookmarksScreen(
 
 @Composable
 private fun LoadingState(modifier: Modifier = Modifier) {
-    NiaLoadingWheel(
+    JasmineLoadingWheel(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentSize()
@@ -156,7 +156,7 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 @Preview
 @Composable
 private fun LoadingStatePreview() {
-    NiaTheme {
+    JasmineTheme {
         LoadingState()
     }
 }
@@ -164,7 +164,7 @@ private fun LoadingStatePreview() {
 @Preview
 @Composable
 private fun BookmarksGridPreview() {
-    NiaTheme {
+    JasmineTheme {
         EmptyState()
     }
 }
@@ -172,7 +172,7 @@ private fun BookmarksGridPreview() {
 @Preview
 @Composable
 private fun EmptyStatePreview() {
-    NiaTheme {
+    JasmineTheme {
         EmptyState()
     }
 }

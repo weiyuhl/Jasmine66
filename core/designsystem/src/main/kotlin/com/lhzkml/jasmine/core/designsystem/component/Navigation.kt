@@ -40,7 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.lhzkml.jasmine.core.designsystem.icon.NiaIcons
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
  * Now in Android navigation bar item with icon and label content slots. Wraps Material 3
@@ -58,7 +58,7 @@ import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
  * only be shown when this item is selected.
  */
 @Composable
-fun RowScope.NiaNavigationBarItem(
+fun RowScope.JasmineNavigationBarItem(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -77,11 +77,11 @@ fun RowScope.NiaNavigationBarItem(
         label = label,
         alwaysShowLabel = alwaysShowLabel,
         colors = NavigationBarItemDefaults.colors(
-            selectedIconColor = NiaNavigationDefaults.navigationSelectedItemColor(),
-            unselectedIconColor = NiaNavigationDefaults.navigationContentColor(),
-            selectedTextColor = NiaNavigationDefaults.navigationSelectedItemColor(),
-            unselectedTextColor = NiaNavigationDefaults.navigationContentColor(),
-            indicatorColor = NiaNavigationDefaults.navigationIndicatorColor(),
+            selectedIconColor = JasmineNavigationDefaults.navigationSelectedItemColor(),
+            unselectedIconColor = JasmineNavigationDefaults.navigationContentColor(),
+            selectedTextColor = JasmineNavigationDefaults.navigationSelectedItemColor(),
+            unselectedTextColor = JasmineNavigationDefaults.navigationContentColor(),
+            indicatorColor = JasmineNavigationDefaults.navigationIndicatorColor(),
         ),
     )
 }
@@ -94,7 +94,7 @@ fun RowScope.NiaNavigationBarItem(
  * [NavigationBarItem]s.
  */
 @Composable
-fun NiaNavigationBar(
+fun JasmineNavigationBar(
     modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit,
 ) {
@@ -122,7 +122,7 @@ fun NiaNavigationBar(
  * only be shown when this item is selected.
  */
 @Composable
-fun NiaNavigationRailItem(
+fun JasmineNavigationRailItem(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -141,11 +141,11 @@ fun NiaNavigationRailItem(
         label = label,
         alwaysShowLabel = alwaysShowLabel,
         colors = NavigationRailItemDefaults.colors(
-            selectedIconColor = NiaNavigationDefaults.navigationSelectedItemColor(),
-            unselectedIconColor = NiaNavigationDefaults.navigationContentColor(),
-            selectedTextColor = NiaNavigationDefaults.navigationSelectedItemColor(),
-            unselectedTextColor = NiaNavigationDefaults.navigationContentColor(),
-            indicatorColor = NiaNavigationDefaults.navigationIndicatorColor(),
+            selectedIconColor = JasmineNavigationDefaults.navigationSelectedItemColor(),
+            unselectedIconColor = JasmineNavigationDefaults.navigationContentColor(),
+            selectedTextColor = JasmineNavigationDefaults.navigationSelectedItemColor(),
+            unselectedTextColor = JasmineNavigationDefaults.navigationContentColor(),
+            indicatorColor = JasmineNavigationDefaults.navigationIndicatorColor(),
         ),
     )
 }
@@ -159,7 +159,7 @@ fun NiaNavigationRailItem(
  * [NavigationRailItem]s.
  */
 @Composable
-fun NiaNavigationRail(
+fun JasmineNavigationRail(
     modifier: Modifier = Modifier,
     header: @Composable (ColumnScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
@@ -183,8 +183,8 @@ fun NiaNavigationRail(
  * @param content The app content inside the scaffold.
  */
 @Composable
-fun NiaNavigationSuiteScaffold(
-    navigationSuiteItems: NiaNavigationSuiteScope.() -> Unit,
+fun JasmineNavigationSuiteScaffold(
+    navigationSuiteItems: JasmineNavigationSuiteScope.() -> Unit,
     modifier: Modifier = Modifier,
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
     content: @Composable () -> Unit,
@@ -193,18 +193,18 @@ fun NiaNavigationSuiteScaffold(
         .calculateFromAdaptiveInfo(windowAdaptiveInfo)
     val navigationSuiteItemColors = NavigationSuiteItemColors(
         navigationBarItemColors = NavigationBarItemDefaults.colors(
-            selectedIconColor = NiaNavigationDefaults.navigationSelectedItemColor(),
-            unselectedIconColor = NiaNavigationDefaults.navigationContentColor(),
-            selectedTextColor = NiaNavigationDefaults.navigationSelectedItemColor(),
-            unselectedTextColor = NiaNavigationDefaults.navigationContentColor(),
-            indicatorColor = NiaNavigationDefaults.navigationIndicatorColor(),
+            selectedIconColor = JasmineNavigationDefaults.navigationSelectedItemColor(),
+            unselectedIconColor = JasmineNavigationDefaults.navigationContentColor(),
+            selectedTextColor = JasmineNavigationDefaults.navigationSelectedItemColor(),
+            unselectedTextColor = JasmineNavigationDefaults.navigationContentColor(),
+            indicatorColor = JasmineNavigationDefaults.navigationIndicatorColor(),
         ),
         navigationRailItemColors = NavigationRailItemDefaults.colors(
-            selectedIconColor = NiaNavigationDefaults.navigationSelectedItemColor(),
-            unselectedIconColor = NiaNavigationDefaults.navigationContentColor(),
-            selectedTextColor = NiaNavigationDefaults.navigationSelectedItemColor(),
-            unselectedTextColor = NiaNavigationDefaults.navigationContentColor(),
-            indicatorColor = NiaNavigationDefaults.navigationIndicatorColor(),
+            selectedIconColor = JasmineNavigationDefaults.navigationSelectedItemColor(),
+            unselectedIconColor = JasmineNavigationDefaults.navigationContentColor(),
+            selectedTextColor = JasmineNavigationDefaults.navigationSelectedItemColor(),
+            unselectedTextColor = JasmineNavigationDefaults.navigationContentColor(),
+            indicatorColor = JasmineNavigationDefaults.navigationIndicatorColor(),
         ),
         navigationDrawerItemColors = NavigationDrawerItemDefaults.colors(
             selectedIconColor = NiaNavigationDefaults.navigationSelectedItemColor(),
@@ -216,7 +216,7 @@ fun NiaNavigationSuiteScaffold(
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
-            NiaNavigationSuiteScope(
+            JasmineNavigationSuiteScope(
                 navigationSuiteScope = this,
                 navigationSuiteItemColors = navigationSuiteItemColors,
             ).run(navigationSuiteItems)
@@ -224,7 +224,7 @@ fun NiaNavigationSuiteScaffold(
         layoutType = layoutType,
         containerColor = Color.Transparent,
         navigationSuiteColors = NavigationSuiteDefaults.colors(
-            navigationBarContentColor = NiaNavigationDefaults.navigationContentColor(),
+            navigationBarContentColor = JasmineNavigationDefaults.navigationContentColor(),
             navigationRailContainerColor = Color.Transparent,
         ),
         modifier = modifier,
@@ -236,7 +236,7 @@ fun NiaNavigationSuiteScaffold(
 /**
  * A wrapper around [NavigationSuiteScope] to declare navigation items.
  */
-class NiaNavigationSuiteScope internal constructor(
+class JasmineNavigationSuiteScope internal constructor(
     private val navigationSuiteScope: NavigationSuiteScope,
     private val navigationSuiteItemColors: NavigationSuiteItemColors,
 ) {
@@ -265,7 +265,7 @@ class NiaNavigationSuiteScope internal constructor(
 
 @ThemePreviews
 @Composable
-fun NiaNavigationBarPreview() {
+fun JasmineNavigationBarPreview() {
     val items = listOf("For you", "Saved", "Interests")
     val icons = listOf(
         NiaIcons.UpcomingBorder,
@@ -278,10 +278,10 @@ fun NiaNavigationBarPreview() {
         NiaIcons.Grid3x3,
     )
 
-    NiaTheme {
-        NiaNavigationBar {
+    JasmineTheme {
+        JasmineNavigationBar {
             items.forEachIndexed { index, item ->
-                NiaNavigationBarItem(
+                JasmineNavigationBarItem(
                     icon = {
                         Icon(
                             imageVector = icons[index],
@@ -305,7 +305,7 @@ fun NiaNavigationBarPreview() {
 
 @ThemePreviews
 @Composable
-fun NiaNavigationRailPreview() {
+fun JasmineNavigationRailPreview() {
     val items = listOf("For you", "Saved", "Interests")
     val icons = listOf(
         NiaIcons.UpcomingBorder,
@@ -318,10 +318,10 @@ fun NiaNavigationRailPreview() {
         NiaIcons.Grid3x3,
     )
 
-    NiaTheme {
-        NiaNavigationRail {
+    JasmineTheme {
+        JasmineNavigationRail {
             items.forEachIndexed { index, item ->
-                NiaNavigationRailItem(
+                JasmineNavigationRailItem(
                     icon = {
                         Icon(
                             imageVector = icons[index],
@@ -346,7 +346,7 @@ fun NiaNavigationRailPreview() {
 /**
  * Now in Android navigation default values.
  */
-object NiaNavigationDefaults {
+object JasmineNavigationDefaults {
     @Composable
     fun navigationContentColor() = MaterialTheme.colorScheme.onSurfaceVariant
 

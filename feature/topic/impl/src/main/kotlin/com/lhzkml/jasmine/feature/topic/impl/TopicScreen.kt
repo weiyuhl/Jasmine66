@@ -53,14 +53,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhzkml.jasmine.core.designsystem.component.DynamicAsyncImage
-import com.lhzkml.jasmine.core.designsystem.component.NiaBackground
-import com.lhzkml.jasmine.core.designsystem.component.NiaFilterChip
-import com.lhzkml.jasmine.core.designsystem.component.NiaLoadingWheel
+import com.lhzkml.jasmine.core.designsystem.component.JasmineBackground
+import com.lhzkml.jasmine.core.designsystem.component.JasmineFilterChip
+import com.lhzkml.jasmine.core.designsystem.component.JasmineLoadingWheel
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.scrollbarState
-import com.lhzkml.jasmine.core.designsystem.icon.NiaIcons
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import com.lhzkml.jasmine.core.model.data.FollowableTopic
 import com.lhzkml.jasmine.core.ui.DevicePreviews
 import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
@@ -113,7 +113,7 @@ internal fun TopicScreen(
             }
             when (topicUiState) {
                 TopicUiState.Loading -> item {
-                    NiaLoadingWheel(
+                    JasmineLoadingWheel(
                         modifier = modifier,
                         contentDesc = stringResource(id = TopicR.string.feature_topic_api_loading),
                     )
@@ -237,7 +237,7 @@ private fun TopicToolbar(
         if (showBackButton) {
             IconButton(onClick = { onBackClick() }) {
                 Icon(
-                    imageVector = NiaIcons.ArrowBack,
+                    imageVector = JasmineIcons.ArrowBack,
                     contentDescription = stringResource(
                         id = UiR.string.core_ui_back,
                     ),
@@ -248,7 +248,7 @@ private fun TopicToolbar(
             Spacer(modifier = Modifier.width(1.dp))
         }
         val selected = uiState.isFollowed
-        NiaFilterChip(
+        JasmineFilterChip(
             selected = selected,
             onSelectedChange = onFollowClick,
             modifier = Modifier.padding(end = 24.dp),
@@ -265,8 +265,8 @@ private fun TopicToolbar(
 @DevicePreviews
 @Composable
 fun TopicScreenLoading() {
-    NiaTheme {
-        NiaBackground {
+    JasmineTheme {
+        JasmineBackground {
             TopicScreen(
                 topicUiState = TopicUiState.Loading,
                 showBackButton = true,

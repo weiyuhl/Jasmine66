@@ -35,9 +35,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lhzkml.jasmine.core.designsystem.component.DynamicAsyncImage
-import com.lhzkml.jasmine.core.designsystem.component.NiaIconToggleButton
-import com.lhzkml.jasmine.core.designsystem.icon.NiaIcons
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.component.JasmineIconToggleButton
+import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import com.lhzkml.jasmine.core.ui.R.string
 
 @Composable
@@ -63,12 +63,12 @@ fun InterestsItem(
             Text(text = description)
         },
         trailingContent = {
-            NiaIconToggleButton(
+            JasmineIconToggleButton(
                 checked = following,
                 onCheckedChange = onFollowButtonClick,
                 icon = {
                     Icon(
-                        imageVector = NiaIcons.Add,
+                        imageVector = JasmineIcons.Add,
                         contentDescription = stringResource(
                             id = string.core_ui_interests_card_follow_button_content_desc,
                         ),
@@ -76,7 +76,7 @@ fun InterestsItem(
                 },
                 checkedIcon = {
                     Icon(
-                        imageVector = NiaIcons.Check,
+                        imageVector = JasmineIcons.Check,
                         contentDescription = stringResource(
                             id = string.core_ui_interests_card_unfollow_button_content_desc,
                         ),
@@ -106,7 +106,7 @@ private fun InterestsIcon(topicImageUrl: String, modifier: Modifier = Modifier) 
             modifier = modifier
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(4.dp),
-            imageVector = NiaIcons.Person,
+            imageVector = JasmineIcons.Person,
             // decorative image
             contentDescription = null,
         )
@@ -122,7 +122,7 @@ private fun InterestsIcon(topicImageUrl: String, modifier: Modifier = Modifier) 
 @Preview
 @Composable
 private fun InterestsCardPreview() {
-    NiaTheme {
+    JasmineTheme {
         Surface {
             InterestsItem(
                 name = "Compose",
@@ -139,7 +139,7 @@ private fun InterestsCardPreview() {
 @Preview
 @Composable
 private fun InterestsCardLongNamePreview() {
-    NiaTheme {
+    JasmineTheme {
         Surface {
             InterestsItem(
                 name = "This is a very very very very long name",
@@ -156,7 +156,7 @@ private fun InterestsCardLongNamePreview() {
 @Preview
 @Composable
 private fun InterestsCardLongDescriptionPreview() {
-    NiaTheme {
+    JasmineTheme {
         Surface {
             InterestsItem(
                 name = "Compose",
@@ -174,7 +174,7 @@ private fun InterestsCardLongDescriptionPreview() {
 @Preview
 @Composable
 private fun InterestsCardWithEmptyDescriptionPreview() {
-    NiaTheme {
+    JasmineTheme {
         Surface {
             InterestsItem(
                 name = "Compose",
@@ -191,7 +191,7 @@ private fun InterestsCardWithEmptyDescriptionPreview() {
 @Preview
 @Composable
 private fun InterestsCardSelectedPreview() {
-    NiaTheme {
+    JasmineTheme {
         Surface {
             InterestsItem(
                 name = "Compose",

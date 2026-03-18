@@ -83,8 +83,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.DraggableScrollbar
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.scrollbarState
-import com.lhzkml.jasmine.core.designsystem.icon.NiaIcons
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import com.lhzkml.jasmine.core.model.data.FollowableTopic
 import com.lhzkml.jasmine.core.ui.DevicePreviews
 import com.lhzkml.jasmine.core.ui.InterestsItem
@@ -376,7 +376,7 @@ private fun RecentSearchesBody(
                     modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     Icon(
-                        imageVector = NiaIcons.Close,
+                        imageVector = JasmineIcons.Close,
                         contentDescription = stringResource(
                             id = searchR.string.feature_search_api_clear_recent_searches_content_desc,
                         ),
@@ -414,7 +414,7 @@ private fun SearchToolbar(
     ) {
         IconButton(onClick = { onBackClick() }) {
             Icon(
-                imageVector = NiaIcons.ArrowBack,
+                imageVector = JasmineIcons.ArrowBack,
                 contentDescription = stringResource(
                     id = uiR.string.core_ui_back,
                 ),
@@ -450,7 +450,7 @@ private fun SearchTextField(
         ),
         leadingIcon = {
             Icon(
-                imageVector = NiaIcons.Search,
+                imageVector = JasmineIcons.Search,
                 contentDescription = stringResource(
                     id = searchR.string.feature_search_api_title,
                 ),
@@ -465,7 +465,7 @@ private fun SearchTextField(
                     },
                 ) {
                     Icon(
-                        imageVector = NiaIcons.Close,
+                        imageVector = JasmineIcons.Close,
                         contentDescription = stringResource(
                             id = searchR.string.feature_search_api_clear_search_text_content_desc,
                         ),
@@ -513,7 +513,7 @@ private fun SearchTextField(
 @Preview
 @Composable
 private fun SearchToolbarPreview() {
-    NiaTheme {
+    JasmineTheme {
         SearchToolbar(
             searchQuery = "",
             onBackClick = {},
@@ -526,7 +526,7 @@ private fun SearchToolbarPreview() {
 @Preview
 @Composable
 private fun EmptySearchResultColumnPreview() {
-    NiaTheme {
+    JasmineTheme {
         EmptySearchResultBody(
             onInterestsClick = {},
             searchQuery = "C++",
@@ -537,7 +537,7 @@ private fun EmptySearchResultColumnPreview() {
 @Preview
 @Composable
 private fun RecentSearchesBodyPreview() {
-    NiaTheme {
+    JasmineTheme {
         RecentSearchesBody(
             onClearRecentSearches = {},
             onRecentSearchClicked = {},
@@ -549,7 +549,7 @@ private fun RecentSearchesBodyPreview() {
 @Preview
 @Composable
 private fun SearchNotReadyBodyPreview() {
-    NiaTheme {
+    JasmineTheme {
         SearchNotReadyBody()
     }
 }

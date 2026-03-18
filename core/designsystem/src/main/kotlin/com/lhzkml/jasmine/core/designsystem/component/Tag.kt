@@ -25,10 +25,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 @Composable
-fun NiaTopicTag(
+fun JasmineTopicTag(
     modifier: Modifier = Modifier,
     followed: Boolean,
     onClick: () -> Unit,
@@ -40,7 +40,7 @@ fun NiaTopicTag(
             MaterialTheme.colorScheme.primaryContainer
         } else {
             MaterialTheme.colorScheme.surfaceVariant.copy(
-                alpha = NiaTagDefaults.UNFOLLOWED_TOPIC_TAG_CONTAINER_ALPHA,
+                alpha = JasmineTagDefaults.UNFOLLOWED_TOPIC_TAG_CONTAINER_ALPHA,
             )
         }
         TextButton(
@@ -50,7 +50,7 @@ fun NiaTopicTag(
                 containerColor = containerColor,
                 contentColor = contentColorFor(backgroundColor = containerColor),
                 disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = NiaTagDefaults.DISABLED_TOPIC_TAG_CONTAINER_ALPHA,
+                    alpha = JasmineTagDefaults.DISABLED_TOPIC_TAG_CONTAINER_ALPHA,
                 ),
             ),
         ) {
@@ -64,8 +64,8 @@ fun NiaTopicTag(
 @ThemePreviews
 @Composable
 fun TagPreview() {
-    NiaTheme {
-        NiaTopicTag(followed = true, onClick = {}) {
+    JasmineTheme {
+        JasmineTopicTag(followed = true, onClick = {}) {
             Text("Topic".uppercase())
         }
     }
@@ -74,7 +74,7 @@ fun TagPreview() {
 /**
  * Now in Android tag default values.
  */
-object NiaTagDefaults {
+object JasmineTagDefaults {
     const val UNFOLLOWED_TOPIC_TAG_CONTAINER_ALPHA = 0.5f
 
     // TODO: File bug
