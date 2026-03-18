@@ -258,12 +258,6 @@ private fun LinksPanel() {
         ),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        val uriHandler = LocalUriHandler.current
-        NiaTextButton(
-            onClick = { uriHandler.openUri(PRIVACY_POLICY_URL) },
-        ) {
-            Text(text = stringResource(string.feature_settings_impl_privacy_policy))
-        }
         val context = LocalContext.current
         NiaTextButton(
             onClick = {
@@ -272,53 +266,5 @@ private fun LinksPanel() {
         ) {
             Text(text = stringResource(string.feature_settings_impl_licenses))
         }
-        NiaTextButton(
-            onClick = { uriHandler.openUri(BRAND_GUIDELINES_URL) },
-        ) {
-            Text(text = stringResource(string.feature_settings_impl_brand_guidelines))
-        }
-        NiaTextButton(
-            onClick = { uriHandler.openUri(FEEDBACK_URL) },
-        ) {
-            Text(text = stringResource(string.feature_settings_impl_feedback))
-        }
     }
 }
-
-@Preview
-@Composable
-private fun PreviewSettingsDialog() {
-    NiaTheme {
-        SettingsDialog(
-            onDismiss = {},
-            settingsUiState = Success(
-                UserEditableSettings(
-                    brand = DEFAULT,
-                    darkThemeConfig = FOLLOW_SYSTEM,
-                    useDynamicColor = false,
-                ),
-            ),
-            onChangeThemeBrand = {},
-            onChangeDynamicColorPreference = {},
-            onChangeDarkThemeConfig = {},
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewSettingsDialogLoading() {
-    NiaTheme {
-        SettingsDialog(
-            onDismiss = {},
-            settingsUiState = Loading,
-            onChangeThemeBrand = {},
-            onChangeDynamicColorPreference = {},
-            onChangeDarkThemeConfig = {},
-        )
-    }
-}
-
-private const val PRIVACY_POLICY_URL = "https://policies.google.com/privacy"
-private const val BRAND_GUIDELINES_URL = "https://developer.android.com/distribute/marketing-tools/brand-guidelines"
-private const val FEEDBACK_URL = "https://goo.gle/nia-app-feedback"
