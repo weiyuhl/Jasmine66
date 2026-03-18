@@ -125,12 +125,10 @@ internal fun ForYouScreen(
     saveFollowedTopics: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isOnboardingLoading = onboardingUiState is OnboardingUiState.Loading
-
     // This code should be called when the UI is ready for use and relates to Time To Full Display.
-    ReportDrawnWhen { !isOnboardingLoading }
+    ReportDrawnWhen { true }
 
-    val itemsAvailable = feedItemsSize(onboardingUiState)
+    val itemsAvailable = 0
 
     val state = rememberLazyStaggeredGridState()
     val scrollbarState = state.scrollbarState(

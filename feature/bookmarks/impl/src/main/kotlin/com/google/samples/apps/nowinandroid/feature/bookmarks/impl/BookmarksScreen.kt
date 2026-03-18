@@ -84,7 +84,6 @@ internal fun BookmarksScreen(
 }
 
 /**
- * Displays the user's bookmarked articles. Includes support for loading and empty states.
  */
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable

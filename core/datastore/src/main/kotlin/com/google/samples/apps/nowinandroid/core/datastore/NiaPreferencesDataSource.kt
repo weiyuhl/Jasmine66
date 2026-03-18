@@ -21,7 +21,6 @@ import androidx.datastore.core.DataStore
 import com.google.samples.apps.nowinandroid.core.model.data.DarkThemeConfig
 import com.google.samples.apps.nowinandroid.core.model.data.ThemeBrand
 import com.google.samples.apps.nowinandroid.core.model.data.UserData
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
@@ -115,35 +114,6 @@ class NiaPreferencesDataSource @Inject constructor(
                     DarkThemeConfig.DARK -> DarkThemeConfigProto.DARK_THEME_CONFIG_DARK
                 }
             }
-        }
-    }
-
-    suspend fun getChangeListVersions() = userPreferences.data
-        .map {
-            ChangeListVersions(
-                topicVersion = it.topicChangeListVersion,
-            )
-        }
-        .firstOrNull() ?: ChangeListVersions()
-
-    /**
-     * Update the [ChangeListVersions] using [update].
-     */
-    suspend fun updateChangeListVersion(update: ChangeListVersions.() -> ChangeListVersions) {
-        try {
-            userPreferences.updateData { currentPreferences ->
-                val updatedChangeListVersions = update(
-                    ChangeListVersions(
-                        topicVersion = currentPreferences.topicChangeListVersion,
-                    ),
-                )
-
-                currentPreferences.copy {
-                    topicChangeListVersion = updatedChangeListVersions.topicVersion
-                }
-            }
-        } catch (ioException: IOException) {
-            Log.e("NiaPreferences", "Failed to update user preferences", ioException)
         }
     }
 

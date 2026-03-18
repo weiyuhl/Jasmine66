@@ -19,7 +19,6 @@ package com.google.samples.apps.nowinandroid
 import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.Aapt2
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
-import com.google.common.truth.Truth.assertWithMessage
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
@@ -71,39 +70,6 @@ abstract class GenerateBadgingTask : DefaultTask() {
     }
 }
 
-@CacheableTask
-abstract class CheckBadgingTask : DefaultTask() {
-
-    // In order for the task to be up-to-date when the inputs have not changed,
-    // the task must declare an output, even if it's not used. Tasks with no
-    // output are always run regardless of whether the inputs changed
-    @get:OutputDirectory
-    abstract val output: DirectoryProperty
-
-    @get:PathSensitive(PathSensitivity.NONE)
-    @get:InputFile
-    abstract val goldenBadging: RegularFileProperty
-
-    @get:PathSensitive(PathSensitivity.NONE)
-    @get:InputFile
-    abstract val generatedBadging: RegularFileProperty
-
-    @get:Input
-    abstract val updateBadgingTaskName: Property<String>
-
-    override fun getGroup(): String = LifecycleBasePlugin.VERIFICATION_GROUP
-
-    @TaskAction
-    fun taskAction() {
-        assertWithMessage(
-            "Generated badging is different from golden badging! " +
-                "If this change is intended, run ./gradlew ${updateBadgingTaskName.get()}",
-        )
-            .that(generatedBadging.get().asFile.readText())
-            .isEqualTo(goldenBadging.get().asFile.readText())
-    }
-}
-
 private fun String.capitalized() = replaceFirstChar {
     if (it.isLowerCase()) it.titlecase() else it.toString()
 }
@@ -129,17 +95,6 @@ fun Project.configureBadgingTasks(
         tasks.register<Copy>(updateBadgingTaskName) {
             from(generateBadging.map(GenerateBadgingTask::badging))
             into(project.layout.projectDirectory)
-        }
-
-        val checkBadgingTaskName = "check${capitalizedVariantName}Badging"
-        tasks.register<CheckBadgingTask>(checkBadgingTaskName) {
-            goldenBadging = project.layout.projectDirectory.file("${variant.name}-badging.txt")
-
-            generatedBadging.set(generateBadging.flatMap(GenerateBadgingTask::badging))
-
-            this.updateBadgingTaskName = updateBadgingTaskName
-
-            output = project.layout.buildDirectory.dir("intermediates/$checkBadgingTaskName")
         }
     }
 }

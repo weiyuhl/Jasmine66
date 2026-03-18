@@ -20,7 +20,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.nowinandroid.android.library)
-    alias(libs.plugins.nowinandroid.android.library.jacoco)
     alias(libs.plugins.nowinandroid.hilt)
     id("kotlinx-serialization")
 }
@@ -30,7 +29,6 @@ android {
         buildConfig = true
     }
     namespace = "com.google.samples.apps.nowinandroid.core.network"
-    testOptions.unitTests.isIncludeAndroidResources = true
 }
 
 dependencies {
@@ -44,8 +42,6 @@ dependencies {
     implementation(libs.okhttp.logging)
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.kotlin.serialization)
-
-    testImplementation(libs.kotlinx.coroutines.test)
 }
 
 val backendUrl = providers.fileContents(

@@ -30,9 +30,6 @@ abstract class JvmLibraryConventionPlugin : Plugin<Project> {
 
             configureKotlinJvm()
             configureSpotlessForJvm()
-            dependencies {
-                "testImplementation"(libs.findLibrary("kotlin.test").get())
-            }
         }
     }
 }

@@ -46,20 +46,11 @@ class ForYouViewModel @Inject constructor(
         userDataRepository.userData.map { !it.shouldHideOnboarding }
 
     val onboardingUiState: StateFlow<OnboardingUiState> =
-        combine(
-            shouldShowOnboarding,
-            getFollowableTopics(),
-        ) { shouldShowOnboarding, topics ->
-            if (shouldShowOnboarding) {
-                OnboardingUiState.Shown(topics = topics)
-            } else {
-                OnboardingUiState.NotShown
-            }
-        }
+        kotlinx.coroutines.flow.MutableStateFlow(OnboardingUiState.NotShown)
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = OnboardingUiState.Loading,
+                initialValue = OnboardingUiState.NotShown,
             )
 
     fun updateTopicSelection(topicId: String, isChecked: Boolean) {

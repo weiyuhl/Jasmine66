@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.google.samples.apps.nowinandroid.FlavorDimension
-import com.google.samples.apps.nowinandroid.NiaFlavor
 
 /*
  * Copyright 2022 The Android Open Source Project
@@ -42,9 +40,6 @@ android {
         versionCode = 1
         versionName = "0.0.1" // X.Y.Z; X = Major, Y = minor, Z = Patch level
 
-        // The UI catalog does not depend on content from the app, however, it depends on modules
-        // which do, so we must specify a default value for the contentType dimension.
-        missingDimensionStrategy(FlavorDimension.contentType.name, NiaFlavor.demo.name)
     }
 
     packaging {

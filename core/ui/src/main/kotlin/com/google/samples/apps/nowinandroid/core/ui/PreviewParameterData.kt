@@ -26,7 +26,7 @@ object PreviewParameterData {
         Topic(
             id = "2",
             name = "Headlines",
-            shortDescription = "News we want everyone to see",
+            shortDescription = "Latest announcements and events",
             longDescription = "Stay up to date with the latest events and announcements from Android!",
             imageUrl = "https://firebasestorage.googleapis.com/v0/b/now-in-android.appspot.com/o/img%2Fic_topic_Headlines.svg?alt=media&token=506faab0-617a-4668-9e63-4a2fb996603f",
             url = "",
@@ -49,6 +49,4 @@ object PreviewParameterData {
         ),
     )
 
-    // Empty list for news resources to maintain compatibility without the actual model.
-    val newsResources = emptyList<Any>()
 }

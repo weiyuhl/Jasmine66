@@ -119,7 +119,9 @@ internal fun TopicScreen(
                     )
                 }
 
-                TopicUiState.Error -> TODO()
+                TopicUiState.Error -> item {
+                    Text(text = "Error loading topic")
+                }
                 is TopicUiState.Success -> {
                     item {
                         TopicToolbar(
@@ -202,7 +204,6 @@ private fun TopicHeader(name: String, description: String, imageUrl: String) {
     }
 }
 
-// TODO: Could/should this be replaced with [LazyGridScope.newsFeed]?
 
 @Preview
 @Composable

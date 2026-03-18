@@ -44,7 +44,6 @@ dependencies {
     compileOnly(libs.ksp.gradlePlugin)
     compileOnly(libs.room.gradlePlugin)
     compileOnly(libs.spotless.gradlePlugin)
-    implementation(libs.truth)
     lintChecks(libs.androidx.lint.gradle)
 }
 
@@ -65,10 +64,6 @@ gradlePlugin {
             id = libs.plugins.nowinandroid.android.application.asProvider().get().pluginId
             implementationClass = "AndroidApplicationConventionPlugin"
         }
-        register("androidApplicationJacoco") {
-            id = libs.plugins.nowinandroid.android.application.jacoco.get().pluginId
-            implementationClass = "AndroidApplicationJacocoConventionPlugin"
-        }
         register("androidLibraryCompose") {
             id = libs.plugins.nowinandroid.android.library.compose.get().pluginId
             implementationClass = "AndroidLibraryComposeConventionPlugin"
@@ -85,14 +80,6 @@ gradlePlugin {
             id = libs.plugins.nowinandroid.android.feature.api.get().pluginId
             implementationClass = "AndroidFeatureApiConventionPlugin"
         }
-        register("androidLibraryJacoco") {
-            id = libs.plugins.nowinandroid.android.library.jacoco.get().pluginId
-            implementationClass = "AndroidLibraryJacocoConventionPlugin"
-        }
-        register("androidTest") {
-            id = libs.plugins.nowinandroid.android.test.get().pluginId
-            implementationClass = "AndroidTestConventionPlugin"
-        }
         register("hilt") {
             id = libs.plugins.nowinandroid.hilt.get().pluginId
             implementationClass = "HiltConventionPlugin"
@@ -100,10 +87,6 @@ gradlePlugin {
         register("androidRoom") {
             id = libs.plugins.nowinandroid.android.room.get().pluginId
             implementationClass = "AndroidRoomConventionPlugin"
-        }
-        register("androidFlavors") {
-            id = libs.plugins.nowinandroid.android.application.flavors.get().pluginId
-            implementationClass = "AndroidApplicationFlavorsConventionPlugin"
         }
         register("androidLint") {
             id = libs.plugins.nowinandroid.android.lint.get().pluginId

@@ -15,7 +15,6 @@
  */
 
 import com.android.build.api.dsl.LibraryExtension
-import com.google.samples.apps.nowinandroid.configureGradleManagedDevices
 import com.google.samples.apps.nowinandroid.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -29,11 +28,6 @@ class AndroidFeatureImplConventionPlugin : Plugin<Project> {
             apply(plugin = "nowinandroid.android.library")
             apply(plugin = "nowinandroid.hilt")
 
-            extensions.configure<LibraryExtension> {
-                testOptions.animationsDisabled = true
-                configureGradleManagedDevices(this)
-            }
-
             dependencies {
                 "implementation"(project(":core:ui"))
                 "implementation"(project(":core:designsystem"))
@@ -43,10 +37,6 @@ class AndroidFeatureImplConventionPlugin : Plugin<Project> {
                 "implementation"(libs.findLibrary("androidx.hilt.lifecycle.viewModelCompose").get())
                 "implementation"(libs.findLibrary("androidx.navigation3.runtime").get())
                 "implementation"(libs.findLibrary("androidx.tracing.ktx").get())
-
-                "androidTestImplementation"(
-                    libs.findLibrary("androidx.lifecycle.runtimeTesting").get(),
-                )
             }
         }
     }

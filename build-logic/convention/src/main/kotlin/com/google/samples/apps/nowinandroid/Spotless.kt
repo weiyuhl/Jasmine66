@@ -26,8 +26,6 @@ internal fun Project.configureSpotlessForAndroid() {
     extensions.configure<SpotlessExtension> {
         format("xml") {
             target("src/**/*.xml")
-            // Look for the first XML tag that isn't a comment (<!--) or the xml declaration (<?xml)
-            licenseHeaderFile(rootDir.resolve("spotless/copyright.xml"), "(<[^!?])")
             endWithNewline()
         }
     }
@@ -45,15 +43,12 @@ internal fun Project.configureSpotlessForRootProject() {
             ktlint(libs.findVersion("ktlint").get().requiredVersion).editorConfigOverride(
                 mapOf("android" to "true"),
             )
-            licenseHeaderFile(rootDir.resolve("spotless/copyright.kt"))
             endWithNewline()
         }
         format("kts") {
             target("*.kts")
             target("build-logic/*.kts")
             target("build-logic/convention/*.kts")
-            // Look for the first line that doesn't have a block comment (assumed to be the license)
-            licenseHeaderFile(rootDir.resolve("spotless/copyright.kts"), "(^(?![\\/ ]\\*).*$)")
             endWithNewline()
         }
     }
@@ -67,13 +62,10 @@ private fun Project.configureSpotlessCommon() {
             ktlint(libs.findVersion("ktlint").get().requiredVersion).editorConfigOverride(
                 mapOf("android" to "true"),
             )
-            licenseHeaderFile(rootDir.resolve("spotless/copyright.kt"))
             endWithNewline()
         }
         format("kts") {
             target("*.kts")
-            // Look for the first line that doesn't have a block comment (assumed to be the license)
-            licenseHeaderFile(rootDir.resolve("spotless/copyright.kts"), "(^(?![\\/ ]\\*).*$)")
             endWithNewline()
         }
     }

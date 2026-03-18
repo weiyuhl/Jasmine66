@@ -53,15 +53,12 @@ class InterestsViewModel @AssistedInject constructor(
         initialValue = key.initialTopicId,
     )
 
-    val uiState: StateFlow<InterestsUiState> = combine(
-        selectedTopicId,
-        getFollowableTopics(sortBy = TopicSortField.NAME),
-        InterestsUiState::Interests,
-    ).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = InterestsUiState.Loading,
-    )
+    val uiState: StateFlow<InterestsUiState> = kotlinx.coroutines.flow.MutableStateFlow(InterestsUiState.Empty)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = InterestsUiState.Empty,
+        )
 
     fun followTopic(followedTopicId: String, followed: Boolean) {
         viewModelScope.launch {

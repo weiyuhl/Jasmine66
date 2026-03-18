@@ -291,7 +291,7 @@ private fun SearchResultBody(
             verticalItemSpacing = 24.dp,
             modifier = Modifier
                 .fillMaxSize()
-                .testTag("search:newsResources"),
+                .testTag("search:topics"),
             state = state,
         ) {
             if (topics.isNotEmpty()) {
@@ -310,7 +310,6 @@ private fun SearchResultBody(
                 topics.forEach { followableTopic ->
                     val topicId = followableTopic.topic.id
                     item(
-                        // Append a prefix to distinguish a key for news resources
                         key = "topic-$topicId",
                         span = StaggeredGridItemSpan.FullLine,
                     ) {

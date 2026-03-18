@@ -23,9 +23,7 @@ option java_package = "com.google.samples.apps.nowinandroid.core.datastore";
 option java_multiple_files = true;
 
 message UserPreferences {
-    reserved 2, 4, 6, 7, 10, 11, 14, 15, 20;
-    repeated int32 deprecated_int_followed_topic_ids = 1;
-    int32 topicChangeListVersion = 3;
+    reserved 2, 3, 4, 6, 7, 10, 11, 14, 15, 20;
     bool has_done_int_to_string_id_migration = 8;
     repeated string deprecated_followed_topic_ids = 9;
     bool has_done_list_to_map_migration = 12;

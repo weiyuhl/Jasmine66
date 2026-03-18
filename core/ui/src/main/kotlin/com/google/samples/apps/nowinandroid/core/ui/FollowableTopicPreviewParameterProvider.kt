@@ -32,17 +32,6 @@ class FollowableTopicPreviewParameterProvider : PreviewParameterProvider<List<Fo
             listOf(
                 FollowableTopic(
                     topic = Topic(
-                        id = "2",
-                        name = "Headlines",
-                        shortDescription = "News we want everyone to see",
-                        longDescription = "Stay up to date with the latest events and announcements from Android!",
-                        imageUrl = "https://firebasestorage.googleapis.com/v0/b/now-in-android.appspot.com/o/img%2Fic_topic_Headlines.svg?alt=media&token=506faab0-617a-4668-9e63-4a2fb996603f",
-                        url = "",
-                    ),
-                    isFollowed = false,
-                ),
-                FollowableTopic(
-                    topic = Topic(
                         id = "3",
                         name = "UI",
                         shortDescription = "Material Design, Navigation, Text, Paging, Accessibility (a11y), Internationalization (i18n), Localization (l10n), Animations, Large Screens, Widgets",

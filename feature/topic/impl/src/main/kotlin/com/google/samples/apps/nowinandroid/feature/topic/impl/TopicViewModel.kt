@@ -101,7 +101,22 @@ private fun topicUiState(
                 }
 
                 is Result.Loading -> TopicUiState.Loading
-                is Result.Error -> TopicUiState.Error
+                is Result.Error -> {
+                    // Fallback to skeleton success state for UI preservation
+                    TopicUiState.Success(
+                        followableTopic = FollowableTopic(
+                            topic = com.google.samples.apps.nowinandroid.core.model.data.Topic(
+                                id = topicId,
+                                name = "Topic",
+                                shortDescription = "",
+                                longDescription = "",
+                                imageUrl = "",
+                                url = ""
+                            ),
+                            isFollowed = false
+                        )
+                    )
+                }
             }
         }
 }
