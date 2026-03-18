@@ -15,9 +15,9 @@
      limitations under the License.
 -->
 <resources>
-    <string name="core_ui_bookmark">Bookmark</string>
-    <string name="core_ui_unbookmark">Unbookmark</string>
-    <string name="core_ui_back">Back</string>
+    <string name="core_ui_bookmark">加入收藏</string>
+    <string name="core_ui_unbookmark">取消收藏</string>
+    <string name="core_ui_back">返回</string>
 
     <string name="core_ui_unread_resource_dot_content_description">Unread</string>
 

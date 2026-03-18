@@ -15,8 +15,8 @@
      limitations under the License.
 -->
 <resources>
-    <string name="feature_interests_api_title">Interests</string>
-    <string name="feature_interests_api_loading">Loading data</string>
-    <string name="feature_interests_api_empty_header">"No available data"</string>
-    <string name="feature_interests_api_select_an_interest">Select an Interest</string>
+    <string name="feature_interests_api_title">兴趣选择</string>
+    <string name="feature_interests_api_loading">正在加载数据</string>
+    <string name="feature_interests_api_empty_header">"暂无可用数据"</string>
+    <string name="feature_interests_api_select_an_interest">选择一个兴趣</string>
 </resources>

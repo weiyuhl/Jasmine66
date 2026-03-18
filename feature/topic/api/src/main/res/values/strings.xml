@@ -15,5 +15,5 @@
      limitations under the License.
 -->
 <resources>
-    <string name="feature_topic_api_loading">Loading topic</string>
+    <string name="feature_topic_api_loading">正在加载话题</string>
 </resources>

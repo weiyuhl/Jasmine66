@@ -15,10 +15,10 @@
      limitations under the License.
 -->
 <resources>
-    <string name="feature_foryou_api_title">For you</string>
-    <string name="feature_foryou_api_done">Done</string>
-    <string name="feature_foryou_api_loading">Loading for you…</string>
-    <string name="feature_foryou_api_navigate_up">Navigate up</string>
-    <string name="feature_foryou_api_onboarding_guidance_title">What are you interested in?</string>
-    <string name="feature_foryou_api_onboarding_guidance_subtitle">Updates from topics you follow will appear here. Follow some things to get started.</string>
+    <string name="feature_foryou_api_title">为你推荐</string>
+    <string name="feature_foryou_api_done">完成</string>
+    <string name="feature_foryou_api_loading">正在为您加载…</string>
+    <string name="feature_foryou_api_navigate_up">向上导航</string>
+    <string name="feature_foryou_api_onboarding_guidance_title">您对什么感兴趣？</string>
+    <string name="feature_foryou_api_onboarding_guidance_subtitle">您关注的话题更新将显示在这里。关注一些内容以开始。</string>
 </resources>
