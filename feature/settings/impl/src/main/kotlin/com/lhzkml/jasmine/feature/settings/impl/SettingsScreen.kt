@@ -1,6 +1,3 @@
-
-@file:Suppress("ktlint:standard:max-line-length")
-
 package com.lhzkml.jasmine.feature.settings.impl
 
 import android.content.Intent
@@ -12,36 +9,35 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.lhzkml.jasmine.core.designsystem.component.JasmineTextButton
-import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
+import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
+import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.supportsDynamicTheming
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.DARK
@@ -50,98 +46,64 @@ import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.LIGHT
 import com.lhzkml.jasmine.core.model.data.ThemeBrand
 import com.lhzkml.jasmine.core.model.data.ThemeBrand.ANDROID
 import com.lhzkml.jasmine.core.model.data.ThemeBrand.DEFAULT
+import com.lhzkml.jasmine.core.navigation.Navigator
+import com.lhzkml.jasmine.core.navigation.SettingsNavKey
 import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
 import com.lhzkml.jasmine.feature.settings.impl.R.string
-import com.lhzkml.jasmine.feature.settings.impl.SettingsUiState.Loading
-import com.lhzkml.jasmine.feature.settings.impl.SettingsUiState.Success
 
 @Composable
-fun SettingsDialog(
-    onDismiss: () -> Unit,
+internal fun SettingsScreen(
+    onBackClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
-    SettingsDialog(
-        onDismiss = onDismiss,
-        settingsUiState = settingsUiState,
-        onChangeThemeBrand = viewModel::updateThemeBrand,
-        onChangeDynamicColorPreference = viewModel::updateDynamicColorPreference,
-        onChangeDarkThemeConfig = viewModel::updateDarkThemeConfig,
-    )
-}
-
-@Composable
-fun SettingsDialog(
-    settingsUiState: SettingsUiState,
-    supportDynamicColor: Boolean = supportsDynamicTheming(),
-    onDismiss: () -> Unit,
-    onChangeThemeBrand: (themeBrand: ThemeBrand) -> Unit,
-    onChangeDynamicColorPreference: (useDynamicColor: Boolean) -> Unit,
-    onChangeDarkThemeConfig: (darkThemeConfig: DarkThemeConfig) -> Unit,
-) {
-    val configuration = LocalConfiguration.current
-
-    /**
-     * usePlatformDefaultWidth = false is use as a temporary fix to allow
-     * height recalculation during recomposition. This, however, causes
-     * Dialog's to occupy full width in Compact mode. Therefore max width
-     * is configured below. This should be removed when there's fix to
-     * https://issuetracker.google.com/issues/221643630
-     */
-    AlertDialog(
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-        modifier = Modifier.widthIn(max = configuration.screenWidthDp.dp - 80.dp),
-        onDismissRequest = { onDismiss() },
-        title = {
-            Text(
-                text = stringResource(string.feature_settings_impl_title),
-                style = MaterialTheme.typography.titleLarge,
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                titleRes = string.feature_settings_impl_title,
+                navigationIcon = JasmineIcons.ArrowBack,
+                navigationIconContentDescription = stringResource(id = string.feature_settings_impl_dismiss_dialog_button_text),
+                actionIcon = JasmineIcons.Settings, // Dummy action or can be omitted if TopAppBar supported it
+                actionIconContentDescription = "",
+                onNavigationClick = onBackClick
             )
-        },
-        text = {
-            HorizontalDivider()
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                when (settingsUiState) {
-                    Loading -> {
-                        Text(
-                            text = stringResource(string.feature_settings_impl_loading),
-                            modifier = Modifier.padding(vertical = 16.dp),
-                        )
-                    }
-
-                    is Success -> {
-                        SettingsPanel(
-                            settings = settingsUiState.settings,
-                            supportDynamicColor = supportDynamicColor,
-                            onChangeThemeBrand = onChangeThemeBrand,
-                            onChangeDynamicColorPreference = onChangeDynamicColorPreference,
-                            onChangeDarkThemeConfig = onChangeDarkThemeConfig,
-                        )
-                    }
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+        ) {
+            when (val state = settingsUiState) {
+                SettingsUiState.Loading -> {
+                    Text(
+                        text = stringResource(string.feature_settings_impl_loading),
+                        modifier = Modifier.padding(vertical = 16.dp),
+                    )
                 }
-                HorizontalDivider(Modifier.padding(top = 8.dp))
-                LinksPanel()
+
+                is SettingsUiState.Success -> {
+                    SettingsPanel(
+                        settings = state.settings,
+                        supportDynamicColor = supportsDynamicTheming(),
+                        onChangeThemeBrand = viewModel::updateThemeBrand,
+                        onChangeDynamicColorPreference = viewModel::updateDynamicColorPreference,
+                        onChangeDarkThemeConfig = viewModel::updateDarkThemeConfig,
+                    )
+                }
             }
+            HorizontalDivider(Modifier.padding(top = 8.dp))
+            LinksPanel()
             TrackScreenViewEvent(screenName = "Settings")
-        },
-        confirmButton = {
-            JasmineTextButton(
-                onClick = onDismiss,
-                modifier = Modifier.padding(horizontal = 8.dp),
-            ) {
-                Text(
-                    text = stringResource(string.feature_settings_impl_dismiss_dialog_button_text),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-        },
-    )
+        }
+    }
 }
 
 // [ColumnScope] is used for using the [ColumnScope.AnimatedVisibility] extension overload composable.
 @Composable
-private fun ColumnScope.SettingsPanel(
+internal fun ColumnScope.SettingsPanel(
     settings: UserEditableSettings,
     supportDynamicColor: Boolean,
     onChangeThemeBrand: (themeBrand: ThemeBrand) -> Unit,
@@ -199,7 +161,7 @@ private fun ColumnScope.SettingsPanel(
 }
 
 @Composable
-private fun SettingsDialogSectionTitle(text: String) {
+internal fun SettingsDialogSectionTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
@@ -235,7 +197,7 @@ fun SettingsDialogThemeChooserRow(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun LinksPanel() {
+internal fun LinksPanel() {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(
             space = 16.dp,
@@ -254,3 +216,8 @@ private fun LinksPanel() {
     }
 }
 
+fun EntryProviderScope<NavKey>.settingsEntry(navigator: Navigator) {
+    entry<SettingsNavKey> {
+        SettingsScreen(onBackClick = { navigator.goBack() })
+    }
+}

@@ -27,8 +27,8 @@ fun TopAppBar(
     @StringRes titleRes: Int,
     navigationIcon: ImageVector,
     navigationIconContentDescription: String,
-    actionIcon: ImageVector,
-    actionIconContentDescription: String,
+    actionIcon: ImageVector? = null,
+    actionIconContentDescription: String? = null,
     modifier: Modifier = Modifier,
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(),
     onNavigationClick: () -> Unit = {},
@@ -46,12 +46,14 @@ fun TopAppBar(
             }
         },
         actions = {
-            IconButton(onClick = onActionClick) {
-                Icon(
-                    imageVector = actionIcon,
-                    contentDescription = actionIconContentDescription,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
+            if (actionIcon != null && actionIconContentDescription != null) {
+                IconButton(onClick = onActionClick) {
+                    Icon(
+                        imageVector = actionIcon,
+                        contentDescription = actionIconContentDescription,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
             }
         },
         colors = colors,

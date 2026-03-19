@@ -11,3 +11,6 @@ object BookmarksNavKey : NavKey
 
 @Serializable
 object InterestsNavKey : NavKey
+
+@Serializable
+object SettingsNavKey : NavKey

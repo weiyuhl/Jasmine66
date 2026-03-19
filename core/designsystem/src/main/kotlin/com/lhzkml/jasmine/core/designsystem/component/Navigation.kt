@@ -20,6 +20,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItemCo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScope
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -172,10 +173,14 @@ fun JasmineNavigationSuiteScaffold(
     navigationSuiteItems: JasmineNavigationSuiteScope.() -> Unit,
     modifier: Modifier = Modifier,
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
+    showNavigationSuite: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val layoutType = NavigationSuiteScaffoldDefaults
-        .calculateFromAdaptiveInfo(windowAdaptiveInfo)
+    val layoutType = if (showNavigationSuite) {
+        NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(windowAdaptiveInfo)
+    } else {
+        NavigationSuiteType.None
+    }
     val navigationSuiteItemColors = NavigationSuiteItemColors(
         navigationBarItemColors = NavigationBarItemDefaults.colors(
             selectedIconColor = JasmineNavigationDefaults.navigationSelectedItemColor(),

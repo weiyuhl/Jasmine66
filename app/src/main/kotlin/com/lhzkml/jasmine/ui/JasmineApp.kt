@@ -2,6 +2,7 @@ package com.lhzkml.jasmine.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -68,13 +69,14 @@ import com.lhzkml.jasmine.core.navigation.BookmarksNavKey
 import com.lhzkml.jasmine.core.navigation.ForYouNavKey
 import com.lhzkml.jasmine.core.navigation.InterestsNavKey
 import com.lhzkml.jasmine.core.navigation.Navigator
+import com.lhzkml.jasmine.core.navigation.SettingsNavKey
 import com.lhzkml.jasmine.core.navigation.toEntries
 import com.lhzkml.jasmine.ui.LocalSnackbarHostState
 import com.lhzkml.jasmine.ui.stubEntries
 import com.lhzkml.jasmine.feature.search.api.navigation.SearchNavKey
 import com.lhzkml.jasmine.feature.search.api.R as searchR
 import com.lhzkml.jasmine.feature.search.impl.navigation.searchEntry
-import com.lhzkml.jasmine.feature.settings.impl.SettingsDialog
+import com.lhzkml.jasmine.feature.settings.impl.settingsEntry
 import com.lhzkml.jasmine.navigation.TOP_LEVEL_NAV_ITEMS
 import kotlinx.coroutines.launch
 import com.lhzkml.jasmine.feature.settings.impl.R as settingsR
@@ -86,7 +88,6 @@ fun JasmineApp(
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
 ) {
     val shouldShowGradientBackground = appState.navigationState.currentTopLevelKey == ForYouNavKey
-    var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
 
     Background(modifier = modifier) {
         GradientBackground(
@@ -111,13 +112,9 @@ fun JasmineApp(
                 }
             }
             CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
-                JasmineApp(
+                JasmineAppContent(
                     appState = appState,
-
-                    // TODO: Settings should be a dialog screen
-                    showSettingsDialog = showSettingsDialog,
-                    onSettingsDismissed = { showSettingsDialog = false },
-                    onTopAppBarActionClick = { showSettingsDialog = true },
+                    modifier = modifier,
                     windowAdaptiveInfo = windowAdaptiveInfo,
                 )
             }
@@ -131,22 +128,13 @@ fun JasmineApp(
     ExperimentalComposeUiApi::class,
     ExperimentalMaterial3AdaptiveApi::class,
 )
-internal fun JasmineApp(
+internal fun JasmineAppContent(
     appState: JasmineAppState,
-    showSettingsDialog: Boolean,
-    onSettingsDismissed: () -> Unit,
-    onTopAppBarActionClick: () -> Unit,
     modifier: Modifier = Modifier,
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
 ) {
     val unreadNavKeys by appState.topLevelNavKeysWithUnreadResources
         .collectAsStateWithLifecycle()
-
-    if (showSettingsDialog) {
-        SettingsDialog(
-            onDismiss = { onSettingsDismissed() },
-        )
-    }
 
     val snackbarHostState = LocalSnackbarHostState.current
     val navigator = remember { Navigator(appState.navigationState) }
@@ -160,25 +148,6 @@ internal fun JasmineApp(
         gesturesEnabled = isTopLevelDestination,
         drawerContent = {
             DismissibleDrawerSheet {
-                TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
-                    val selected = navKey == appState.navigationState.currentTopLevelKey
-                    NavigationDrawerItem(
-                        label = { Text(stringResource(navItem.iconTextId)) },
-                        selected = selected,
-                        onClick = {
-                            navigator.navigate(navKey)
-                            coroutineScope.launch { drawerState.close() }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = if (selected) navItem.selectedIcon else navItem.unselectedIcon,
-                                contentDescription = null,
-                            )
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-                }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 NavigationDrawerItem(
                     label = { Text(stringResource(searchR.string.feature_search_api_title)) },
                     selected = appState.navigationState.currentKey == SearchNavKey,
@@ -194,10 +163,30 @@ internal fun JasmineApp(
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                 )
+                Spacer(Modifier.weight(1f))
+                NavigationDrawerItem(
+                    label = { Text(stringResource(settingsR.string.feature_settings_impl_title)) },
+                    selected = appState.navigationState.currentKey == SettingsNavKey,
+                    onClick = {
+                        navigator.navigate(SettingsNavKey)
+                        coroutineScope.launch { drawerState.close() }
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = JasmineIcons.Settings,
+                            contentDescription = null,
+                        )
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                )
             }
         },
     ) {
-        JasmineNavigationSuiteScaffold(
+        val currentKey = appState.navigationState.currentKey
+    val showBottomBar = currentKey in appState.navigationState.topLevelKeys
+
+    JasmineNavigationSuiteScaffold(
+        showNavigationSuite = showBottomBar,
         navigationSuiteItems = {
             TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
                 val hasUnread = unreadNavKeys.contains(navKey)
@@ -270,14 +259,12 @@ internal fun JasmineApp(
                         navigationIconContentDescription = stringResource(
                             id = settingsR.string.feature_settings_impl_top_app_bar_navigation_icon_description,
                         ),
-                        actionIcon = JasmineIcons.Settings,
-                        actionIconContentDescription = stringResource(
-                            id = settingsR.string.feature_settings_impl_top_app_bar_action_icon_description,
-                        ),
+                        actionIcon = null,
+                        actionIconContentDescription = null,
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent,
                         ),
-                        onActionClick = { onTopAppBarActionClick() },
+                        onActionClick = { },
                         onNavigationClick = {
                             coroutineScope.launch {
                                 if (drawerState.isOpen) drawerState.close() else drawerState.open()
@@ -301,6 +288,7 @@ internal fun JasmineApp(
                     val entryProvider = entryProvider {
                         stubEntries()
                         searchEntry(navigator)
+                        settingsEntry(navigator)
                     }
 
                     NavDisplay(
