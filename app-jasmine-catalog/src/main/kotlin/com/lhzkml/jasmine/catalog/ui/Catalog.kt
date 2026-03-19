@@ -319,7 +319,7 @@ fun JasmineCatalog() {
                 item { Text("Navigation", Modifier.padding(top = 16.dp)) }
                 item {
                     var selectedItem by rememberSaveable { mutableIntStateOf(0) }
-                    val items = listOf("For you", "Saved", "Interests")
+                    val items = listOf("聊天", "工具", "知识库")
                     val icons = listOf(
                         JasmineIcons.UpcomingBorder,
                         JasmineIcons.BookmarksBorder,

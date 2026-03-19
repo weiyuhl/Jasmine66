@@ -6,37 +6,37 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.lhzkml.jasmine.core.navigation.ForYouNavKey
-import com.lhzkml.jasmine.core.navigation.BookmarksNavKey
-import com.lhzkml.jasmine.core.navigation.InterestsNavKey
+import com.lhzkml.jasmine.core.navigation.ChatNavKey
+import com.lhzkml.jasmine.core.navigation.ToolsNavKey
+import com.lhzkml.jasmine.core.navigation.KnowledgeBaseNavKey
 import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
 
 fun EntryProviderScope<NavKey>.stubEntries() {
-    entry<ForYouNavKey> { _ ->
-        ForYouStub()
+    entry<ChatNavKey> { _ ->
+        ChatStub()
     }
-    entry<BookmarksNavKey> { _ ->
-        BookmarksStub()
+    entry<ToolsNavKey> { _ ->
+        ToolsStub()
     }
-    entry<InterestsNavKey> { _ ->
-        InterestsStub()
+    entry<KnowledgeBaseNavKey> { _ ->
+        KnowledgeBaseStub()
     }
 }
 
 @Composable
-private fun ForYouStub() {
+private fun ChatStub() {
     Box(Modifier.fillMaxSize())
-    TrackScreenViewEvent(screenName = "ForYou")
+    TrackScreenViewEvent(screenName = "Chat")
 }
 
 @Composable
-private fun BookmarksStub() {
+private fun ToolsStub() {
     Box(Modifier.fillMaxSize())
-    TrackScreenViewEvent(screenName = "Saved")
+    TrackScreenViewEvent(screenName = "Tools")
 }
 
 @Composable
-private fun InterestsStub() {
+private fun KnowledgeBaseStub() {
     Box(Modifier.fillMaxSize())
-    TrackScreenViewEvent(screenName = "Interests")
+    TrackScreenViewEvent(screenName = "KnowledgeBase")
 }

@@ -256,7 +256,7 @@ class JasmineNavigationSuiteScope internal constructor(
 @ThemePreviews
 @Composable
 fun JasmineNavigationBarPreview() {
-    val items = listOf("For you", "Saved", "Interests")
+    val items = listOf("聊天", "工具", "知识库")
     val icons = listOf(
         JasmineIcons.UpcomingBorder,
         JasmineIcons.BookmarksBorder,
@@ -296,7 +296,7 @@ fun JasmineNavigationBarPreview() {
 @ThemePreviews
 @Composable
 fun JasmineNavigationRailPreview() {
-    val items = listOf("For you", "Saved", "Interests")
+    val items = listOf("聊天", "工具", "知识库")
     val icons = listOf(
         JasmineIcons.UpcomingBorder,
         JasmineIcons.BookmarksBorder,

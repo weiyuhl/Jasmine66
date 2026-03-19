@@ -65,9 +65,9 @@ import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.GradientColors
 import com.lhzkml.jasmine.core.designsystem.theme.LocalGradientColors
-import com.lhzkml.jasmine.core.navigation.BookmarksNavKey
-import com.lhzkml.jasmine.core.navigation.ForYouNavKey
-import com.lhzkml.jasmine.core.navigation.InterestsNavKey
+import com.lhzkml.jasmine.core.navigation.ChatNavKey
+import com.lhzkml.jasmine.core.navigation.ToolsNavKey
+import com.lhzkml.jasmine.core.navigation.KnowledgeBaseNavKey
 import com.lhzkml.jasmine.core.navigation.Navigator
 import com.lhzkml.jasmine.core.navigation.SettingsNavKey
 import com.lhzkml.jasmine.core.navigation.toEntries
@@ -87,7 +87,7 @@ fun JasmineApp(
     modifier: Modifier = Modifier,
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
 ) {
-    val shouldShowGradientBackground = appState.navigationState.currentTopLevelKey == ForYouNavKey
+    val shouldShowGradientBackground = appState.navigationState.currentTopLevelKey == ChatNavKey
 
     Background(modifier = modifier) {
         GradientBackground(

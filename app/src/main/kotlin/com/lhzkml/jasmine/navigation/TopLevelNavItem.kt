@@ -4,9 +4,9 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.lhzkml.jasmine.R
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
-import com.lhzkml.jasmine.core.navigation.BookmarksNavKey
-import com.lhzkml.jasmine.core.navigation.ForYouNavKey
-import com.lhzkml.jasmine.core.navigation.InterestsNavKey
+import com.lhzkml.jasmine.core.navigation.ChatNavKey
+import com.lhzkml.jasmine.core.navigation.ToolsNavKey
+import com.lhzkml.jasmine.core.navigation.KnowledgeBaseNavKey
 import com.lhzkml.jasmine.core.ui.R as uiR
 
 /**
@@ -27,21 +27,21 @@ data class TopLevelNavItem(
     @StringRes val titleTextId: Int,
 )
 
-val FOR_YOU = TopLevelNavItem(
+val CHAT = TopLevelNavItem(
     selectedIcon = JasmineIcons.Upcoming,
     unselectedIcon = JasmineIcons.UpcomingBorder,
     iconTextId = uiR.string.core_ui_for_you,
     titleTextId = R.string.app_name,
 )
 
-val BOOKMARKS = TopLevelNavItem(
+val TOOLS = TopLevelNavItem(
     selectedIcon = JasmineIcons.Bookmarks,
     unselectedIcon = JasmineIcons.BookmarksBorder,
     iconTextId = uiR.string.core_ui_bookmarks,
     titleTextId = uiR.string.core_ui_bookmarks,
 )
 
-val INTERESTS = TopLevelNavItem(
+val KNOWLEDGE_BASE = TopLevelNavItem(
     selectedIcon = JasmineIcons.Grid3x3,
     unselectedIcon = JasmineIcons.Grid3x3,
     iconTextId = uiR.string.core_ui_interests,
@@ -49,7 +49,7 @@ val INTERESTS = TopLevelNavItem(
 )
 
 val TOP_LEVEL_NAV_ITEMS = mapOf(
-    ForYouNavKey to FOR_YOU,
-    BookmarksNavKey to BOOKMARKS,
-    InterestsNavKey to INTERESTS,
+    ChatNavKey to CHAT,
+    ToolsNavKey to TOOLS,
+    KnowledgeBaseNavKey to KNOWLEDGE_BASE,
 )

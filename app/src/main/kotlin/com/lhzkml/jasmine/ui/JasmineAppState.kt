@@ -10,7 +10,7 @@ import com.lhzkml.jasmine.core.data.util.TimeZoneMonitor
 import com.lhzkml.jasmine.core.navigation.NavigationState
 import com.lhzkml.jasmine.core.navigation.rememberNavigationState
 import com.lhzkml.jasmine.core.ui.TrackDisposableJank
-import com.lhzkml.jasmine.core.navigation.ForYouNavKey
+import com.lhzkml.jasmine.core.navigation.ChatNavKey
 import com.lhzkml.jasmine.navigation.TOP_LEVEL_NAV_ITEMS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,7 +26,7 @@ fun rememberJasmineAppState(
     timeZoneMonitor: TimeZoneMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ): JasmineAppState {
-    val navigationState = rememberNavigationState(ForYouNavKey, TOP_LEVEL_NAV_ITEMS.keys)
+    val navigationState = rememberNavigationState(ChatNavKey, TOP_LEVEL_NAV_ITEMS.keys)
 
     NavigationTrackingSideEffect(navigationState)
 

@@ -18,7 +18,7 @@
     <string name="core_ui_feed_sharing_data">%1$s: %2$s</string>
 
     <!-- Jasmine Feature Titles -->
-    <string name="core_ui_for_you">为你推荐</string>
-    <string name="core_ui_bookmarks">书签</string>
-    <string name="core_ui_interests">兴趣</string>
+    <string name="core_ui_for_you">聊天</string>
+    <string name="core_ui_bookmarks">工具</string>
+    <string name="core_ui_interests">知识库</string>
 </resources>

@@ -4,13 +4,13 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-object ForYouNavKey : NavKey
+object ChatNavKey : NavKey
 
 @Serializable
-object BookmarksNavKey : NavKey
+object ToolsNavKey : NavKey
 
 @Serializable
-object InterestsNavKey : NavKey
+object KnowledgeBaseNavKey : NavKey
 
 @Serializable
 object SettingsNavKey : NavKey
