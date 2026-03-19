@@ -65,9 +65,9 @@ import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.GradientColors
 import com.lhzkml.jasmine.core.designsystem.theme.LocalGradientColors
-import com.lhzkml.jasmine.core.navigation.ChatNavKey
-import com.lhzkml.jasmine.core.navigation.ToolsNavKey
-import com.lhzkml.jasmine.core.navigation.KnowledgeBaseNavKey
+import com.lhzkml.jasmine.feature.chat.api.navigation.ChatNavKey
+import com.lhzkml.jasmine.feature.tools.api.navigation.ToolsNavKey
+import com.lhzkml.jasmine.feature.knowledgebase.api.navigation.KnowledgeBaseNavKey
 import com.lhzkml.jasmine.core.navigation.Navigator
 import com.lhzkml.jasmine.core.navigation.SettingsNavKey
 import com.lhzkml.jasmine.core.navigation.toEntries

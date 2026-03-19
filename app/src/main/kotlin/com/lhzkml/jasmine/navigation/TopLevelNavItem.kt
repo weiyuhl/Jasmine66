@@ -4,9 +4,9 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.lhzkml.jasmine.R
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
-import com.lhzkml.jasmine.core.navigation.ChatNavKey
-import com.lhzkml.jasmine.core.navigation.ToolsNavKey
-import com.lhzkml.jasmine.core.navigation.KnowledgeBaseNavKey
+import com.lhzkml.jasmine.feature.chat.api.navigation.ChatNavKey
+import com.lhzkml.jasmine.feature.tools.api.navigation.ToolsNavKey
+import com.lhzkml.jasmine.feature.knowledgebase.api.navigation.KnowledgeBaseNavKey
 import com.lhzkml.jasmine.core.ui.R as uiR
 
 /**
@@ -31,7 +31,7 @@ val CHAT = TopLevelNavItem(
     selectedIcon = JasmineIcons.Upcoming,
     unselectedIcon = JasmineIcons.UpcomingBorder,
     iconTextId = uiR.string.core_ui_for_you,
-    titleTextId = R.string.app_name,
+    titleTextId = uiR.string.core_ui_for_you,
 )
 
 val TOOLS = TopLevelNavItem(

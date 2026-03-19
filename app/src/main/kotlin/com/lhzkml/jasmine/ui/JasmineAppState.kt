@@ -10,7 +10,7 @@ import com.lhzkml.jasmine.core.data.util.TimeZoneMonitor
 import com.lhzkml.jasmine.core.navigation.NavigationState
 import com.lhzkml.jasmine.core.navigation.rememberNavigationState
 import com.lhzkml.jasmine.core.ui.TrackDisposableJank
-import com.lhzkml.jasmine.core.navigation.ChatNavKey
+import com.lhzkml.jasmine.feature.chat.api.navigation.ChatNavKey
 import com.lhzkml.jasmine.navigation.TOP_LEVEL_NAV_ITEMS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
