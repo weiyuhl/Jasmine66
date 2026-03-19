@@ -35,7 +35,7 @@ import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
- * Now in Android view toggle button with included trailing icon as well as compact and expanded
+ * Jasmine view toggle button with included trailing icon as well as compact and expanded
  * text label content slots.
  *
  * @param expanded Whether the view toggle is currently in expanded mode or compact mode.
@@ -77,7 +77,7 @@ fun JasmineViewToggleButton(
 }
 
 /**
- * Internal Now in Android view toggle button content layout for arranging the text label and
+ * Internal Jasmine view toggle button content layout for arranging the text label and
  * trailing icon.
  *
  * @param text The button text label content.
@@ -140,7 +140,7 @@ fun ViewTogglePreviewCompact() {
 }
 
 /**
- * Now in Android view toggle default values.
+ * Jasmine view toggle default values.
  */
 object JasmineViewToggleDefaults {
     // TODO: File bug
@@ -153,3 +153,4 @@ object JasmineViewToggleDefaults {
             bottom = 8.dp,
         )
 }
+

@@ -17,7 +17,7 @@
 package com.lhzkml.jasmine.feature.search.impl
 
 import androidx.lifecycle.SavedStateHandle
-import com.lhzkml.jasmine.core.analytics.NoOpAnalyticsHelper
+import com.lhzkml.jasmine.core.analytics.NoOpJasmineAnalyticsHelper
 import com.lhzkml.jasmine.core.domain.GetRecentSearchQueriesUseCase
 import com.lhzkml.jasmine.core.domain.GetSearchContentsUseCase
 import com.lhzkml.jasmine.core.testing.data.topicsTestData
@@ -71,7 +71,7 @@ class SearchViewModelTest {
             savedStateHandle = SavedStateHandle(),
             recentSearchRepository = recentSearchRepository,
             userDataRepository = userDataRepository,
-            analyticsHelper = NoOpAnalyticsHelper(),
+            JasmineAnalyticsHelper = NoOpJasmineAnalyticsHelper(),
         )
         userDataRepository.setUserData(emptyUserData)
     }
@@ -155,3 +155,5 @@ class SearchViewModelTest {
         collectJob.cancel()
     }
 }
+
+

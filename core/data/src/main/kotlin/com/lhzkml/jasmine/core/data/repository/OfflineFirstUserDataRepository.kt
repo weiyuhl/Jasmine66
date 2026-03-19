@@ -17,7 +17,7 @@
 package com.lhzkml.jasmine.core.data.repository
 
 import androidx.annotation.VisibleForTesting
-import com.lhzkml.jasmine.core.analytics.AnalyticsHelper
+import com.lhzkml.jasmine.core.analytics.JasmineAnalyticsHelper
 import com.lhzkml.jasmine.core.datastore.JasminePreferencesDataSource
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
 import com.lhzkml.jasmine.core.model.data.ThemeBrand
@@ -27,7 +27,7 @@ import javax.inject.Inject
 
 internal class OfflineFirstUserDataRepository @Inject constructor(
     private val JasminePreferencesDataSource: JasminePreferencesDataSource,
-    private val analyticsHelper: AnalyticsHelper,
+    private val JasmineAnalyticsHelper: JasmineAnalyticsHelper,
 ) : UserDataRepository {
 
     override val userData: Flow<UserData> =
@@ -39,27 +39,28 @@ internal class OfflineFirstUserDataRepository @Inject constructor(
 
     override suspend fun setTopicIdFollowed(followedTopicId: String, followed: Boolean) {
         JasminePreferencesDataSource.setTopicIdFollowed(followedTopicId, followed)
-        analyticsHelper.logTopicFollowToggled(followedTopicId, followed)
+        JasmineAnalyticsHelper.logTopicFollowToggled(followedTopicId, followed)
     }
 
     override suspend fun setThemeBrand(themeBrand: ThemeBrand) {
         JasminePreferencesDataSource.setThemeBrand(themeBrand)
-        analyticsHelper.logThemeChanged(themeBrand.name)
+        JasmineAnalyticsHelper.logThemeChanged(themeBrand.name)
     }
 
     override suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
         JasminePreferencesDataSource.setDarkThemeConfig(darkThemeConfig)
-        analyticsHelper.logDarkThemeConfigChanged(darkThemeConfig.name)
+        JasmineAnalyticsHelper.logDarkThemeConfigChanged(darkThemeConfig.name)
     }
 
     override suspend fun setDynamicColorPreference(useDynamicColor: Boolean) {
         JasminePreferencesDataSource.setDynamicColorPreference(useDynamicColor)
-        analyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor)
+        JasmineAnalyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor)
     }
 
     override suspend fun setShouldHideOnboarding(shouldHideOnboarding: Boolean) {
         JasminePreferencesDataSource.setShouldHideOnboarding(shouldHideOnboarding)
-        analyticsHelper.logOnboardingStateChanged(shouldHideOnboarding)
+        JasmineAnalyticsHelper.logOnboardingStateChanged(shouldHideOnboarding)
     }
 }
+
 

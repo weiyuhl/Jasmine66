@@ -72,7 +72,7 @@ fun TagPreview() {
 }
 
 /**
- * Now in Android tag default values.
+ * Jasmine tag default values.
  */
 object JasmineTagDefaults {
     const val UNFOLLOWED_TOPIC_TAG_CONTAINER_ALPHA = 0.5f
@@ -81,3 +81,4 @@ object JasmineTagDefaults {
     // Button disabled container alpha value not exposed by ButtonDefaults
     const val DISABLED_TOPIC_TAG_CONTAINER_ALPHA = 0.12f
 }
+

@@ -21,7 +21,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lhzkml.jasmine.core.analytics.AnalyticsEvent
 import com.lhzkml.jasmine.core.analytics.AnalyticsEvent.Param
-import com.lhzkml.jasmine.core.analytics.AnalyticsHelper
+import com.lhzkml.jasmine.core.analytics.JasmineAnalyticsHelper
 import com.lhzkml.jasmine.core.data.repository.UserDataRepository
 import com.lhzkml.jasmine.core.domain.GetFollowableTopicsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,7 +37,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ForYouViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val analyticsHelper: AnalyticsHelper,
+    private val JasmineAnalyticsHelper: JasmineAnalyticsHelper,
     private val userDataRepository: UserDataRepository,
     getFollowableTopics: GetFollowableTopicsUseCase,
 ) : ViewModel() {
@@ -65,3 +65,5 @@ class ForYouViewModel @Inject constructor(
         }
     }
 }
+
+

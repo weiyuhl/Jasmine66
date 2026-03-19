@@ -17,8 +17,9 @@
 package com.lhzkml.jasmine.core.analytics
 
 /**
- * Implementation of AnalyticsHelper which does nothing. Useful for tests and previews.
+ * Implementation of JasmineAnalyticsHelper which does nothing. Useful for tests and previews.
  */
-class NoOpAnalyticsHelper : AnalyticsHelper {
+class NoOpJasmineAnalyticsHelper : JasmineAnalyticsHelper {
     override fun logEvent(event: AnalyticsEvent) = Unit
 }
+

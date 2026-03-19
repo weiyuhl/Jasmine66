@@ -46,3 +46,4 @@ fun TopicEntity.asFtsEntity() = TopicFtsEntity(
     shortDescription = shortDescription,
     longDescription = longDescription,
 )
+

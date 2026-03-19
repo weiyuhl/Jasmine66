@@ -183,3 +183,4 @@ class SettingsDialogTest {
         composeTestRule.onNodeWithText(getString(R.string.feature_settings_impl_feedback)).assertExists()
     }
 }
+

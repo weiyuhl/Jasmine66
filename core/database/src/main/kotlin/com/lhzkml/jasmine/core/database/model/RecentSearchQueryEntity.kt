@@ -33,3 +33,4 @@ data class RecentSearchQueryEntity(
     @ColumnInfo
     val queriedDate: Instant,
 )
+

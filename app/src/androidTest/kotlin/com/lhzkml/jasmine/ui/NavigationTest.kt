@@ -105,7 +105,7 @@ class NavigationTest {
     }
 
     // TODO: implement tests related to navigation & resetting of destinations (b/213307564)
-    // Restoring content should be tested with another tab than the For You one, as that will
+    // Restoring content should be tested with another JasmineTab than the For You one, as that will
     // still succeed even when restoring state is turned off.
     /**
      * When navigating between the different top level destinations, we should restore the state
@@ -126,7 +126,7 @@ class NavigationTest {
     }
 
     /**
-     * When reselecting a tab, it should show that tab's start destination and restore its state.
+     * When reselecting a JasmineTab, it should show that JasmineTab's start destination and restore its state.
      */
     @Test
     fun navigationBar_reselectTab_keepsState() {
@@ -171,13 +171,13 @@ class NavigationTest {
             // Verify that the top bar contains the app name on the first screen.
             onNodeWithText(appName).assertExists()
 
-            // Go to the saved tab, verify that the top bar contains "saved". This means
+            // Go to the saved JasmineTab, verify that the top bar contains "saved". This means
             // we'll have 2 elements with the text "saved" on screen. One in the top bar, and
             // one in the bottom navigation.
             onNodeWithText(saved).performClick()
             onAllNodesWithText(saved).assertCountEquals(2)
 
-            // As above but for the interests tab.
+            // As above but for the interests JasmineTab.
             onNodeWithText(interests).performClick()
             onAllNodesWithText(interests).assertCountEquals(2)
         }
@@ -252,7 +252,7 @@ class NavigationTest {
         }
     }
 
-    // TODO decide if backStack should preserve previous stacks when navigating back to home tab (ForYou)
+    // TODO decide if backStack should preserve previous stacks when navigating back to home JasmineTab (ForYou)
     // https://github.com/android/jasmine/issues/1937
     @Ignore
     @Test
@@ -270,7 +270,7 @@ class NavigationTest {
             // Verify the topic is still shown
             onNodeWithTag("topic:${topic.id}").assertIsDisplayed()
 
-            // Switch tab
+            // Switch JasmineTab
             onNodeWithText(forYou).performClick()
             // Come back to Interests
             onNodeWithText(interests).performClick()
@@ -281,4 +281,5 @@ class NavigationTest {
     }
 
 }
+
 

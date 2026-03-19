@@ -33,7 +33,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import androidx.test.espresso.Espresso
 import com.lhzkml.jasmine.core.data.repository.TopicsRepository
-import com.lhzkml.jasmine.core.designsystem.theme.Theme
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import com.lhzkml.jasmine.core.model.data.Topic
 import com.lhzkml.jasmine.core.navigation.Navigator
 import com.lhzkml.jasmine.core.navigation.rememberNavigationState
@@ -97,7 +97,7 @@ class InterestsListDetailScreenTest {
     fun expandedWidth_initialState_showsTwoPanesWithPlaceholder() {
         composeTestRule.apply {
             setContent {
-                Theme {
+                JasmineTheme {
                     TestNavDisplay()
                 }
             }
@@ -134,7 +134,7 @@ class InterestsListDetailScreenTest {
     fun compactWidth_initialState_showsListPane() {
         composeTestRule.apply {
             setContent {
-                Theme {
+                JasmineTheme {
                     TestNavDisplay()
                 }
             }
@@ -149,7 +149,7 @@ class InterestsListDetailScreenTest {
     fun expandedWidth_topicSelected_updatesDetailPane() {
         composeTestRule.apply {
             setContent {
-                Theme {
+                JasmineTheme {
                     TestNavDisplay()
                 }
             }
@@ -168,7 +168,7 @@ class InterestsListDetailScreenTest {
     fun compactWidth_topicSelected_showsTopicDetailPane() {
         composeTestRule.apply {
             setContent {
-                Theme {
+                JasmineTheme {
                     TestNavDisplay()
                 }
             }
@@ -187,7 +187,7 @@ class InterestsListDetailScreenTest {
     fun compactWidth_backPressFromTopicDetail_showsListPane() {
         composeTestRule.apply {
             setContent {
-                Theme {
+                JasmineTheme {
                     TestNavDisplay()
                 }
             }
@@ -209,3 +209,5 @@ private fun AndroidComposeTestRule<*, *>.stringResource(
     @StringRes resId: Int,
 ): ReadOnlyProperty<Any, String> =
     ReadOnlyProperty { _, _ -> activity.getString(resId) }
+
+

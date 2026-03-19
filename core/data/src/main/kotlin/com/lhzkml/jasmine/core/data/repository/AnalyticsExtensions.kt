@@ -18,9 +18,9 @@ package com.lhzkml.jasmine.core.data.repository
 
 import com.lhzkml.jasmine.core.analytics.AnalyticsEvent
 import com.lhzkml.jasmine.core.analytics.AnalyticsEvent.Param
-import com.lhzkml.jasmine.core.analytics.AnalyticsHelper
+import com.lhzkml.jasmine.core.analytics.JasmineAnalyticsHelper
 
-internal fun AnalyticsHelper.logTopicFollowToggled(followedTopicId: String, isFollowed: Boolean) {
+internal fun JasmineAnalyticsHelper.logTopicFollowToggled(followedTopicId: String, isFollowed: Boolean) {
     val eventType = if (isFollowed) "topic_followed" else "topic_unfollowed"
     val paramKey = if (isFollowed) "followed_topic_id" else "unfollowed_topic_id"
     logEvent(
@@ -33,7 +33,7 @@ internal fun AnalyticsHelper.logTopicFollowToggled(followedTopicId: String, isFo
     )
 }
 
-internal fun AnalyticsHelper.logThemeChanged(themeName: String) =
+internal fun JasmineAnalyticsHelper.logThemeChanged(themeName: String) =
     logEvent(
         AnalyticsEvent(
             type = "theme_changed",
@@ -43,7 +43,7 @@ internal fun AnalyticsHelper.logThemeChanged(themeName: String) =
         ),
     )
 
-internal fun AnalyticsHelper.logDarkThemeConfigChanged(darkThemeConfigName: String) =
+internal fun JasmineAnalyticsHelper.logDarkThemeConfigChanged(darkThemeConfigName: String) =
     logEvent(
         AnalyticsEvent(
             type = "dark_theme_config_changed",
@@ -53,7 +53,7 @@ internal fun AnalyticsHelper.logDarkThemeConfigChanged(darkThemeConfigName: Stri
         ),
     )
 
-internal fun AnalyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor: Boolean) =
+internal fun JasmineAnalyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor: Boolean) =
     logEvent(
         AnalyticsEvent(
             type = "dynamic_color_preference_changed",
@@ -63,9 +63,10 @@ internal fun AnalyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor: B
         ),
     )
 
-internal fun AnalyticsHelper.logOnboardingStateChanged(shouldHideOnboarding: Boolean) {
+internal fun JasmineAnalyticsHelper.logOnboardingStateChanged(shouldHideOnboarding: Boolean) {
     val eventType = if (shouldHideOnboarding) "onboarding_complete" else "onboarding_reset"
     logEvent(
         AnalyticsEvent(type = eventType),
     )
 }
+

@@ -16,7 +16,7 @@
 
 package com.lhzkml.jasmine.core.data.repository
 
-import com.lhzkml.jasmine.core.analytics.NoOpAnalyticsHelper
+import com.lhzkml.jasmine.core.analytics.NoOpJasmineAnalyticsHelper
 import com.lhzkml.jasmine.core.datastore.JasminePreferencesDataSource
 import com.lhzkml.jasmine.core.datastore.UserPreferences
 import com.lhzkml.jasmine.core.datastore.test.InMemoryDataStore
@@ -42,7 +42,7 @@ class OfflineFirstUserDataRepositoryTest {
 
     private lateinit var JasminePreferencesDataSource: JasminePreferencesDataSource
 
-    private val analyticsHelper = NoOpAnalyticsHelper()
+    private val JasmineAnalyticsHelper = NoOpJasmineAnalyticsHelper()
 
     @Before
     fun setup() {
@@ -50,7 +50,7 @@ class OfflineFirstUserDataRepositoryTest {
 
         subject = OfflineFirstUserDataRepository(
             JasminePreferencesDataSource = JasminePreferencesDataSource,
-            analyticsHelper,
+            JasmineAnalyticsHelper,
         )
     }
 
@@ -194,4 +194,5 @@ class OfflineFirstUserDataRepositoryTest {
             assertFalse(subject.userData.first().shouldHideOnboarding)
         }
 }
+
 

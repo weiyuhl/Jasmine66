@@ -22,13 +22,13 @@ import com.lhzkml.jasmine.core.analytics.AnalyticsEvent
 import com.lhzkml.jasmine.core.analytics.AnalyticsEvent.Param
 import com.lhzkml.jasmine.core.analytics.AnalyticsEvent.ParamKeys
 import com.lhzkml.jasmine.core.analytics.AnalyticsEvent.Types
-import com.lhzkml.jasmine.core.analytics.AnalyticsHelper
-import com.lhzkml.jasmine.core.analytics.LocalAnalyticsHelper
+import com.lhzkml.jasmine.core.analytics.JasmineAnalyticsHelper
+import com.lhzkml.jasmine.core.analytics.LocalJasmineAnalyticsHelper
 
 /**
  * Classes and functions associated with analytics events for the UI.
  */
-fun AnalyticsHelper.logScreenView(screenName: String) {
+fun JasmineAnalyticsHelper.logScreenView(screenName: String) {
     logEvent(
         AnalyticsEvent(
             type = Types.SCREEN_VIEW,
@@ -45,8 +45,9 @@ fun AnalyticsHelper.logScreenView(screenName: String) {
 @Composable
 fun TrackScreenViewEvent(
     screenName: String,
-    analyticsHelper: AnalyticsHelper = LocalAnalyticsHelper.current,
+    JasmineAnalyticsHelper: JasmineAnalyticsHelper = LocalJasmineAnalyticsHelper.current,
 ) = DisposableEffect(Unit) {
-    analyticsHelper.logScreenView(screenName)
+    JasmineAnalyticsHelper.logScreenView(screenName)
     onDispose {}
 }
+

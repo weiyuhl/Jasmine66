@@ -29,3 +29,4 @@ fun RecentSearchQueryEntity.asExternalModel() = RecentSearchQuery(
     query = query,
     queriedDate = queriedDate,
 )
+

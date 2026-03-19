@@ -26,15 +26,15 @@ import org.junit.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class PreferencesDataSourceTest {
+class JasminePreferencesDataSourceTest {
 
     private val testScope = TestScope(UnconfinedTestDispatcher())
 
-    private lateinit var subject: PreferencesDataSource
+    private lateinit var subject: JasminePreferencesDataSource
 
     @Before
     fun setup() {
-        subject = PreferencesDataSource(InMemoryDataStore(UserPreferences.getDefaultInstance()))
+        subject = JasminePreferencesDataSource(InMemoryDataStore(UserPreferences.getDefaultInstance()))
     }
 
     @Test
@@ -87,3 +87,4 @@ class PreferencesDataSourceTest {
         assertTrue(subject.userData.first().useDynamicColor)
     }
 }
+

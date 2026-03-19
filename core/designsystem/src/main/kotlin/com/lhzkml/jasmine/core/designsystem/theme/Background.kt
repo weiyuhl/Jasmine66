@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 
 /**
- * A class to model background color and tonal elevation values for Now in Android.
+ * A class to model background color and tonal elevation values for Jasmine.
  */
 @Immutable
 data class BackgroundTheme(
@@ -34,3 +34,5 @@ data class BackgroundTheme(
  * A composition local for [BackgroundTheme].
  */
 val LocalBackgroundTheme = staticCompositionLocalOf { BackgroundTheme() }
+
+

@@ -286,7 +286,7 @@ private fun Modifier.notificationDot(): Modifier =
             drawCircle(
                 tertiaryColor,
                 radius = 5.dp.toPx(),
-                // This is based on the dimensions of the NavigationBar's "indicator pill";
+                // This is based on the dimensions of the JasmineNavigationBar's "indicator pill";
                 // however, its parameters are private, so we must depend on them implicitly
                 // (NavigationBarTokens.ActiveIndicatorWidth = 64.dp)
                 center = center + Offset(
@@ -296,4 +296,5 @@ private fun Modifier.notificationDot(): Modifier =
             )
         }
     }
+
 

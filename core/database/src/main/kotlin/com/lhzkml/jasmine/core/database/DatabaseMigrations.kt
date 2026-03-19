@@ -74,3 +74,4 @@ internal object DatabaseMigrations {
     )
     class Schema13to14 : AutoMigrationSpec
 }
+

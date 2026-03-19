@@ -32,7 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.lhzkml.jasmine.core.designsystem.theme.Theme
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import com.lhzkml.jasmine.feature.interests.api.R
 
 @Composable
@@ -66,7 +66,9 @@ fun InterestsDetailPlaceholder(modifier: Modifier = Modifier) {
 @Preview(widthDp = 200, heightDp = 300)
 @Composable
 fun TopicDetailPlaceholderPreview() {
-    Theme {
+    JasmineTheme {
         InterestsDetailPlaceholder()
     }
 }
+
+

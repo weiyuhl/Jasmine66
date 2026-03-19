@@ -351,3 +351,4 @@ private abstract class GraphUpdateTask : DefaultTask() {
         .dropLastWhile(String::isBlank)
         .joinToString(System.lineSeparator())
 }
+

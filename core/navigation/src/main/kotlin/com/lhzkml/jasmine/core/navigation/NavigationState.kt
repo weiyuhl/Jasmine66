@@ -100,3 +100,4 @@ fun NavigationState.toEntries(
         .flatMap { decoratedEntries[it] ?: emptyList() }
         .toMutableStateList()
 }
+

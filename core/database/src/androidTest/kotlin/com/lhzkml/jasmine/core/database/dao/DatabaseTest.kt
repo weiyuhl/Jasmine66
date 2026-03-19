@@ -43,3 +43,4 @@ internal abstract class DatabaseTest {
     @After
     fun teardown() = db.close()
 }
+

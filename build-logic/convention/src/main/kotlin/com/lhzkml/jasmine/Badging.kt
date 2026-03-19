@@ -98,3 +98,4 @@ fun Project.configureBadgingTasks(
         }
     }
 }
+

@@ -21,7 +21,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 /**
- * A class to model background color and tonal elevation values for Now in Android.
+ * A class to model background color and tonal elevation values for Jasmine.
  */
 @Immutable
 data class TintTheme(
@@ -32,3 +32,5 @@ data class TintTheme(
  * A composition local for [TintTheme].
  */
 val LocalTintTheme = staticCompositionLocalOf { TintTheme() }
+
+

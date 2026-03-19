@@ -42,3 +42,4 @@ sealed interface SearchResultUiState {
      */
     data object SearchNotReady : SearchResultUiState
 }
+

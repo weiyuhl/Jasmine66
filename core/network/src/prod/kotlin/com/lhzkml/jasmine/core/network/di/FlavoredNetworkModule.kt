@@ -16,8 +16,8 @@
 
 package com.lhzkml.jasmine.core.network.di
 
-import com.lhzkml.jasmine.core.network.NetworkDataSource
-import com.lhzkml.jasmine.core.network.retrofit.RetrofitNetwork
+import com.lhzkml.jasmine.core.network.JasmineNetworkDataSource
+import com.lhzkml.jasmine.core.network.retrofit.RetrofitJasmineNetwork
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -28,5 +28,6 @@ import dagger.hilt.components.SingletonComponent
 internal interface FlavoredNetworkModule {
 
     @Binds
-    fun binds(impl: RetrofitNetwork): NetworkDataSource
+    fun binds(impl: RetrofitJasmineNetwork): JasmineNetworkDataSource
 }
+

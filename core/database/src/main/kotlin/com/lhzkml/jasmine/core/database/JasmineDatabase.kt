@@ -60,3 +60,4 @@ internal abstract class JasmineDatabase : RoomDatabase() {
     abstract fun topicFtsDao(): TopicFtsDao
     abstract fun recentSearchQueryDao(): RecentSearchQueryDao
 }
+

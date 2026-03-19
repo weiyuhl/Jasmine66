@@ -37,7 +37,7 @@ import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
- * Now in Android filled button with generic content slot. Wraps Material 3 [Button].
+ * Jasmine filled button with generic content slot. Wraps Material 3 [Button].
  *
  * @param onClick Will be called when the user clicks the button.
  * @param modifier Modifier to be applied to the button.
@@ -68,7 +68,7 @@ fun JasmineButton(
 }
 
 /**
- * Now in Android filled button with text and icon content slots.
+ * Jasmine filled button with text and icon content slots.
  *
  * @param onClick Will be called when the user clicks the button.
  * @param modifier Modifier to be applied to the button.
@@ -103,7 +103,7 @@ fun JasmineButton(
 }
 
 /**
- * Now in Android outlined button with generic content slot. Wraps Material 3 [OutlinedButton].
+ * Jasmine outlined button with generic content slot. Wraps Material 3 [OutlinedButton].
  *
  * @param onClick Will be called when the user clicks the button.
  * @param modifier Modifier to be applied to the button.
@@ -144,7 +144,7 @@ fun JasmineOutlinedButton(
 }
 
 /**
- * Now in Android outlined button with text and icon content slots.
+ * Jasmine outlined button with text and icon content slots.
  *
  * @param onClick Will be called when the user clicks the button.
  * @param modifier Modifier to be applied to the button.
@@ -179,7 +179,7 @@ fun JasmineOutlinedButton(
 }
 
 /**
- * Now in Android text button with generic content slot. Wraps Material 3 [TextButton].
+ * Jasmine text button with generic content slot. Wraps Material 3 [TextButton].
  *
  * @param onClick Will be called when the user clicks the button.
  * @param modifier Modifier to be applied to the button.
@@ -206,7 +206,7 @@ fun JasmineTextButton(
 }
 
 /**
- * Now in Android text button with text and icon content slots.
+ * Jasmine text button with text and icon content slots.
  *
  * @param onClick Will be called when the user clicks the button.
  * @param modifier Modifier to be applied to the button.
@@ -236,7 +236,7 @@ fun JasmineTextButton(
 }
 
 /**
- * Internal Now in Android button content layout for arranging the text label and leading icon.
+ * Internal Jasmine button content layout for arranging the text label and leading icon.
  *
  * @param text The button text label content.
  * @param leadingIcon The button leading icon content. Default is `null` for no leading icon.Ï
@@ -300,7 +300,7 @@ fun JasmineButtonLeadingIconPreview() {
 }
 
 /**
- * Now in Android button default values.
+ * Jasmine button default values.
  */
 object JasmineButtonDefaults {
     // TODO: File bug
@@ -311,4 +311,5 @@ object JasmineButtonDefaults {
     // OutlinedButton default border width isn't exposed via ButtonDefaults
     val OutlinedButtonBorderWidth = 1.dp
 }
+
 

@@ -65,3 +65,4 @@ internal class DefaultSearchContentsRepository @Inject constructor(
         topicFtsDao.getCount()
 }
 
+

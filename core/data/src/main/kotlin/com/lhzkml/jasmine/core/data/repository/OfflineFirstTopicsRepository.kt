@@ -39,3 +39,4 @@ internal class OfflineFirstTopicsRepository @Inject constructor(
     override fun getTopic(id: String): Flow<Topic> =
         topicDao.getTopicEntity(id).map { it.asExternalModel() }
 }
+

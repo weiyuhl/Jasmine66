@@ -39,11 +39,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.lhzkml.jasmine.core.designsystem.icon.Icons
+import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
- * Now in Android navigation bar item with icon and label content slots. Wraps Material 3
+ * Jasmine navigation bar item with icon and label content slots. Wraps Material 3
  * [NavigationBarItem].
  *
  * @param selected Whether this item is selected.
@@ -87,7 +87,7 @@ fun RowScope.JasmineNavigationBarItem(
 }
 
 /**
- * Now in Android navigation bar with content slot. Wraps Material 3 [NavigationBar].
+ * Jasmine navigation bar with content slot. Wraps Material 3 [NavigationBar].
  *
  * @param modifier Modifier to be applied to the navigation bar.
  * @param content Destinations inside the navigation bar. This should contain multiple
@@ -100,14 +100,14 @@ fun JasmineNavigationBar(
 ) {
     NavigationBar(
         modifier = modifier,
-        contentColor = NavigationDefaults.navigationContentColor(),
+        contentColor = JasmineNavigationDefaults.navigationContentColor(),
         tonalElevation = 0.dp,
         content = content,
     )
 }
 
 /**
- * Now in Android navigation rail item with icon and label content slots. Wraps Material 3
+ * Jasmine navigation rail item with icon and label content slots. Wraps Material 3
  * [NavigationRailItem].
  *
  * @param selected Whether this item is selected.
@@ -151,7 +151,7 @@ fun JasmineNavigationRailItem(
 }
 
 /**
- * Now in Android navigation rail with header and content slots. Wraps Material 3 [NavigationRail].
+ * Jasmine navigation rail with header and content slots. Wraps Material 3 [NavigationRail].
  *
  * @param modifier Modifier to be applied to the navigation rail.
  * @param header Optional header that may hold a floating action button or a logo.
@@ -167,14 +167,14 @@ fun JasmineNavigationRail(
     NavigationRail(
         modifier = modifier,
         containerColor = Color.Transparent,
-        contentColor = NavigationDefaults.navigationContentColor(),
+        contentColor = JasmineNavigationDefaults.navigationContentColor(),
         header = header,
         content = content,
     )
 }
 
 /**
- * Now in Android navigation suite scaffold with item and content slots.
+ * Jasmine navigation suite scaffold with item and content slots.
  * Wraps Material 3 [NavigationSuiteScaffold].
  *
  * @param modifier Modifier to be applied to the navigation suite scaffold.
@@ -207,10 +207,10 @@ fun JasmineNavigationSuiteScaffold(
             indicatorColor = JasmineNavigationDefaults.navigationIndicatorColor(),
         ),
         navigationDrawerItemColors = NavigationDrawerItemDefaults.colors(
-            selectedIconColor = NavigationDefaults.navigationSelectedItemColor(),
-            unselectedIconColor = NavigationDefaults.navigationContentColor(),
-            selectedTextColor = NavigationDefaults.navigationSelectedItemColor(),
-            unselectedTextColor = NavigationDefaults.navigationContentColor(),
+            selectedIconColor = JasmineNavigationDefaults.navigationSelectedItemColor(),
+            unselectedIconColor = JasmineNavigationDefaults.navigationContentColor(),
+            selectedTextColor = JasmineNavigationDefaults.navigationSelectedItemColor(),
+            unselectedTextColor = JasmineNavigationDefaults.navigationContentColor(),
         ),
     )
 
@@ -268,14 +268,14 @@ class JasmineNavigationSuiteScope internal constructor(
 fun JasmineNavigationBarPreview() {
     val items = listOf("For you", "Saved", "Interests")
     val icons = listOf(
-        Icons.UpcomingBorder,
-        Icons.BookmarksBorder,
-        Icons.Grid3x3,
+        JasmineIcons.UpcomingBorder,
+        JasmineIcons.BookmarksBorder,
+        JasmineIcons.Grid3x3,
     )
-    val selectedIcons = listOf(
-        Icons.Upcoming,
-        Icons.Bookmarks,
-        Icons.Grid3x3,
+    val selectedJasmineIcons = listOf(
+        JasmineIcons.Upcoming,
+        JasmineIcons.Bookmarks,
+        JasmineIcons.Grid3x3,
     )
 
     JasmineTheme {
@@ -290,7 +290,7 @@ fun JasmineNavigationBarPreview() {
                     },
                     selectedIcon = {
                         Icon(
-                            imageVector = selectedIcons[index],
+                            imageVector = selectedJasmineIcons[index],
                             contentDescription = item,
                         )
                     },
@@ -308,14 +308,14 @@ fun JasmineNavigationBarPreview() {
 fun JasmineNavigationRailPreview() {
     val items = listOf("For you", "Saved", "Interests")
     val icons = listOf(
-        Icons.UpcomingBorder,
-        Icons.BookmarksBorder,
-        Icons.Grid3x3,
+        JasmineIcons.UpcomingBorder,
+        JasmineIcons.BookmarksBorder,
+        JasmineIcons.Grid3x3,
     )
-    val selectedIcons = listOf(
-        Icons.Upcoming,
-        Icons.Bookmarks,
-        Icons.Grid3x3,
+    val selectedJasmineIcons = listOf(
+        JasmineIcons.Upcoming,
+        JasmineIcons.Bookmarks,
+        JasmineIcons.Grid3x3,
     )
 
     JasmineTheme {
@@ -330,7 +330,7 @@ fun JasmineNavigationRailPreview() {
                     },
                     selectedIcon = {
                         Icon(
-                            imageVector = selectedIcons[index],
+                            imageVector = selectedJasmineIcons[index],
                             contentDescription = item,
                         )
                     },
@@ -344,7 +344,7 @@ fun JasmineNavigationRailPreview() {
 }
 
 /**
- * Now in Android navigation default values.
+ * Jasmine navigation default values.
  */
 object JasmineNavigationDefaults {
     @Composable
@@ -356,3 +356,5 @@ object JasmineNavigationDefaults {
     @Composable
     fun navigationIndicatorColor() = MaterialTheme.colorScheme.primaryContainer
 }
+
+

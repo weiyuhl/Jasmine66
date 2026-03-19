@@ -117,3 +117,4 @@ class InterestsScreenTest {
 }
 
 private val numberOfUnfollowedTopics = followableTopicTestData.filter { !it.isFollowed }.size
+

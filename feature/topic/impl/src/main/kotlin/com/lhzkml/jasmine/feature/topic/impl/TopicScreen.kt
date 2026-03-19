@@ -208,7 +208,7 @@ private fun TopicHeader(name: String, description: String, imageUrl: String) {
 @Preview
 @Composable
 private fun TopicBodyPreview() {
-    Theme {
+    JasmineTheme {
         LazyColumn {
             topicBody(
                 name = "Jetpack Compose",
@@ -244,7 +244,7 @@ private fun TopicToolbar(
                 )
             }
         } else {
-            // Keeps the FilterChip aligned to the end of the Row.
+            // Keeps the JasmineFilterChip aligned to the end of the Row.
             Spacer(modifier = Modifier.width(1.dp))
         }
         val selected = uiState.isFollowed
@@ -277,4 +277,6 @@ fun TopicScreenLoading() {
         }
     }
 }
+
+
 

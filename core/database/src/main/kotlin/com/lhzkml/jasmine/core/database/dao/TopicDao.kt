@@ -74,3 +74,4 @@ interface TopicDao {
     )
     suspend fun deleteTopics(ids: List<String>)
 }
+

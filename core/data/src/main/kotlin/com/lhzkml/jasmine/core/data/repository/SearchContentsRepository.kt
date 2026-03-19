@@ -36,3 +36,4 @@ interface SearchContentsRepository {
 
     fun getSearchContentsCount(): Flow<Int>
 }
+

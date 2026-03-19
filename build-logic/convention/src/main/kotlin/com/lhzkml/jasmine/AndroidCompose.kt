@@ -63,3 +63,4 @@ internal fun Project.configureAndroidCompose(
             .add(isolated.rootProject.projectDirectory.file("compose_compiler_config.conf"))
     }
 }
+

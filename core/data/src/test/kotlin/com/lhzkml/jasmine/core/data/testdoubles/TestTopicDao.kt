@@ -58,3 +58,4 @@ class TestTopicDao : TopicDao {
         entitiesStateFlow.update { entities -> entities.filterNot { it.id in idSet } }
     }
 }
+

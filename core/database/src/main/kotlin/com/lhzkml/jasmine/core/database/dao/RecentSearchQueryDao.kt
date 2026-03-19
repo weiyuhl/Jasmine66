@@ -36,3 +36,4 @@ interface RecentSearchQueryDao {
     @Query(value = "DELETE FROM recentSearchQueries")
     suspend fun clearRecentSearchQueries()
 }
+

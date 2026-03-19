@@ -25,5 +25,6 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 internal abstract class AnalyticsModule {
     @Binds
-    abstract fun bindsAnalyticsHelper(analyticsHelperImpl: StubAnalyticsHelper): AnalyticsHelper
+    abstract fun bindsJasmineAnalyticsHelper(JasmineAnalyticsHelperImpl: StubJasmineAnalyticsHelper): JasmineAnalyticsHelper
 }
+

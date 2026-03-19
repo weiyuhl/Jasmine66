@@ -26,8 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhzkml.jasmine.core.designsystem.component.Background
-import com.lhzkml.jasmine.core.designsystem.component.LoadingWheel
-import com.lhzkml.jasmine.core.designsystem.theme.Theme
+import com.lhzkml.jasmine.core.designsystem.component.JasmineLoadingWheel
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import com.lhzkml.jasmine.core.model.data.FollowableTopic
 import com.lhzkml.jasmine.core.ui.DevicePreviews
 import com.lhzkml.jasmine.core.ui.FollowableTopicPreviewParameterProvider
@@ -70,7 +70,7 @@ internal fun InterestsScreen(
     ) {
         when (uiState) {
             InterestsUiState.Loading ->
-                LoadingWheel(
+                JasmineLoadingWheel(
                     contentDesc = stringResource(id = R.string.feature_interests_api_loading),
                 )
 
@@ -100,7 +100,7 @@ fun InterestsScreenPopulated(
     @PreviewParameter(FollowableTopicPreviewParameterProvider::class)
     followableTopics: List<FollowableTopic>,
 ) {
-    Theme {
+    JasmineTheme {
         Background {
             InterestsScreen(
                 uiState = InterestsUiState.Interests(
@@ -117,7 +117,7 @@ fun InterestsScreenPopulated(
 @DevicePreviews
 @Composable
 fun InterestsScreenLoading() {
-    Theme {
+    JasmineTheme {
         Background {
             InterestsScreen(
                 uiState = InterestsUiState.Loading,
@@ -131,7 +131,7 @@ fun InterestsScreenLoading() {
 @DevicePreviews
 @Composable
 fun InterestsScreenEmpty() {
-    Theme {
+    JasmineTheme {
         Background {
             InterestsScreen(
                 uiState = InterestsUiState.Empty,
@@ -141,3 +141,6 @@ fun InterestsScreenEmpty() {
         }
     }
 }
+
+
+

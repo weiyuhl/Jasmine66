@@ -88,3 +88,4 @@ sealed interface InterestsUiState {
 
     data object Empty : InterestsUiState
 }
+

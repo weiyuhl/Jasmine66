@@ -44,3 +44,4 @@ internal class DefaultRecentSearchRepository @Inject constructor(
 
     override suspend fun clearRecentSearches() = recentSearchQueryDao.clearRecentSearchQueries()
 }
+

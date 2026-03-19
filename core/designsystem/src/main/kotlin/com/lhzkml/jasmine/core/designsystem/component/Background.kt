@@ -150,7 +150,7 @@ annotation class ThemePreviews
 @ThemePreviews
 @Composable
 fun BackgroundDefault() {
-    Theme(disableDynamicTheming = true) {
+    JasmineTheme(disableDynamicTheming = true) {
         Background(Modifier.size(100.dp), content = {})
     }
 }
@@ -158,7 +158,7 @@ fun BackgroundDefault() {
 @ThemePreviews
 @Composable
 fun BackgroundDynamic() {
-    Theme(disableDynamicTheming = false) {
+    JasmineTheme(disableDynamicTheming = false) {
         Background(Modifier.size(100.dp), content = {})
     }
 }
@@ -166,7 +166,7 @@ fun BackgroundDynamic() {
 @ThemePreviews
 @Composable
 fun BackgroundAndroid() {
-    Theme(androidTheme = true) {
+    JasmineTheme(androidTheme = true) {
         Background(Modifier.size(100.dp), content = {})
     }
 }
@@ -174,7 +174,7 @@ fun BackgroundAndroid() {
 @ThemePreviews
 @Composable
 fun GradientBackgroundDefault() {
-    Theme(disableDynamicTheming = true) {
+    JasmineTheme(disableDynamicTheming = true) {
         GradientBackground(Modifier.size(100.dp), content = {})
     }
 }
@@ -182,7 +182,7 @@ fun GradientBackgroundDefault() {
 @ThemePreviews
 @Composable
 fun GradientBackgroundDynamic() {
-    Theme(disableDynamicTheming = false) {
+    JasmineTheme(disableDynamicTheming = false) {
         GradientBackground(Modifier.size(100.dp), content = {})
     }
 }
@@ -190,7 +190,7 @@ fun GradientBackgroundDynamic() {
 @ThemePreviews
 @Composable
 fun GradientBackgroundAndroid() {
-    Theme(androidTheme = true) {
+    JasmineTheme(androidTheme = true) {
         GradientBackground(Modifier.size(100.dp), content = {})
     }
 }

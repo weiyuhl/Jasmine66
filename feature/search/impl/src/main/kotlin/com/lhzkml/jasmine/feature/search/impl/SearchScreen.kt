@@ -560,7 +560,8 @@ private fun SearchScreenPreview(
     @PreviewParameter(SearchUiStatePreviewParameterProvider::class)
     searchResultUiState: SearchResultUiState,
 ) {
-    Theme {
+    JasmineTheme {
         SearchScreen(searchResultUiState = searchResultUiState)
     }
 }
+

@@ -45,3 +45,4 @@ internal object DaosModule {
         database: JasmineDatabase,
     ): RecentSearchQueryDao = database.recentSearchQueryDao()
 }
+

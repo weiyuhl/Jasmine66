@@ -37,7 +37,7 @@ import androidx.compose.material.icons.rounded.ViewDay
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
- * Now in Android icons. Material icons are [ImageVector]s, custom icons are drawable resource IDs.
+ * Jasmine icons. Material icons are [ImageVector]s, custom icons are drawable resource IDs.
  */
 object JasmineIcons {
     val Add = Icons.Rounded.Add
@@ -58,3 +58,4 @@ object JasmineIcons {
     val UpcomingBorder = Icons.Outlined.Upcoming
     val ViewDay = Icons.Rounded.ViewDay
 }
+

@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
- * Now in Android tab. Wraps Material 3 [Tab] and shifts text label down.
+ * Jasmine tab. Wraps Material 3 [Tab] and shifts text label down.
  *
  * @param selected Whether this tab is selected or not.
  * @param onClick The callback to be invoked when this tab is selected.
@@ -72,7 +72,7 @@ fun JasmineTab(
 }
 
 /**
- * Now in Android tab row. Wraps Material 3 [TabRow].
+ * Jasmine tab row. Wraps Material 3 [TabRow].
  *
  * @param selectedTabIndex The index of the currently selected tab.
  * @param modifier Modifier to be applied to the tab row.
@@ -121,3 +121,4 @@ fun TabsPreview() {
 object JasmineTabDefaults {
     val TabTopPadding = 7.dp
 }
+

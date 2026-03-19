@@ -19,7 +19,7 @@ package com.lhzkml.jasmine.core.designsystem.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Now in Android colors.
+ * Jasmine colors.
  */
 internal val Blue10 = Color(0xFF001F28)
 internal val Blue20 = Color(0xFF003544)
@@ -83,3 +83,4 @@ internal val Teal30 = Color(0xFF214D56)
 internal val Teal40 = Color(0xFF3A656F)
 internal val Teal80 = Color(0xFFA2CED9)
 internal val Teal90 = Color(0xFFBEEAF6)
+

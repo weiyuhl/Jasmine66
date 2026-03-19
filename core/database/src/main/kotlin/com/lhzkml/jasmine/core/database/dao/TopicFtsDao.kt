@@ -37,3 +37,4 @@ interface TopicFtsDao {
     @Query("SELECT count(*) FROM topicsFts")
     fun getCount(): Flow<Int>
 }
+

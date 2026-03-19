@@ -24,11 +24,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.lhzkml.jasmine.core.designsystem.icon.Icons
+import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
- * Now in Android toggle button with icon and checked icon content slots. Wraps Material 3
+ * Jasmine toggle button with icon and checked icon content slots. Wraps Material 3
  * [IconButton].
  *
  * @param checked Whether the toggle button is currently checked.
@@ -80,13 +80,13 @@ fun IconButtonPreview() {
             onCheckedChange = { },
             icon = {
                 Icon(
-                    imageVector = Icons.BookmarkBorder,
+                    imageVector = JasmineIcons.BookmarkBorder,
                     contentDescription = null,
                 )
             },
             checkedIcon = {
                 Icon(
-                    imageVector = Icons.Bookmark,
+                    imageVector = JasmineIcons.Bookmark,
                     contentDescription = null,
                 )
             },
@@ -103,13 +103,13 @@ fun IconButtonPreviewUnchecked() {
             onCheckedChange = { },
             icon = {
                 Icon(
-                    imageVector = Icons.BookmarkBorder,
+                    imageVector = JasmineIcons.BookmarkBorder,
                     contentDescription = null,
                 )
             },
             checkedIcon = {
                 Icon(
-                    imageVector = Icons.Bookmark,
+                    imageVector = JasmineIcons.Bookmark,
                     contentDescription = null,
                 )
             },
@@ -117,11 +117,6 @@ fun IconButtonPreviewUnchecked() {
     }
 }
 
-/**
- * Now in Android icon button default values.
- */
 object JasmineIconButtonDefaults {
-    // TODO: File bug
-    // IconToggleButton disabled container alpha not exposed by IconButtonDefaults
     const val DISABLED_ICON_BUTTON_CONTAINER_ALPHA = 0.12f
 }

@@ -49,3 +49,4 @@ fun TopicEntity.asExternalModel() = Topic(
     url = url,
     imageUrl = imageUrl,
 )
+

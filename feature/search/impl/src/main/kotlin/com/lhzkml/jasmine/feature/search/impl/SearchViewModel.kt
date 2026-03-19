@@ -21,7 +21,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lhzkml.jasmine.core.analytics.AnalyticsEvent
 import com.lhzkml.jasmine.core.analytics.AnalyticsEvent.Param
-import com.lhzkml.jasmine.core.analytics.AnalyticsHelper
+import com.lhzkml.jasmine.core.analytics.JasmineAnalyticsHelper
 import com.lhzkml.jasmine.core.data.repository.RecentSearchRepository
 import com.lhzkml.jasmine.core.data.repository.SearchContentsRepository
 import com.lhzkml.jasmine.core.data.repository.UserDataRepository
@@ -47,7 +47,7 @@ class SearchViewModel @Inject constructor(
     private val recentSearchRepository: RecentSearchRepository,
     private val userDataRepository: UserDataRepository,
     private val savedStateHandle: SavedStateHandle,
-    private val analyticsHelper: AnalyticsHelper,
+    private val JasmineAnalyticsHelper: JasmineAnalyticsHelper,
 ) : ViewModel() {
 
     val searchQuery = savedStateHandle.getStateFlow(key = SEARCH_QUERY, initialValue = "")
@@ -105,7 +105,7 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             recentSearchRepository.insertOrReplaceRecentSearch(searchQuery = query)
         }
-        analyticsHelper.logEventSearchTriggered(query = query)
+        JasmineAnalyticsHelper.logEventSearchTriggered(query = query)
     }
 
     fun clearRecentSearches() {
@@ -123,7 +123,7 @@ class SearchViewModel @Inject constructor(
 
 }
 
-private fun AnalyticsHelper.logEventSearchTriggered(query: String) =
+private fun JasmineAnalyticsHelper.logEventSearchTriggered(query: String) =
     logEvent(
         event = AnalyticsEvent(
             type = SEARCH_QUERY,
@@ -137,3 +137,5 @@ private const val SEARCH_QUERY_MIN_LENGTH = 2
 /** Minimum number of the fts table's entity count where it's considered as search is not ready */
 private const val SEARCH_MIN_FTS_ENTITY_COUNT = 1
 private const val SEARCH_QUERY = "searchQuery"
+
+

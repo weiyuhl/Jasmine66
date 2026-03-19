@@ -62,7 +62,7 @@ import com.lhzkml.jasmine.core.designsystem.component.scrollbar.DraggableScrollb
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.scrollbarState
 import com.lhzkml.jasmine.core.designsystem.theme.LocalTintTheme
-import com.lhzkml.jasmine.core.designsystem.theme.Theme
+import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
 import com.lhzkml.jasmine.core.ui.TrackScrollJank
 import com.lhzkml.jasmine.feature.bookmarks.api.R
@@ -176,3 +176,4 @@ private fun EmptyStatePreview() {
         EmptyState()
     }
 }
+

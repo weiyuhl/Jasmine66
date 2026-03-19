@@ -32,7 +32,7 @@ import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
- * Now in Android filter chip with included leading checked icon as well as text content slot.
+ * Jasmine filter chip with included leading checked icon as well as text content slot.
  *
  * @param selected Whether the chip is currently checked.
  * @param onSelectedChange Called when the user clicks the chip and toggles checked.
@@ -119,7 +119,7 @@ fun ChipPreview() {
 }
 
 /**
- * Now in Android chip default values.
+ * Jasmine chip default values.
  */
 object JasmineChipDefaults {
     // TODO: File bug
@@ -128,4 +128,5 @@ object JasmineChipDefaults {
     const val DISABLED_CHIP_CONTENT_ALPHA = 0.38f
     val ChipBorderWidth = 1.dp
 }
+
 
