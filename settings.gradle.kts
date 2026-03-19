@@ -49,6 +49,12 @@ include(":core:ui")
 include(":feature:search:api")
 include(":feature:search:impl")
 include(":feature:settings:impl")
+include(":feature:chat:api")
+include(":feature:chat:impl")
+include(":feature:tools:api")
+include(":feature:tools:impl")
+include(":feature:knowledgebase:api")
+include(":feature:knowledgebase:impl")
 
 check(JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
     """

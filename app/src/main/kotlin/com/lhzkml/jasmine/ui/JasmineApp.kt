@@ -72,7 +72,9 @@ import com.lhzkml.jasmine.core.navigation.Navigator
 import com.lhzkml.jasmine.core.navigation.SettingsNavKey
 import com.lhzkml.jasmine.core.navigation.toEntries
 import com.lhzkml.jasmine.ui.LocalSnackbarHostState
-import com.lhzkml.jasmine.ui.stubEntries
+import com.lhzkml.jasmine.feature.chat.impl.navigation.chatEntry
+import com.lhzkml.jasmine.feature.tools.impl.navigation.toolsEntry
+import com.lhzkml.jasmine.feature.knowledgebase.impl.navigation.knowledgeBaseEntry
 import com.lhzkml.jasmine.feature.search.api.navigation.SearchNavKey
 import com.lhzkml.jasmine.feature.search.api.R as searchR
 import com.lhzkml.jasmine.feature.search.impl.navigation.searchEntry
@@ -286,7 +288,9 @@ internal fun JasmineAppContent(
                     val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
 
                     val entryProvider = entryProvider {
-                        stubEntries()
+                        chatEntry(navigator)
+                        toolsEntry(navigator)
+                        knowledgeBaseEntry(navigator)
                         searchEntry(navigator)
                         settingsEntry(navigator)
                     }

@@ -50,6 +50,13 @@ android {
 }
 
 dependencies {
+    implementation(projects.feature.chat.api)
+    implementation(projects.feature.chat.impl)
+    implementation(projects.feature.tools.api)
+    implementation(projects.feature.tools.impl)
+    implementation(projects.feature.knowledgebase.api)
+    implementation(projects.feature.knowledgebase.impl)
+
     implementation(projects.feature.search.api)
     implementation(projects.feature.search.impl)
     implementation(projects.feature.settings.impl)
