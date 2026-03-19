@@ -1,30 +1,18 @@
-
 package com.lhzkml.jasmine.feature.search.impl
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -50,29 +38,20 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.lhzkml.jasmine.core.designsystem.component.scrollbar.DraggableScrollbar
-import com.lhzkml.jasmine.core.designsystem.component.scrollbar.rememberDraggableScroller
-import com.lhzkml.jasmine.core.designsystem.component.scrollbar.scrollbarState
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
-import com.lhzkml.jasmine.core.model.data.FollowableTopic
 import com.lhzkml.jasmine.core.ui.DevicePreviews
-import com.lhzkml.jasmine.core.ui.InterestsItem
 import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
 import com.lhzkml.jasmine.feature.search.api.R as searchR
 import com.lhzkml.jasmine.core.ui.R as uiR
@@ -80,7 +59,6 @@ import com.lhzkml.jasmine.core.ui.R as uiR
 @Composable
 internal fun SearchScreen(
     onBackClick: () -> Unit,
-    onInterestsClick: () -> Unit,
     onTopicClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     searchViewModel: SearchViewModel = hiltViewModel(),
@@ -96,10 +74,7 @@ internal fun SearchScreen(
         onSearchQueryChanged = searchViewModel::onSearchQueryChanged,
         onSearchTriggered = searchViewModel::onSearchTriggered,
         onClearRecentSearches = searchViewModel::clearRecentSearches,
-        onFollowButtonClick = searchViewModel::followTopic,
         onBackClick = onBackClick,
-        onInterestsClick = onInterestsClick,
-        onTopicClick = onTopicClick,
     )
 }
 
@@ -112,10 +87,7 @@ internal fun SearchScreen(
     onSearchQueryChanged: (String) -> Unit = {},
     onSearchTriggered: (String) -> Unit = {},
     onClearRecentSearches: () -> Unit = {},
-    onFollowButtonClick: (String, Boolean) -> Unit = { _, _ -> },
     onBackClick: () -> Unit = {},
-    onInterestsClick: () -> Unit = {},
-    onTopicClick: (String) -> Unit = {},
 ) {
     TrackScreenViewEvent(screenName = "Search")
     Column(modifier = modifier) {
@@ -129,10 +101,11 @@ internal fun SearchScreen(
         when (searchResultUiState) {
             SearchResultUiState.Loading,
             SearchResultUiState.LoadFailed,
+            SearchResultUiState.SearchNotReady,
             -> Unit
 
-            SearchResultUiState.SearchNotReady -> SearchNotReadyBody()
             SearchResultUiState.EmptyQuery,
+            SearchResultUiState.Success,
             -> {
                 if (recentSearchesUiState is RecentSearchQueriesUiState.Success) {
                     RecentSearchesBody(
@@ -144,32 +117,9 @@ internal fun SearchScreen(
                         recentSearchQueries = recentSearchesUiState.recentQueries.map { it.query },
                     )
                 }
-            }
 
-            is SearchResultUiState.Success -> {
-                if (searchResultUiState.isEmpty()) {
-                    EmptySearchResultBody(
-                        searchQuery = searchQuery,
-                        onInterestsClick = onInterestsClick,
-                    )
-                    if (recentSearchesUiState is RecentSearchQueriesUiState.Success) {
-                        RecentSearchesBody(
-                            onClearRecentSearches = onClearRecentSearches,
-                            onRecentSearchClicked = {
-                                onSearchQueryChanged(it)
-                                onSearchTriggered(it)
-                            },
-                            recentSearchQueries = recentSearchesUiState.recentQueries.map { it.query },
-                        )
-                    }
-                } else {
-                    SearchResultBody(
-                        searchQuery = searchQuery,
-                        topics = searchResultUiState.topics,
-                        onSearchTriggered = onSearchTriggered,
-                        onTopicClick = onTopicClick,
-                        onFollowButtonClick = onFollowButtonClick,
-                    )
+                if (searchResultUiState is SearchResultUiState.Success && searchQuery.isNotBlank()) {
+                     EmptySearchResultBody(searchQuery = searchQuery)
                 }
             }
         }
@@ -180,7 +130,6 @@ internal fun SearchScreen(
 @Composable
 fun EmptySearchResultBody(
     searchQuery: String,
-    onInterestsClick: () -> Unit,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -194,141 +143,14 @@ fun EmptySearchResultBody(
                 spanStyles = listOf(
                     AnnotatedString.Range(
                         SpanStyle(fontWeight = FontWeight.Bold),
-                        start = start,
-                        end = start + searchQuery.length,
+                        start = if (start >= 0) start else 0,
+                        end = if (start >= 0) start + searchQuery.length else 0,
                     ),
                 ),
             ),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 24.dp),
-        )
-        val tryAnotherSearchString = buildAnnotatedString {
-            append(stringResource(id = searchR.string.feature_search_api_try_another_search))
-            append(" ")
-            withLink(
-                LinkAnnotation.Clickable(
-                    tag = "",
-                    linkInteractionListener = {
-                        onInterestsClick()
-                    },
-                ),
-            ) {
-                withStyle(
-                    style = SpanStyle(
-                        textDecoration = TextDecoration.Underline,
-                        fontWeight = FontWeight.Bold,
-                    ),
-                ) {
-                    append(stringResource(id = searchR.string.feature_search_api_interests))
-                }
-            }
-
-            append(" ")
-            append(stringResource(id = searchR.string.feature_search_api_to_browse_topics))
-        }
-        Text(
-            text = tryAnotherSearchString,
-            style = MaterialTheme.typography.bodyLarge.merge(
-                TextStyle(
-                    color = MaterialTheme.colorScheme.secondary,
-                    textAlign = TextAlign.Center,
-                ),
-            ),
-            modifier = Modifier
-                .padding(start = 36.dp, end = 36.dp, bottom = 24.dp),
-        )
-    }
-}
-
-@Composable
-private fun SearchNotReadyBody() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(horizontal = 48.dp),
-    ) {
-        Text(
-            text = stringResource(id = searchR.string.feature_search_api_not_ready),
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(vertical = 24.dp),
-        )
-    }
-}
-
-@Composable
-private fun SearchResultBody(
-    searchQuery: String,
-    topics: List<FollowableTopic>,
-    onSearchTriggered: (String) -> Unit,
-    onTopicClick: (String) -> Unit,
-    onFollowButtonClick: (String, Boolean) -> Unit,
-) {
-    val state = rememberLazyStaggeredGridState()
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-    ) {
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Adaptive(300.dp),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalItemSpacing = 24.dp,
-            modifier = Modifier
-                .fillMaxSize()
-                .testTag("search:topics"),
-            state = state,
-        ) {
-            if (topics.isNotEmpty()) {
-                item(
-                    span = StaggeredGridItemSpan.FullLine,
-                ) {
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(stringResource(id = searchR.string.feature_search_api_topics))
-                            }
-                        },
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-                topics.forEach { followableTopic ->
-                    val topicId = followableTopic.topic.id
-                    item(
-                        key = "topic-$topicId",
-                        span = StaggeredGridItemSpan.FullLine,
-                    ) {
-                        InterestsItem(
-                            name = followableTopic.topic.name,
-                            following = followableTopic.isFollowed,
-                            description = followableTopic.topic.shortDescription,
-                            topicImageUrl = followableTopic.topic.imageUrl,
-                            onClick = {
-                                // Pass the current search query to ViewModel to save it as recent searches
-                                onSearchTriggered(searchQuery)
-                                onTopicClick(topicId)
-                            },
-                            onFollowButtonClick = { onFollowButtonClick(topicId, it) },
-                        )
-                    }
-                }
-            }
-        }
-        val itemsAvailable = topics.size
-        val scrollbarState = state.scrollbarState(
-            itemsAvailable = itemsAvailable,
-        )
-        state.DraggableScrollbar(
-            modifier = Modifier
-                .fillMaxHeight()
-                .windowInsetsPadding(WindowInsets.systemBars)
-                .padding(horizontal = 2.dp)
-                .align(Alignment.CenterEnd),
-            state = scrollbarState,
-            orientation = Orientation.Vertical,
-            onThumbMoved = state.rememberDraggableScroller(
-                itemsAvailable = itemsAvailable,
-            ),
         )
     }
 }
@@ -345,10 +167,11 @@ private fun RecentSearchesBody(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
         ) {
+            val recentSearchesText = stringResource(id = searchR.string.feature_search_api_recent_searches)
             Text(
                 text = buildAnnotatedString {
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append(stringResource(id = searchR.string.feature_search_api_recent_searches))
+                        append(recentSearchesText)
                     }
                 },
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -513,7 +336,6 @@ private fun SearchToolbarPreview() {
 private fun EmptySearchResultColumnPreview() {
     JasmineTheme {
         EmptySearchResultBody(
-            onInterestsClick = {},
             searchQuery = "C++",
         )
     }
@@ -531,14 +353,6 @@ private fun RecentSearchesBodyPreview() {
     }
 }
 
-@Preview
-@Composable
-private fun SearchNotReadyBodyPreview() {
-    JasmineTheme {
-        SearchNotReadyBody()
-    }
-}
-
 @DevicePreviews
 @Composable
 private fun SearchScreenPreview(
@@ -549,4 +363,3 @@ private fun SearchScreenPreview(
         SearchScreen(searchResultUiState = searchResultUiState)
     }
 }
-

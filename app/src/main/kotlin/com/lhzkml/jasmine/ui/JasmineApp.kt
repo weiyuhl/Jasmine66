@@ -66,7 +66,6 @@ import com.lhzkml.jasmine.ui.stubEntries
 import com.lhzkml.jasmine.feature.search.api.navigation.SearchNavKey
 import com.lhzkml.jasmine.feature.search.impl.navigation.searchEntry
 import com.lhzkml.jasmine.feature.settings.impl.SettingsDialog
-import com.lhzkml.jasmine.feature.topic.impl.navigation.topicEntry
 import com.lhzkml.jasmine.navigation.TOP_LEVEL_NAV_ITEMS
 import com.lhzkml.jasmine.feature.settings.impl.R as settingsR
 
@@ -242,7 +241,6 @@ internal fun JasmineApp(
 
                     val entryProvider = entryProvider {
                         stubEntries()
-                        topicEntry(navigator)
                         searchEntry(navigator)
                     }
 

@@ -1,4 +1,3 @@
-
 package com.lhzkml.jasmine.core.data.repository
 
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
@@ -12,16 +11,6 @@ interface UserDataRepository {
      * Stream of [UserData]
      */
     val userData: Flow<UserData>
-
-    /**
-     * Sets the user's currently followed topics
-     */
-    suspend fun setFollowedTopicIds(followedTopicIds: Set<String>)
-
-    /**
-     * Sets the user's newly followed/unfollowed topic
-     */
-    suspend fun setTopicIdFollowed(followedTopicId: String, followed: Boolean)
 
     /**
      * Sets the desired theme brand.

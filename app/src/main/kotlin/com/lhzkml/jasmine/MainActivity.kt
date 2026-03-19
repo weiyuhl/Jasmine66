@@ -22,7 +22,6 @@ import com.lhzkml.jasmine.core.analytics.JasmineAnalyticsHelper
 import com.lhzkml.jasmine.core.analytics.LocalJasmineAnalyticsHelper
 import com.lhzkml.jasmine.core.data.util.NetworkMonitor
 import com.lhzkml.jasmine.core.data.util.TimeZoneMonitor
-import com.lhzkml.jasmine.core.data.repository.SearchContentsRepository
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import com.lhzkml.jasmine.core.ui.LocalTimeZone
 import com.lhzkml.jasmine.ui.JasmineApp
@@ -54,19 +53,12 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var JasmineAnalyticsHelper: JasmineAnalyticsHelper
 
-    @Inject
-    lateinit var searchContentsRepository: SearchContentsRepository
-
 
     private val viewModel: MainActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-
-        lifecycleScope.launch {
-            searchContentsRepository.populateFtsData()
-        }
 
         // We keep this as a mutable state, so that we can track changes inside the composition.
         // This allows us to react to dark/light mode changes.
@@ -176,5 +168,3 @@ data class ThemeSettings(
     val androidTheme: Boolean,
     val disableDynamicTheming: Boolean,
 )
-
-

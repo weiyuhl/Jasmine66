@@ -1,24 +1,17 @@
-
 package com.lhzkml.jasmine.feature.search.impl
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lhzkml.jasmine.core.analytics.JasmineAnalyticsHelper
 import com.lhzkml.jasmine.core.analytics.AnalyticsEvent
 import com.lhzkml.jasmine.core.analytics.AnalyticsEvent.Param
-import com.lhzkml.jasmine.core.analytics.JasmineAnalyticsHelper
 import com.lhzkml.jasmine.core.data.repository.RecentSearchRepository
-import com.lhzkml.jasmine.core.data.repository.SearchContentsRepository
 import com.lhzkml.jasmine.core.data.repository.UserDataRepository
 import com.lhzkml.jasmine.core.domain.GetRecentSearchQueriesUseCase
-import com.lhzkml.jasmine.core.domain.GetSearchContentsUseCase
-import com.lhzkml.jasmine.core.model.data.UserSearchResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -26,9 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    getSearchContentsUseCase: GetSearchContentsUseCase,
     recentSearchQueriesUseCase: GetRecentSearchQueriesUseCase,
-    private val searchContentsRepository: SearchContentsRepository,
     private val recentSearchRepository: RecentSearchRepository,
     private val userDataRepository: UserDataRepository,
     private val savedStateHandle: SavedStateHandle,
@@ -38,36 +29,21 @@ class SearchViewModel @Inject constructor(
     val searchQuery = savedStateHandle.getStateFlow(key = SEARCH_QUERY, initialValue = "")
 
     val searchResultUiState: StateFlow<SearchResultUiState> =
-        searchContentsRepository.getSearchContentsCount()
-            .flatMapLatest { totalCount ->
-                if (totalCount < SEARCH_MIN_FTS_ENTITY_COUNT) {
-                    flowOf(SearchResultUiState.SearchNotReady)
-                } else {
-                    searchQuery.flatMapLatest { query ->
-                        if (query.trim().length < SEARCH_QUERY_MIN_LENGTH) {
-                            flowOf(SearchResultUiState.EmptyQuery)
-                        } else {
-                            getSearchContentsUseCase(query)
-                                // Not using .asResult() here, because it emits Loading state every
-                                // time the user types a letter in the search box, which flickers the screen.
-                                .map<UserSearchResult, SearchResultUiState> { data ->
-                                    SearchResultUiState.Success(
-                                        topics = data.topics,
-                                    )
-                                }
-                                .catch { emit(SearchResultUiState.LoadFailed) }
-                        }
-                    }
-                }
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = SearchResultUiState.Loading,
-            )
+        searchQuery.map { query ->
+            if (query.trim().length < SEARCH_QUERY_MIN_LENGTH) {
+                SearchResultUiState.EmptyQuery
+            } else {
+                SearchResultUiState.Success
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = SearchResultUiState.Loading,
+        )
 
     val recentSearchQueriesUiState: StateFlow<RecentSearchQueriesUiState> =
         recentSearchQueriesUseCase()
-            .map(RecentSearchQueriesUiState::Success)
+            .map { RecentSearchQueriesUiState.Success(it) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
@@ -78,19 +54,12 @@ class SearchViewModel @Inject constructor(
         savedStateHandle[SEARCH_QUERY] = query
     }
 
-    /**
-     * Called when the search action is explicitly triggered by the user. For example, when the
-     * search icon is tapped in the IME or when the enter key is pressed in the search text field.
-     *
-     * The search results are displayed on the fly as the user types, but to explicitly save the
-     * search query in the search text field, defining this method.
-     */
     fun onSearchTriggered(query: String) {
         if (query.isBlank()) return
         viewModelScope.launch {
             recentSearchRepository.insertOrReplaceRecentSearch(searchQuery = query)
         }
-        JasmineAnalyticsHelper.logEventSearchTriggered(query = query)
+        JasmineAnalyticsHelper.logEventSearchTriggered(query)
     }
 
     fun clearRecentSearches() {
@@ -98,29 +67,18 @@ class SearchViewModel @Inject constructor(
             recentSearchRepository.clearRecentSearches()
         }
     }
-
-
-    fun followTopic(followedTopicId: String, followed: Boolean) {
-        viewModelScope.launch {
-            userDataRepository.setTopicIdFollowed(followedTopicId, followed)
-        }
-    }
-
 }
 
 private fun JasmineAnalyticsHelper.logEventSearchTriggered(query: String) =
     logEvent(
-        event = AnalyticsEvent(
-            type = SEARCH_QUERY,
-            extras = listOf(element = Param(key = SEARCH_QUERY, value = query)),
+        AnalyticsEvent(
+            type = "search_query",
+            extras = listOf(Param(key = "search_query", value = query)),
         ),
     )
 
-/** Minimum length where search query is considered as [SearchResultUiState.EmptyQuery] */
+/** Minimum length of a search query to be considered valid. */
 private const val SEARCH_QUERY_MIN_LENGTH = 2
 
-/** Minimum number of the fts table's entity count where it's considered as search is not ready */
-private const val SEARCH_MIN_FTS_ENTITY_COUNT = 1
+/** Key used to save and retrieve the search query from [SavedStateHandle]. */
 private const val SEARCH_QUERY = "searchQuery"
-
-

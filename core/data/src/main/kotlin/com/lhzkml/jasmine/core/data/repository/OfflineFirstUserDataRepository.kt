@@ -1,7 +1,5 @@
-
 package com.lhzkml.jasmine.core.data.repository
 
-import androidx.annotation.VisibleForTesting
 import com.lhzkml.jasmine.core.analytics.JasmineAnalyticsHelper
 import com.lhzkml.jasmine.core.datastore.JasminePreferencesDataSource
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
@@ -17,15 +15,6 @@ internal class OfflineFirstUserDataRepository @Inject constructor(
 
     override val userData: Flow<UserData> =
         JasminePreferencesDataSource.userData
-
-    @VisibleForTesting
-    override suspend fun setFollowedTopicIds(followedTopicIds: Set<String>) =
-        JasminePreferencesDataSource.setFollowedTopicIds(followedTopicIds)
-
-    override suspend fun setTopicIdFollowed(followedTopicId: String, followed: Boolean) {
-        JasminePreferencesDataSource.setTopicIdFollowed(followedTopicId, followed)
-        JasmineAnalyticsHelper.logTopicFollowToggled(followedTopicId, followed)
-    }
 
     override suspend fun setThemeBrand(themeBrand: ThemeBrand) {
         JasminePreferencesDataSource.setThemeBrand(themeBrand)
@@ -47,5 +36,3 @@ internal class OfflineFirstUserDataRepository @Inject constructor(
         JasmineAnalyticsHelper.logOnboardingStateChanged(shouldHideOnboarding)
     }
 }
-
-

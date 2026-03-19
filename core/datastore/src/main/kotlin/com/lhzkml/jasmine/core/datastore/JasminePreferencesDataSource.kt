@@ -1,13 +1,10 @@
-
 package com.lhzkml.jasmine.core.datastore
 
-import android.util.Log
 import androidx.datastore.core.DataStore
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
 import com.lhzkml.jasmine.core.model.data.ThemeBrand
 import com.lhzkml.jasmine.core.model.data.UserData
 import kotlinx.coroutines.flow.map
-import java.io.IOException
 import javax.inject.Inject
 
 class JasminePreferencesDataSource @Inject constructor(
@@ -16,7 +13,6 @@ class JasminePreferencesDataSource @Inject constructor(
     val userData = userPreferences.data
         .map {
             UserData(
-                followedTopics = it.followedTopicIdsMap.keys,
                 themeBrand = when (it.themeBrand) {
                     null,
                     ThemeBrandProto.THEME_BRAND_UNSPECIFIED,
@@ -40,37 +36,6 @@ class JasminePreferencesDataSource @Inject constructor(
                 shouldHideOnboarding = it.shouldHideOnboarding,
             )
         }
-
-    suspend fun setFollowedTopicIds(topicIds: Set<String>) {
-        try {
-            userPreferences.updateData {
-                it.copy {
-                    followedTopicIds.clear()
-                    followedTopicIds.putAll(topicIds.associateWith { true })
-                    updateShouldHideOnboardingIfNecessary()
-                }
-            }
-        } catch (ioException: IOException) {
-            Log.e("Preferences", "Failed to update user preferences", ioException)
-        }
-    }
-
-    suspend fun setTopicIdFollowed(topicId: String, followed: Boolean) {
-        try {
-            userPreferences.updateData {
-                it.copy {
-                    if (followed) {
-                        followedTopicIds.put(topicId, true)
-                    } else {
-                        followedTopicIds.remove(topicId)
-                    }
-                    updateShouldHideOnboardingIfNecessary()
-                }
-            }
-        } catch (ioException: IOException) {
-            Log.e("Preferences", "Failed to update user preferences", ioException)
-        }
-    }
 
     suspend fun setThemeBrand(themeBrand: ThemeBrand) {
         userPreferences.updateData {
@@ -106,11 +71,5 @@ class JasminePreferencesDataSource @Inject constructor(
         userPreferences.updateData {
             it.copy { this.shouldHideOnboarding = shouldHideOnboarding }
         }
-    }
-}
-
-private fun UserPreferencesKt.Dsl.updateShouldHideOnboardingIfNecessary() {
-    if (followedTopicIds.isEmpty()) {
-        shouldHideOnboarding = false
     }
 }

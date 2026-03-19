@@ -46,8 +46,6 @@ include(":core:network")
 include(":core:notifications")
 include(":core:ui")
 
-include(":feature:topic:api")
-include(":feature:topic:impl")
 include(":feature:search:api")
 include(":feature:search:impl")
 include(":feature:settings:impl")

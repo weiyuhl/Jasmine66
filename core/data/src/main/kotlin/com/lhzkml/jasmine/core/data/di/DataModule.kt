@@ -1,13 +1,8 @@
-
 package com.lhzkml.jasmine.core.data.di
 
 import com.lhzkml.jasmine.core.data.repository.DefaultRecentSearchRepository
-import com.lhzkml.jasmine.core.data.repository.DefaultSearchContentsRepository
-import com.lhzkml.jasmine.core.data.repository.OfflineFirstTopicsRepository
 import com.lhzkml.jasmine.core.data.repository.OfflineFirstUserDataRepository
 import com.lhzkml.jasmine.core.data.repository.RecentSearchRepository
-import com.lhzkml.jasmine.core.data.repository.SearchContentsRepository
-import com.lhzkml.jasmine.core.data.repository.TopicsRepository
 import com.lhzkml.jasmine.core.data.repository.UserDataRepository
 import com.lhzkml.jasmine.core.data.util.ConnectivityManagerNetworkMonitor
 import com.lhzkml.jasmine.core.data.util.NetworkMonitor
@@ -23,12 +18,6 @@ import dagger.hilt.components.SingletonComponent
 abstract class DataModule {
 
     @Binds
-    internal abstract fun bindsTopicRepository(
-        topicsRepository: OfflineFirstTopicsRepository,
-    ): TopicsRepository
-
-
-    @Binds
     internal abstract fun bindsUserDataRepository(
         userDataRepository: OfflineFirstUserDataRepository,
     ): UserDataRepository
@@ -37,11 +26,6 @@ abstract class DataModule {
     internal abstract fun bindsRecentSearchRepository(
         recentSearchRepository: DefaultRecentSearchRepository,
     ): RecentSearchRepository
-
-    @Binds
-    internal abstract fun bindsSearchContentsRepository(
-        searchContentsRepository: DefaultSearchContentsRepository,
-    ): SearchContentsRepository
 
     @Binds
     internal abstract fun bindsNetworkMonitor(
