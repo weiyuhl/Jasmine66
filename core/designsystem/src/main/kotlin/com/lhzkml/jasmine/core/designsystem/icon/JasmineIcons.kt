@@ -14,6 +14,7 @@ import androidx.compose.material.icons.rounded.Bookmarks
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Grid3x3
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
@@ -35,6 +36,7 @@ object JasmineIcons {
     val Close = Icons.Rounded.Close
     val Grid3x3 = Icons.Rounded.Grid3x3
     val MoreVert = Icons.Default.MoreVert
+    val Menu = Icons.Rounded.Menu
     val Person = Icons.Rounded.Person
     val Search = Icons.Rounded.Search
     val Settings = Icons.Rounded.Settings

@@ -12,9 +12,15 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.DismissibleDrawerSheet
+import androidx.compose.material3.DismissibleNavigationDrawer
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration.Indefinite
 import androidx.compose.material3.SnackbarHost
@@ -25,12 +31,14 @@ import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -64,9 +72,11 @@ import com.lhzkml.jasmine.core.navigation.toEntries
 import com.lhzkml.jasmine.ui.LocalSnackbarHostState
 import com.lhzkml.jasmine.ui.stubEntries
 import com.lhzkml.jasmine.feature.search.api.navigation.SearchNavKey
+import com.lhzkml.jasmine.feature.search.api.R as searchR
 import com.lhzkml.jasmine.feature.search.impl.navigation.searchEntry
 import com.lhzkml.jasmine.feature.settings.impl.SettingsDialog
 import com.lhzkml.jasmine.navigation.TOP_LEVEL_NAV_ITEMS
+import kotlinx.coroutines.launch
 import com.lhzkml.jasmine.feature.settings.impl.R as settingsR
 
 @Composable
@@ -139,10 +149,55 @@ internal fun JasmineApp(
     }
 
     val snackbarHostState = LocalSnackbarHostState.current
-
     val navigator = remember { Navigator(appState.navigationState) }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
 
-    JasmineNavigationSuiteScaffold(
+    val isTopLevelDestination = appState.navigationState.currentKey in appState.navigationState.topLevelKeys
+
+    DismissibleNavigationDrawer(
+        drawerState = drawerState,
+        gesturesEnabled = isTopLevelDestination,
+        drawerContent = {
+            DismissibleDrawerSheet {
+                TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
+                    val selected = navKey == appState.navigationState.currentTopLevelKey
+                    NavigationDrawerItem(
+                        label = { Text(stringResource(navItem.iconTextId)) },
+                        selected = selected,
+                        onClick = {
+                            navigator.navigate(navKey)
+                            coroutineScope.launch { drawerState.close() }
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = if (selected) navItem.selectedIcon else navItem.unselectedIcon,
+                                contentDescription = null,
+                            )
+                        },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                }
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                NavigationDrawerItem(
+                    label = { Text(stringResource(searchR.string.feature_search_api_title)) },
+                    selected = appState.navigationState.currentKey == SearchNavKey,
+                    onClick = {
+                        navigator.navigate(SearchNavKey)
+                        coroutineScope.launch { drawerState.close() }
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = JasmineIcons.Search,
+                            contentDescription = null,
+                        )
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                )
+            }
+        },
+    ) {
+        JasmineNavigationSuiteScaffold(
         navigationSuiteItems = {
             TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
                 val hasUnread = unreadNavKeys.contains(navKey)
@@ -211,7 +266,7 @@ internal fun JasmineApp(
 
                     TopAppBar(
                         titleRes = destination.titleTextId,
-                        navigationIcon = JasmineIcons.Search,
+                        navigationIcon = JasmineIcons.Menu,
                         navigationIconContentDescription = stringResource(
                             id = settingsR.string.feature_settings_impl_top_app_bar_navigation_icon_description,
                         ),
@@ -223,7 +278,11 @@ internal fun JasmineApp(
                             containerColor = Color.Transparent,
                         ),
                         onActionClick = { onTopAppBarActionClick() },
-                        onNavigationClick = { navigator.navigate(SearchNavKey) },
+                        onNavigationClick = {
+                            coroutineScope.launch {
+                                if (drawerState.isOpen) drawerState.close() else drawerState.open()
+                            }
+                        },
                     )
                 }
 
@@ -251,11 +310,13 @@ internal fun JasmineApp(
                     )
                 }
 
-                // TODO: We may want to add padding or spacer when the snackbar is shown so that
+                 // TODO: We may want to add padding or spacer when the snackbar is shown so that
                 //  content doesn't display behind it.
             }
         }
     }
+}
+
 }
 
 private fun Modifier.notificationDot(): Modifier =
