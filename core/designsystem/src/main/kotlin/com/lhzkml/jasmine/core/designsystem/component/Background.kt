@@ -48,7 +48,7 @@ import kotlin.math.tan
  * @param content The background content.
  */
 @Composable
-fun JasmineBackground(
+fun Background(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -74,7 +74,7 @@ fun JasmineBackground(
  * @param content The background content.
  */
 @Composable
-fun JasmineGradientBackground(
+fun GradientBackground(
     modifier: Modifier = Modifier,
     gradientColors: GradientColors = LocalGradientColors.current,
     content: @Composable () -> Unit,
@@ -150,47 +150,48 @@ annotation class ThemePreviews
 @ThemePreviews
 @Composable
 fun BackgroundDefault() {
-    NiaTheme(disableDynamicTheming = true) {
-        JasmineBackground(Modifier.size(100.dp), content = {})
+    Theme(disableDynamicTheming = true) {
+        Background(Modifier.size(100.dp), content = {})
     }
 }
 
 @ThemePreviews
 @Composable
 fun BackgroundDynamic() {
-    NiaTheme(disableDynamicTheming = false) {
-        JasmineBackground(Modifier.size(100.dp), content = {})
+    Theme(disableDynamicTheming = false) {
+        Background(Modifier.size(100.dp), content = {})
     }
 }
 
 @ThemePreviews
 @Composable
 fun BackgroundAndroid() {
-    NiaTheme(androidTheme = true) {
-        JasmineBackground(Modifier.size(100.dp), content = {})
+    Theme(androidTheme = true) {
+        Background(Modifier.size(100.dp), content = {})
     }
 }
 
 @ThemePreviews
 @Composable
 fun GradientBackgroundDefault() {
-    NiaTheme(disableDynamicTheming = true) {
-        JasmineGradientBackground(Modifier.size(100.dp), content = {})
+    Theme(disableDynamicTheming = true) {
+        GradientBackground(Modifier.size(100.dp), content = {})
     }
 }
 
 @ThemePreviews
 @Composable
 fun GradientBackgroundDynamic() {
-    NiaTheme(disableDynamicTheming = false) {
-        JasmineGradientBackground(Modifier.size(100.dp), content = {})
+    Theme(disableDynamicTheming = false) {
+        GradientBackground(Modifier.size(100.dp), content = {})
     }
 }
 
 @ThemePreviews
 @Composable
 fun GradientBackgroundAndroid() {
-    NiaTheme(androidTheme = true) {
-        JasmineGradientBackground(Modifier.size(100.dp), content = {})
+    Theme(androidTheme = true) {
+        GradientBackground(Modifier.size(100.dp), content = {})
     }
 }
+

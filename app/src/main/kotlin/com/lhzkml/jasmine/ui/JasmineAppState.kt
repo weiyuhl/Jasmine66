@@ -38,11 +38,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.TimeZone
 
 @Composable
-fun rememberNiaAppState(
+fun rememberJasmineAppState(
     networkMonitor: NetworkMonitor,
     timeZoneMonitor: TimeZoneMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-): NiaAppState {
+): JasmineAppState {
     val navigationState = rememberNavigationState(ForYouNavKey, TOP_LEVEL_NAV_ITEMS.keys)
 
     NavigationTrackingSideEffect(navigationState)
@@ -53,7 +53,7 @@ fun rememberNiaAppState(
         networkMonitor,
         timeZoneMonitor,
     ) {
-        NiaAppState(
+        JasmineAppState(
             navigationState = navigationState,
             coroutineScope = coroutineScope,
             networkMonitor = networkMonitor,
@@ -63,7 +63,7 @@ fun rememberNiaAppState(
 }
 
 @Stable
-class NiaAppState(
+class JasmineAppState(
     val navigationState: NavigationState,
     coroutineScope: CoroutineScope,
     networkMonitor: NetworkMonitor,
@@ -98,3 +98,4 @@ private fun NavigationTrackingSideEffect(navigationState: NavigationState) {
         onDispose {}
     }
 }
+

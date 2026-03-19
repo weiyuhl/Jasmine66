@@ -57,48 +57,49 @@ tasks {
 gradlePlugin {
     plugins {
         register("androidApplicationCompose") {
-            id = libs.plugins.nowinandroid.android.application.compose.get().pluginId
+            id = libs.plugins.jasmine.android.application.compose.get().pluginId
             implementationClass = "AndroidApplicationComposeConventionPlugin"
         }
         register("androidApplication") {
-            id = libs.plugins.nowinandroid.android.application.asProvider().get().pluginId
+            id = libs.plugins.jasmine.android.application.asProvider().get().pluginId
             implementationClass = "AndroidApplicationConventionPlugin"
         }
         register("androidLibraryCompose") {
-            id = libs.plugins.nowinandroid.android.library.compose.get().pluginId
+            id = libs.plugins.jasmine.android.library.compose.get().pluginId
             implementationClass = "AndroidLibraryComposeConventionPlugin"
         }
         register("androidLibrary") {
-            id = libs.plugins.nowinandroid.android.library.asProvider().get().pluginId
+            id = libs.plugins.jasmine.android.library.asProvider().get().pluginId
             implementationClass = "AndroidLibraryConventionPlugin"
         }
         register("androidFeatureImpl") {
-            id = libs.plugins.nowinandroid.android.feature.impl.get().pluginId
+            id = libs.plugins.jasmine.android.feature.impl.get().pluginId
             implementationClass = "AndroidFeatureImplConventionPlugin"
         }
         register("androidFeatureApi") {
-            id = libs.plugins.nowinandroid.android.feature.api.get().pluginId
+            id = libs.plugins.jasmine.android.feature.api.get().pluginId
             implementationClass = "AndroidFeatureApiConventionPlugin"
         }
         register("hilt") {
-            id = libs.plugins.nowinandroid.hilt.get().pluginId
+            id = libs.plugins.jasmine.hilt.get().pluginId
             implementationClass = "HiltConventionPlugin"
         }
         register("androidRoom") {
-            id = libs.plugins.nowinandroid.android.room.get().pluginId
+            id = libs.plugins.jasmine.android.room.get().pluginId
             implementationClass = "AndroidRoomConventionPlugin"
         }
         register("androidLint") {
-            id = libs.plugins.nowinandroid.android.lint.get().pluginId
+            id = libs.plugins.jasmine.android.lint.get().pluginId
             implementationClass = "AndroidLintConventionPlugin"
         }
         register("jvmLibrary") {
-            id = libs.plugins.nowinandroid.jvm.library.get().pluginId
+            id = libs.plugins.jasmine.jvm.library.get().pluginId
             implementationClass = "JvmLibraryConventionPlugin"
         }
         register("root") {
-            id = libs.plugins.nowinandroid.root.get().pluginId
+            id = libs.plugins.jasmine.root.get().pluginId
             implementationClass = "RootPlugin"
         }
     }
 }
+

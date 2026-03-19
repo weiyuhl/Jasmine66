@@ -17,7 +17,7 @@
 package com.lhzkml.jasmine.core.common.network.di
 
 import com.lhzkml.jasmine.core.common.network.Dispatcher
-import com.lhzkml.jasmine.core.common.network.NiaDispatchers.Default
+import com.lhzkml.jasmine.core.common.network.JasmineDispatchers.Default
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,3 +42,4 @@ internal object CoroutineScopesModule {
         @Dispatcher(Default) dispatcher: CoroutineDispatcher,
     ): CoroutineScope = CoroutineScope(SupervisorJob() + dispatcher)
 }
+

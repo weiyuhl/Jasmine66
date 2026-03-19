@@ -17,8 +17,8 @@
 package com.lhzkml.jasmine.core.common.network.di
 
 import com.lhzkml.jasmine.core.common.network.Dispatcher
-import com.lhzkml.jasmine.core.common.network.NiaDispatchers.Default
-import com.lhzkml.jasmine.core.common.network.NiaDispatchers.IO
+import com.lhzkml.jasmine.core.common.network.JasmineDispatchers.Default
+import com.lhzkml.jasmine.core.common.network.JasmineDispatchers.IO
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,3 +37,4 @@ object DispatchersModule {
     @Dispatcher(Default)
     fun providesDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
 }
+

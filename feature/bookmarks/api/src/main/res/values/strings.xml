@@ -15,10 +15,10 @@
      limitations under the License.
 -->
 <resources>
-    <string name="feature_bookmarks_api_title">收藏夹</string>
-    <string name="feature_bookmarks_api_loading">正在加载收藏内容…</string>
+    <string name="feature_bookmarks_api_title">收藏�?/string>
+    <string name="feature_bookmarks_api_loading">正在加载收藏内容�?/string>
     <string name="feature_bookmarks_api_empty_error">暂无收藏更新</string>
     <string name="feature_bookmarks_api_empty_description">您收藏的更新将存储在这里\n以便稍后阅读</string>
-    <string name="feature_bookmarks_api_removed">已移除收藏</string>
+    <string name="feature_bookmarks_api_removed">已移除收�?/string>
     <string name="feature_bookmarks_api_undo">撤销</string>
 </resources>

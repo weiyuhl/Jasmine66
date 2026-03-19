@@ -19,7 +19,7 @@ package com.lhzkml.jasmine.navigation
 import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.lhzkml.jasmine.R
-import com.lhzkml.jasmine.core.designsystem.icon.NiaIcons
+import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.feature.bookmarks.api.navigation.BookmarksNavKey
 import com.lhzkml.jasmine.feature.foryou.api.navigation.ForYouNavKey
 import com.lhzkml.jasmine.feature.interests.api.navigation.InterestsNavKey
@@ -46,22 +46,22 @@ data class TopLevelNavItem(
 )
 
 val FOR_YOU = TopLevelNavItem(
-    selectedIcon = NiaIcons.Upcoming,
-    unselectedIcon = NiaIcons.UpcomingBorder,
+    selectedIcon = JasmineIcons.Upcoming,
+    unselectedIcon = JasmineIcons.UpcomingBorder,
     iconTextId = forYouR.string.feature_foryou_api_title,
     titleTextId = R.string.app_name,
 )
 
 val BOOKMARKS = TopLevelNavItem(
-    selectedIcon = NiaIcons.Bookmarks,
-    unselectedIcon = NiaIcons.BookmarksBorder,
+    selectedIcon = JasmineIcons.Bookmarks,
+    unselectedIcon = JasmineIcons.BookmarksBorder,
     iconTextId = bookmarksR.string.feature_bookmarks_api_title,
     titleTextId = bookmarksR.string.feature_bookmarks_api_title,
 )
 
 val INTERESTS = TopLevelNavItem(
-    selectedIcon = NiaIcons.Grid3x3,
-    unselectedIcon = NiaIcons.Grid3x3,
+    selectedIcon = JasmineIcons.Grid3x3,
+    unselectedIcon = JasmineIcons.Grid3x3,
     iconTextId = searchR.string.feature_search_api_interests,
     titleTextId = searchR.string.feature_search_api_interests,
 )
@@ -71,3 +71,4 @@ val TOP_LEVEL_NAV_ITEMS = mapOf(
     BookmarksNavKey to BOOKMARKS,
     InterestsNavKey(null) to INTERESTS,
 )
+

@@ -110,7 +110,7 @@ fun JasmineFilterChip(
 @Composable
 fun ChipPreview() {
     JasmineTheme {
-        JasmineBackground(modifier = Modifier.size(80.dp, 20.dp)) {
+        Background(modifier = Modifier.size(80.dp, 20.dp)) {
             JasmineFilterChip(selected = true, onSelectedChange = {}) {
                 Text("Chip")
             }
@@ -128,3 +128,4 @@ object JasmineChipDefaults {
     const val DISABLED_CHIP_CONTENT_ALPHA = 0.38f
     val ChipBorderWidth = 1.dp
 }
+

@@ -25,9 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.lhzkml.jasmine.core.designsystem.component.NiaBackground
-import com.lhzkml.jasmine.core.designsystem.component.NiaLoadingWheel
-import com.lhzkml.jasmine.core.designsystem.theme.NiaTheme
+import com.lhzkml.jasmine.core.designsystem.component.Background
+import com.lhzkml.jasmine.core.designsystem.component.LoadingWheel
+import com.lhzkml.jasmine.core.designsystem.theme.Theme
 import com.lhzkml.jasmine.core.model.data.FollowableTopic
 import com.lhzkml.jasmine.core.ui.DevicePreviews
 import com.lhzkml.jasmine.core.ui.FollowableTopicPreviewParameterProvider
@@ -70,7 +70,7 @@ internal fun InterestsScreen(
     ) {
         when (uiState) {
             InterestsUiState.Loading ->
-                NiaLoadingWheel(
+                LoadingWheel(
                     contentDesc = stringResource(id = R.string.feature_interests_api_loading),
                 )
 
@@ -100,8 +100,8 @@ fun InterestsScreenPopulated(
     @PreviewParameter(FollowableTopicPreviewParameterProvider::class)
     followableTopics: List<FollowableTopic>,
 ) {
-    NiaTheme {
-        NiaBackground {
+    Theme {
+        Background {
             InterestsScreen(
                 uiState = InterestsUiState.Interests(
                     selectedTopicId = null,
@@ -117,8 +117,8 @@ fun InterestsScreenPopulated(
 @DevicePreviews
 @Composable
 fun InterestsScreenLoading() {
-    NiaTheme {
-        NiaBackground {
+    Theme {
+        Background {
             InterestsScreen(
                 uiState = InterestsUiState.Loading,
                 followTopic = { _, _ -> },
@@ -131,8 +131,8 @@ fun InterestsScreenLoading() {
 @DevicePreviews
 @Composable
 fun InterestsScreenEmpty() {
-    NiaTheme {
-        NiaBackground {
+    Theme {
+        Background {
             InterestsScreen(
                 uiState = InterestsUiState.Empty,
                 followTopic = { _, _ -> },

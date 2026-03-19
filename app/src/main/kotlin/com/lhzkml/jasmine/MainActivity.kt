@@ -111,7 +111,7 @@ class MainActivity : ComponentActivity() {
                     .map { it.darkTheme }
                     .distinctUntilChanged()
                     .collect { darkTheme ->
-                        trace("niaEdgeToEdge") {
+                        trace("EdgeToEdge") {
                             // Turn off the decor fitting system windows, which allows us to handle insets,
                             // including IME animations, and go edge-to-edge.
                             // This is the same parameters as the default enableEdgeToEdge call, but we manually

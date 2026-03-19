@@ -53,7 +53,7 @@ import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
- * Now in Android component catalog.
+ * Jasmine component catalog.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -78,7 +78,7 @@ fun JasmineCatalog() {
                 item { Text("Buttons", Modifier.padding(top = 16.dp)) }
                 item {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        NiaButton(onClick = {}) {
+                        JasmineButton(onClick = {}) {
                             Text(text = "Enabled")
                         }
                         JasmineOutlinedButton(onClick = {}) {
@@ -119,21 +119,21 @@ fun JasmineCatalog() {
                             onClick = {},
                             text = { Text(text = "Enabled") },
                             leadingIcon = {
-                                Icon(imageVector = NiaIcons.Add, contentDescription = null)
+                                Icon(imageVector = JasmineIcons.Add, contentDescription = null)
                             },
                         )
                         JasmineOutlinedButton(
                             onClick = {},
                             text = { Text(text = "Enabled") },
                             leadingIcon = {
-                                Icon(imageVector = NiaIcons.Add, contentDescription = null)
+                                Icon(imageVector = JasmineIcons.Add, contentDescription = null)
                             },
                         )
                         JasmineTextButton(
                             onClick = {},
                             text = { Text(text = "Enabled") },
                             leadingIcon = {
-                                Icon(imageVector = NiaIcons.Add, contentDescription = null)
+                                Icon(imageVector = JasmineIcons.Add, contentDescription = null)
                             },
                         )
                     }
@@ -146,7 +146,7 @@ fun JasmineCatalog() {
                             enabled = false,
                             text = { Text(text = "Disabled") },
                             leadingIcon = {
-                                Icon(imageVector = NiaIcons.Add, contentDescription = null)
+                                Icon(imageVector = JasmineIcons.Add, contentDescription = null)
                             },
                         )
                         JasmineOutlinedButton(
@@ -154,7 +154,7 @@ fun JasmineCatalog() {
                             enabled = false,
                             text = { Text(text = "Disabled") },
                             leadingIcon = {
-                                Icon(imageVector = NiaIcons.Add, contentDescription = null)
+                                Icon(imageVector = JasmineIcons.Add, contentDescription = null)
                             },
                         )
                         JasmineTextButton(
@@ -162,7 +162,7 @@ fun JasmineCatalog() {
                             enabled = false,
                             text = { Text(text = "Disabled") },
                             leadingIcon = {
-                                Icon(imageVector = NiaIcons.Add, contentDescription = null)
+                                Icon(imageVector = JasmineIcons.Add, contentDescription = null)
                             },
                         )
                     }
@@ -206,13 +206,13 @@ fun JasmineCatalog() {
                             onCheckedChange = { checked -> firstChecked = checked },
                             icon = {
                                 Icon(
-                                    imageVector = NiaIcons.BookmarkBorder,
+                                    imageVector = JasmineIcons.BookmarkBorder,
                                     contentDescription = null,
                                 )
                             },
                             checkedIcon = {
                                 Icon(
-                                    imageVector = NiaIcons.Bookmark,
+                                    imageVector = JasmineIcons.Bookmark,
                                     contentDescription = null,
                                 )
                             },
@@ -223,13 +223,13 @@ fun JasmineCatalog() {
                             onCheckedChange = { checked -> secondChecked = checked },
                             icon = {
                                 Icon(
-                                    imageVector = NiaIcons.BookmarkBorder,
+                                    imageVector = JasmineIcons.BookmarkBorder,
                                     contentDescription = null,
                                 )
                             },
                             checkedIcon = {
                                 Icon(
-                                    imageVector = NiaIcons.Bookmark,
+                                    imageVector = JasmineIcons.Bookmark,
                                     contentDescription = null,
                                 )
                             },
@@ -239,13 +239,13 @@ fun JasmineCatalog() {
                             onCheckedChange = {},
                             icon = {
                                 Icon(
-                                    imageVector = NiaIcons.BookmarkBorder,
+                                    imageVector = JasmineIcons.BookmarkBorder,
                                     contentDescription = null,
                                 )
                             },
                             checkedIcon = {
                                 Icon(
-                                    imageVector = NiaIcons.Bookmark,
+                                    imageVector = JasmineIcons.Bookmark,
                                     contentDescription = null,
                                 )
                             },
@@ -256,13 +256,13 @@ fun JasmineCatalog() {
                             onCheckedChange = {},
                             icon = {
                                 Icon(
-                                    imageVector = NiaIcons.BookmarkBorder,
+                                    imageVector = JasmineIcons.BookmarkBorder,
                                     contentDescription = null,
                                 )
                             },
                             checkedIcon = {
                                 Icon(
-                                    imageVector = NiaIcons.Bookmark,
+                                    imageVector = JasmineIcons.Bookmark,
                                     contentDescription = null,
                                 )
                             },
@@ -336,14 +336,14 @@ fun JasmineCatalog() {
                     var selectedItem by rememberSaveable { mutableIntStateOf(0) }
                     val items = listOf("For you", "Saved", "Interests")
                     val icons = listOf(
-                        NiaIcons.UpcomingBorder,
-                        NiaIcons.BookmarksBorder,
-                        NiaIcons.Grid3x3,
+                        JasmineIcons.UpcomingBorder,
+                        JasmineIcons.BookmarksBorder,
+                        JasmineIcons.Grid3x3,
                     )
                     val selectedIcons = listOf(
-                        NiaIcons.Upcoming,
-                        NiaIcons.Bookmarks,
-                        NiaIcons.Grid3x3,
+                        JasmineIcons.Upcoming,
+                        JasmineIcons.Bookmarks,
+                        JasmineIcons.Grid3x3,
                     )
                     JasmineNavigationBar {
                         items.forEachIndexed { index, item ->
@@ -371,3 +371,4 @@ fun JasmineCatalog() {
         }
     }
 }
+

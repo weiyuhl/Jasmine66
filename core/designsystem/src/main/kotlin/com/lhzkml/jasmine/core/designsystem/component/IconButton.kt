@@ -24,7 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.lhzkml.jasmine.core.designsystem.icon.NiaIcons
+import com.lhzkml.jasmine.core.designsystem.icon.Icons
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
@@ -80,13 +80,13 @@ fun IconButtonPreview() {
             onCheckedChange = { },
             icon = {
                 Icon(
-                    imageVector = NiaIcons.BookmarkBorder,
+                    imageVector = Icons.BookmarkBorder,
                     contentDescription = null,
                 )
             },
             checkedIcon = {
                 Icon(
-                    imageVector = NiaIcons.Bookmark,
+                    imageVector = Icons.Bookmark,
                     contentDescription = null,
                 )
             },
@@ -103,13 +103,13 @@ fun IconButtonPreviewUnchecked() {
             onCheckedChange = { },
             icon = {
                 Icon(
-                    imageVector = NiaIcons.BookmarkBorder,
+                    imageVector = Icons.BookmarkBorder,
                     contentDescription = null,
                 )
             },
             checkedIcon = {
                 Icon(
-                    imageVector = NiaIcons.Bookmark,
+                    imageVector = Icons.Bookmark,
                     contentDescription = null,
                 )
             },

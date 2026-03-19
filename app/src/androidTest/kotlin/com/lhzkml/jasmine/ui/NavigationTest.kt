@@ -215,7 +215,7 @@ class NavigationTest {
             onNodeWithText(ok).performClick()
 
             // Check that the saved screen is still visible and selected.
-            onNode(hasText(saved) and hasTestTag("NiaNavItem")).assertIsSelected()
+            onNode(hasText(saved) and hasTestTag("NavItem")).assertIsSelected()
         }
     }
 
@@ -253,7 +253,7 @@ class NavigationTest {
     }
 
     // TODO decide if backStack should preserve previous stacks when navigating back to home tab (ForYou)
-    // https://github.com/android/nowinandroid/issues/1937
+    // https://github.com/android/jasmine/issues/1937
     @Ignore
     @Test
     fun navigationBar_multipleBackStackInterests() {
@@ -281,3 +281,4 @@ class NavigationTest {
     }
 
 }
+

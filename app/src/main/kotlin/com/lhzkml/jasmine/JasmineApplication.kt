@@ -26,7 +26,7 @@ import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
 /**
- * [Application] class for NiA
+ * [Application] class for 
  */
 @HiltAndroidApp
 class JasmineApplication : Application(), ImageLoaderFactory {

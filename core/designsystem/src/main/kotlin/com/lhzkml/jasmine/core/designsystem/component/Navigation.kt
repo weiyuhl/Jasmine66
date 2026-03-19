@@ -39,7 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.lhzkml.jasmine.core.designsystem.icon.NiaIcons
+import com.lhzkml.jasmine.core.designsystem.icon.Icons
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 /**
@@ -100,7 +100,7 @@ fun JasmineNavigationBar(
 ) {
     NavigationBar(
         modifier = modifier,
-        contentColor = NiaNavigationDefaults.navigationContentColor(),
+        contentColor = NavigationDefaults.navigationContentColor(),
         tonalElevation = 0.dp,
         content = content,
     )
@@ -167,7 +167,7 @@ fun JasmineNavigationRail(
     NavigationRail(
         modifier = modifier,
         containerColor = Color.Transparent,
-        contentColor = NiaNavigationDefaults.navigationContentColor(),
+        contentColor = NavigationDefaults.navigationContentColor(),
         header = header,
         content = content,
     )
@@ -178,7 +178,7 @@ fun JasmineNavigationRail(
  * Wraps Material 3 [NavigationSuiteScaffold].
  *
  * @param modifier Modifier to be applied to the navigation suite scaffold.
- * @param navigationSuiteItems A slot to display multiple items via [NiaNavigationSuiteScope].
+ * @param navigationSuiteItems A slot to display multiple items via [NavigationSuiteScope].
  * @param windowAdaptiveInfo The window adaptive info.
  * @param content The app content inside the scaffold.
  */
@@ -207,10 +207,10 @@ fun JasmineNavigationSuiteScaffold(
             indicatorColor = JasmineNavigationDefaults.navigationIndicatorColor(),
         ),
         navigationDrawerItemColors = NavigationDrawerItemDefaults.colors(
-            selectedIconColor = NiaNavigationDefaults.navigationSelectedItemColor(),
-            unselectedIconColor = NiaNavigationDefaults.navigationContentColor(),
-            selectedTextColor = NiaNavigationDefaults.navigationSelectedItemColor(),
-            unselectedTextColor = NiaNavigationDefaults.navigationContentColor(),
+            selectedIconColor = NavigationDefaults.navigationSelectedItemColor(),
+            unselectedIconColor = NavigationDefaults.navigationContentColor(),
+            selectedTextColor = NavigationDefaults.navigationSelectedItemColor(),
+            unselectedTextColor = NavigationDefaults.navigationContentColor(),
         ),
     )
 
@@ -268,14 +268,14 @@ class JasmineNavigationSuiteScope internal constructor(
 fun JasmineNavigationBarPreview() {
     val items = listOf("For you", "Saved", "Interests")
     val icons = listOf(
-        NiaIcons.UpcomingBorder,
-        NiaIcons.BookmarksBorder,
-        NiaIcons.Grid3x3,
+        Icons.UpcomingBorder,
+        Icons.BookmarksBorder,
+        Icons.Grid3x3,
     )
     val selectedIcons = listOf(
-        NiaIcons.Upcoming,
-        NiaIcons.Bookmarks,
-        NiaIcons.Grid3x3,
+        Icons.Upcoming,
+        Icons.Bookmarks,
+        Icons.Grid3x3,
     )
 
     JasmineTheme {
@@ -308,14 +308,14 @@ fun JasmineNavigationBarPreview() {
 fun JasmineNavigationRailPreview() {
     val items = listOf("For you", "Saved", "Interests")
     val icons = listOf(
-        NiaIcons.UpcomingBorder,
-        NiaIcons.BookmarksBorder,
-        NiaIcons.Grid3x3,
+        Icons.UpcomingBorder,
+        Icons.BookmarksBorder,
+        Icons.Grid3x3,
     )
     val selectedIcons = listOf(
-        NiaIcons.Upcoming,
-        NiaIcons.Bookmarks,
-        NiaIcons.Grid3x3,
+        Icons.Upcoming,
+        Icons.Bookmarks,
+        Icons.Grid3x3,
     )
 
     JasmineTheme {

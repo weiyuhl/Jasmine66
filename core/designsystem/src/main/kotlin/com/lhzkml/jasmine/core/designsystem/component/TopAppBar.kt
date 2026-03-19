@@ -38,7 +38,7 @@ import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JasmineTopAppBar(
+fun TopAppBar(
     @StringRes titleRes: Int,
     navigationIcon: ImageVector,
     navigationIconContentDescription: String,
@@ -77,9 +77,9 @@ fun JasmineTopAppBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview("Top App Bar")
 @Composable
-private fun JasmineTopAppBarPreview() {
+private fun TopAppBarPreview() {
     JasmineTheme {
-        JasmineTopAppBar(
+        TopAppBar(
             titleRes = android.R.string.untitled,
             navigationIcon = JasmineIcons.Search,
             navigationIconContentDescription = "Navigation icon",
@@ -88,3 +88,4 @@ private fun JasmineTopAppBarPreview() {
         )
     }
 }
+

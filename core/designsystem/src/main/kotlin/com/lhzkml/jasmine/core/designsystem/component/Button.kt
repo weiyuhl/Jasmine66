@@ -269,7 +269,7 @@ private fun JasmineButtonContent(
 @Composable
 fun JasmineButtonPreview() {
     JasmineTheme {
-        JasmineBackground(modifier = Modifier.size(150.dp, 50.dp)) {
+        Background(modifier = Modifier.size(150.dp, 50.dp)) {
             JasmineButton(onClick = {}, text = { Text("Test button") })
         }
     }
@@ -279,7 +279,7 @@ fun JasmineButtonPreview() {
 @Composable
 fun JasmineOutlinedButtonPreview() {
     JasmineTheme {
-        JasmineBackground(modifier = Modifier.size(150.dp, 50.dp)) {
+        Background(modifier = Modifier.size(150.dp, 50.dp)) {
             JasmineOutlinedButton(onClick = {}, text = { Text("Test button") })
         }
     }
@@ -289,7 +289,7 @@ fun JasmineOutlinedButtonPreview() {
 @Composable
 fun JasmineButtonLeadingIconPreview() {
     JasmineTheme {
-        JasmineBackground(modifier = Modifier.size(150.dp, 50.dp)) {
+        Background(modifier = Modifier.size(150.dp, 50.dp)) {
             JasmineButton(
                 onClick = {},
                 text = { Text("Test button") },
@@ -311,3 +311,4 @@ object JasmineButtonDefaults {
     // OutlinedButton default border width isn't exposed via ButtonDefaults
     val OutlinedButtonBorderWidth = 1.dp
 }
+

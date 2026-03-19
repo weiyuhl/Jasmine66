@@ -1,4 +1,4 @@
-# `:app-nia-catalog`
+# `:app--catalog`
 
 ## Module dependency graph
 
@@ -18,10 +18,10 @@ graph TB
     :core:model[model]:::jvm-library
     :core:ui[ui]:::android-library
   end
-  :app-nia-catalog[app-nia-catalog]:::android-application
+  :app--catalog[app--catalog]:::android-application
 
-  :app-nia-catalog -.-> :core:designsystem
-  :app-nia-catalog -.-> :core:ui
+  :app--catalog -.-> :core:designsystem
+  :app--catalog -.-> :core:ui
   :core:ui --> :core:analytics
   :core:ui --> :core:designsystem
   :core:ui --> :core:model

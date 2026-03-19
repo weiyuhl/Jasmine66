@@ -53,7 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhzkml.jasmine.core.designsystem.component.DynamicAsyncImage
-import com.lhzkml.jasmine.core.designsystem.component.JasmineBackground
+import com.lhzkml.jasmine.core.designsystem.component.Background
 import com.lhzkml.jasmine.core.designsystem.component.JasmineFilterChip
 import com.lhzkml.jasmine.core.designsystem.component.JasmineLoadingWheel
 import com.lhzkml.jasmine.core.designsystem.component.scrollbar.DraggableScrollbar
@@ -208,7 +208,7 @@ private fun TopicHeader(name: String, description: String, imageUrl: String) {
 @Preview
 @Composable
 private fun TopicBodyPreview() {
-    NiaTheme {
+    Theme {
         LazyColumn {
             topicBody(
                 name = "Jetpack Compose",
@@ -244,7 +244,7 @@ private fun TopicToolbar(
                 )
             }
         } else {
-            // Keeps the NiaFilterChip aligned to the end of the Row.
+            // Keeps the FilterChip aligned to the end of the Row.
             Spacer(modifier = Modifier.width(1.dp))
         }
         val selected = uiState.isFollowed
@@ -266,7 +266,7 @@ private fun TopicToolbar(
 @Composable
 fun TopicScreenLoading() {
     JasmineTheme {
-        JasmineBackground {
+        Background {
             TopicScreen(
                 topicUiState = TopicUiState.Loading,
                 showBackButton = true,
@@ -277,3 +277,4 @@ fun TopicScreenLoading() {
         }
     }
 }
+

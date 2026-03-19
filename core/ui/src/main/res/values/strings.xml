@@ -22,7 +22,7 @@
     <string name="core_ui_unread_resource_dot_content_description">Unread</string>
 
     <string name="core_ui_card_tap_action">Open Resource Link</string>
-    <string name="core_ui_card_meta_data_text">%1$s â€¢ %2$s</string>
+    <string name="core_ui_card_meta_data_text">%1$s â€?%2$s</string>
 
     <string name="core_ui_topic_chip_content_description_when_followed">%1$s is followed</string>
     <string name="core_ui_topic_chip_content_description_when_not_followed">%1$s is not followed</string>

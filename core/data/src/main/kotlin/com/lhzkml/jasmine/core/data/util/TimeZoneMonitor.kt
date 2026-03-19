@@ -24,7 +24,7 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import androidx.tracing.trace
 import com.lhzkml.jasmine.core.common.network.Dispatcher
-import com.lhzkml.jasmine.core.common.network.NiaDispatchers.IO
+import com.lhzkml.jasmine.core.common.network.JasmineDispatchers.IO
 import com.lhzkml.jasmine.core.common.network.di.ApplicationScope
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -105,3 +105,4 @@ internal class TimeZoneBroadcastMonitor @Inject constructor(
             // Sharing the callback to prevent multiple BroadcastReceivers being registered
             .shareIn(appScope, SharingStarted.WhileSubscribed(5_000), 1)
 }
+

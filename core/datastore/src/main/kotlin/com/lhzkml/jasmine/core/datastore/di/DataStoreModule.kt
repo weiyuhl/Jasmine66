@@ -21,7 +21,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
 import com.lhzkml.jasmine.core.common.network.Dispatcher
-import com.lhzkml.jasmine.core.common.network.NiaDispatchers.IO
+import com.lhzkml.jasmine.core.common.network.Dispatchers.IO
 import com.lhzkml.jasmine.core.common.network.di.ApplicationScope
 import com.lhzkml.jasmine.core.datastore.UserPreferences
 import com.lhzkml.jasmine.core.datastore.UserPreferencesSerializer

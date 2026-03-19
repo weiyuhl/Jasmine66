@@ -17,7 +17,7 @@
 package com.lhzkml.jasmine.core.data.repository
 
 import com.lhzkml.jasmine.core.common.network.Dispatcher
-import com.lhzkml.jasmine.core.common.network.NiaDispatchers.IO
+import com.lhzkml.jasmine.core.common.network.JasmineDispatchers.IO
 import com.lhzkml.jasmine.core.database.dao.TopicDao
 import com.lhzkml.jasmine.core.database.dao.TopicFtsDao
 import com.lhzkml.jasmine.core.database.model.asExternalModel
@@ -64,3 +64,4 @@ internal class DefaultSearchContentsRepository @Inject constructor(
     override fun getSearchContentsCount(): Flow<Int> =
         topicFtsDao.getCount()
 }
+

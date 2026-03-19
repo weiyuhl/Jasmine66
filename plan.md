@@ -154,7 +154,7 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
 #### UI 层 (Presentation Layer)
 - **技术**: Jetpack Compose + Material Design 3
 - **组件**:
-  - Composable 函数 (如 `ForYouScreen`, `NiaApp`)
+  - Composable 函数 (如 `ForYouScreen`, `App`)
   - ViewModel (如 `ForYouViewModel`, `MainActivityViewModel`)
   - UI State (如 `OnboardingUiState`)
 - **职责**:
@@ -185,7 +185,7 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
 - **组件**:
   - Repository 接口 (如 `TopicsRepository`, `UserDataRepository`)
   - Repository 实现 (如 `OfflineFirstTopicsRepository`, `OfflineFirstUserDataRepository`)
-  - 数据源 (如 `TopicDao`, `NiaPreferencesDataSource`)
+  - 数据源 (如 `TopicDao`, `PreferencesDataSource`)
 - **职责**:
   - 抽象数据源
   - 提供统一的数据访问接口
@@ -208,7 +208,7 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
 #### UserDataRepository
 - **接口**: `UserDataRepository`
 - **实现**: `OfflineFirstUserDataRepository`
-- **数据源**: DataStore (`NiaPreferencesDataSource`)
+- **数据源**: DataStore (`PreferencesDataSource`)
 - **功能**: 管理用户偏好和设置
 
 #### SearchContentsRepository
@@ -248,7 +248,7 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
 - `@AndroidEntryPoint`: 标记 Android 组件 (如 `MainActivity`)
 - `@HiltViewModel`: 标记 ViewModel (如 `ForYouViewModel`)
 - `@Inject`: 注入依赖 (构造函数注入)
-- `@Singleton`: 标记单例组件 (如 `RetrofitNiaNetwork`)
+- `@Singleton`: 标记单例组件 (如 `RetrofitNetwork`)
 
 #### 依赖图
 ```
@@ -299,7 +299,7 @@ UI (Composable) → ViewModel → UseCase → Repository → DataSource
    ```
    UI (点击关注按钮) → ForYouViewModel.updateTopicSelection() 
    → UserDataRepository.setTopicIdFollowed() 
-   → NiaPreferencesDataSource.setTopicIdFollowed()
+   → PreferencesDataSource.setTopicIdFollowed()
    → DataStore 更新
    → UserDataRepository.userData Flow 发射新值
    → ForYouViewModel.onboardingUiState 更新

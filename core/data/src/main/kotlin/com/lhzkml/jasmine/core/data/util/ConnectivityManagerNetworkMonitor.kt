@@ -26,7 +26,7 @@ import android.net.NetworkRequest.Builder
 import androidx.core.content.getSystemService
 import androidx.tracing.trace
 import com.lhzkml.jasmine.core.common.network.Dispatcher
-import com.lhzkml.jasmine.core.common.network.NiaDispatchers.IO
+import com.lhzkml.jasmine.core.common.network.JasmineDispatchers.IO
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
@@ -93,3 +93,4 @@ internal class ConnectivityManagerNetworkMonitor @Inject constructor(
         return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 }
+

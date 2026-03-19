@@ -66,7 +66,7 @@ class JasminePreferencesDataSource @Inject constructor(
                 }
             }
         } catch (ioException: IOException) {
-            Log.e("NiaPreferences", "Failed to update user preferences", ioException)
+            Log.e("Preferences", "Failed to update user preferences", ioException)
         }
     }
 
@@ -83,7 +83,7 @@ class JasminePreferencesDataSource @Inject constructor(
                 }
             }
         } catch (ioException: IOException) {
-            Log.e("NiaPreferences", "Failed to update user preferences", ioException)
+            Log.e("Preferences", "Failed to update user preferences", ioException)
         }
     }
 

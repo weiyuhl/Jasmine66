@@ -17,7 +17,7 @@
 package com.lhzkml.jasmine.core.data.repository
 
 import com.lhzkml.jasmine.core.analytics.NoOpAnalyticsHelper
-import com.lhzkml.jasmine.core.datastore.NiaPreferencesDataSource
+import com.lhzkml.jasmine.core.datastore.JasminePreferencesDataSource
 import com.lhzkml.jasmine.core.datastore.UserPreferences
 import com.lhzkml.jasmine.core.datastore.test.InMemoryDataStore
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
@@ -40,16 +40,16 @@ class OfflineFirstUserDataRepositoryTest {
 
     private lateinit var subject: OfflineFirstUserDataRepository
 
-    private lateinit var niaPreferencesDataSource: NiaPreferencesDataSource
+    private lateinit var JasminePreferencesDataSource: JasminePreferencesDataSource
 
     private val analyticsHelper = NoOpAnalyticsHelper()
 
     @Before
     fun setup() {
-        niaPreferencesDataSource = NiaPreferencesDataSource(InMemoryDataStore(UserPreferences.getDefaultInstance()))
+        JasminePreferencesDataSource = JasminePreferencesDataSource(InMemoryDataStore(UserPreferences.getDefaultInstance()))
 
         subject = OfflineFirstUserDataRepository(
-            niaPreferencesDataSource = niaPreferencesDataSource,
+            JasminePreferencesDataSource = JasminePreferencesDataSource,
             analyticsHelper,
         )
     }
@@ -70,7 +70,7 @@ class OfflineFirstUserDataRepositoryTest {
         }
 
     @Test
-    fun offlineFirstUserDataRepository_toggle_followed_topics_logic_delegates_to_nia_preferences() =
+    fun offlineFirstUserDataRepository_toggle_followed_topics_logic_delegates_to__preferences() =
         testScope.runTest {
             subject.setTopicIdFollowed(followedTopicId = "0", followed = true)
 
@@ -91,7 +91,7 @@ class OfflineFirstUserDataRepositoryTest {
             )
 
             assertEquals(
-                niaPreferencesDataSource.userData
+                JasminePreferencesDataSource.userData
                     .map { it.followedTopics }
                     .first(),
                 subject.userData
@@ -101,7 +101,7 @@ class OfflineFirstUserDataRepositoryTest {
         }
 
     @Test
-    fun offlineFirstUserDataRepository_set_followed_topics_logic_delegates_to_nia_preferences() =
+    fun offlineFirstUserDataRepository_set_followed_topics_logic_delegates_to__preferences() =
         testScope.runTest {
             subject.setFollowedTopicIds(followedTopicIds = setOf("1", "2"))
 
@@ -113,7 +113,7 @@ class OfflineFirstUserDataRepositoryTest {
             )
 
             assertEquals(
-                niaPreferencesDataSource.userData
+                JasminePreferencesDataSource.userData
                     .map { it.followedTopics }
                     .first(),
                 subject.userData
@@ -124,7 +124,7 @@ class OfflineFirstUserDataRepositoryTest {
 
 
     @Test
-    fun offlineFirstUserDataRepository_set_theme_brand_delegates_to_nia_preferences() =
+    fun offlineFirstUserDataRepository_set_theme_brand_delegates_to__preferences() =
         testScope.runTest {
             subject.setThemeBrand(ThemeBrand.ANDROID)
 
@@ -136,7 +136,7 @@ class OfflineFirstUserDataRepositoryTest {
             )
             assertEquals(
                 ThemeBrand.ANDROID,
-                niaPreferencesDataSource
+                JasminePreferencesDataSource
                     .userData
                     .map { it.themeBrand }
                     .first(),
@@ -144,7 +144,7 @@ class OfflineFirstUserDataRepositoryTest {
         }
 
     @Test
-    fun offlineFirstUserDataRepository_set_dynamic_color_delegates_to_nia_preferences() =
+    fun offlineFirstUserDataRepository_set_dynamic_color_delegates_to__preferences() =
         testScope.runTest {
             subject.setDynamicColorPreference(true)
 
@@ -156,7 +156,7 @@ class OfflineFirstUserDataRepositoryTest {
             )
             assertEquals(
                 true,
-                niaPreferencesDataSource
+                JasminePreferencesDataSource
                     .userData
                     .map { it.useDynamicColor }
                     .first(),
@@ -164,7 +164,7 @@ class OfflineFirstUserDataRepositoryTest {
         }
 
     @Test
-    fun offlineFirstUserDataRepository_set_dark_theme_config_delegates_to_nia_preferences() =
+    fun offlineFirstUserDataRepository_set_dark_theme_config_delegates_to__preferences() =
         testScope.runTest {
             subject.setDarkThemeConfig(DarkThemeConfig.DARK)
 
@@ -176,7 +176,7 @@ class OfflineFirstUserDataRepositoryTest {
             )
             assertEquals(
                 DarkThemeConfig.DARK,
-                niaPreferencesDataSource
+                JasminePreferencesDataSource
                     .userData
                     .map { it.darkThemeConfig }
                     .first(),
@@ -194,3 +194,4 @@ class OfflineFirstUserDataRepositoryTest {
             assertFalse(subject.userData.first().shouldHideOnboarding)
         }
 }
+

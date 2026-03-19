@@ -52,7 +52,7 @@ internal object NetworkModule {
 
     @Provides
     @Singleton
-    fun okHttpCallFactory(): Call.Factory = trace("NiaOkHttpClient") {
+    fun okHttpCallFactory(): Call.Factory = trace("OkHttpClient") {
         OkHttpClient.Builder()
             .addInterceptor(
                 HttpLoggingInterceptor()
@@ -78,7 +78,7 @@ internal object NetworkModule {
         // We specifically request dagger.Lazy here, so that it's not instantiated from Dagger.
         okHttpCallFactory: dagger.Lazy<Call.Factory>,
         @ApplicationContext application: Context,
-    ): ImageLoader = trace("NiaImageLoader") {
+    ): ImageLoader = trace("ImageLoader") {
         ImageLoader.Builder(application)
             .callFactory { okHttpCallFactory.get() }
             .components { add(SvgDecoder.Factory()) }

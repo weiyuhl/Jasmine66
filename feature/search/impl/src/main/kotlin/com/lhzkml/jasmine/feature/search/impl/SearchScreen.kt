@@ -560,7 +560,7 @@ private fun SearchScreenPreview(
     @PreviewParameter(SearchUiStatePreviewParameterProvider::class)
     searchResultUiState: SearchResultUiState,
 ) {
-    NiaTheme {
+    Theme {
         SearchScreen(searchResultUiState = searchResultUiState)
     }
 }

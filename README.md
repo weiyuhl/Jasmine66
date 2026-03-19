@@ -21,7 +21,7 @@
 ## 项目结构
 ```
 app/                    # 主应用模块
-app-nia-catalog/        # 目录应用模块
+app--catalog/        # 目录应用模块
 core/                   # 核心功能模块
   ├── analytics/        # 分析功能
   ├── common/           # 通用工具

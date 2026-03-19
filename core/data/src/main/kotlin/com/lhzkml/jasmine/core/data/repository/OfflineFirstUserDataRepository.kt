@@ -18,7 +18,7 @@ package com.lhzkml.jasmine.core.data.repository
 
 import androidx.annotation.VisibleForTesting
 import com.lhzkml.jasmine.core.analytics.AnalyticsHelper
-import com.lhzkml.jasmine.core.datastore.NiaPreferencesDataSource
+import com.lhzkml.jasmine.core.datastore.JasminePreferencesDataSource
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
 import com.lhzkml.jasmine.core.model.data.ThemeBrand
 import com.lhzkml.jasmine.core.model.data.UserData
@@ -26,39 +26,40 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 internal class OfflineFirstUserDataRepository @Inject constructor(
-    private val niaPreferencesDataSource: NiaPreferencesDataSource,
+    private val JasminePreferencesDataSource: JasminePreferencesDataSource,
     private val analyticsHelper: AnalyticsHelper,
 ) : UserDataRepository {
 
     override val userData: Flow<UserData> =
-        niaPreferencesDataSource.userData
+        JasminePreferencesDataSource.userData
 
     @VisibleForTesting
     override suspend fun setFollowedTopicIds(followedTopicIds: Set<String>) =
-        niaPreferencesDataSource.setFollowedTopicIds(followedTopicIds)
+        JasminePreferencesDataSource.setFollowedTopicIds(followedTopicIds)
 
     override suspend fun setTopicIdFollowed(followedTopicId: String, followed: Boolean) {
-        niaPreferencesDataSource.setTopicIdFollowed(followedTopicId, followed)
+        JasminePreferencesDataSource.setTopicIdFollowed(followedTopicId, followed)
         analyticsHelper.logTopicFollowToggled(followedTopicId, followed)
     }
 
     override suspend fun setThemeBrand(themeBrand: ThemeBrand) {
-        niaPreferencesDataSource.setThemeBrand(themeBrand)
+        JasminePreferencesDataSource.setThemeBrand(themeBrand)
         analyticsHelper.logThemeChanged(themeBrand.name)
     }
 
     override suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
-        niaPreferencesDataSource.setDarkThemeConfig(darkThemeConfig)
+        JasminePreferencesDataSource.setDarkThemeConfig(darkThemeConfig)
         analyticsHelper.logDarkThemeConfigChanged(darkThemeConfig.name)
     }
 
     override suspend fun setDynamicColorPreference(useDynamicColor: Boolean) {
-        niaPreferencesDataSource.setDynamicColorPreference(useDynamicColor)
+        JasminePreferencesDataSource.setDynamicColorPreference(useDynamicColor)
         analyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor)
     }
 
     override suspend fun setShouldHideOnboarding(shouldHideOnboarding: Boolean) {
-        niaPreferencesDataSource.setShouldHideOnboarding(shouldHideOnboarding)
+        JasminePreferencesDataSource.setShouldHideOnboarding(shouldHideOnboarding)
         analyticsHelper.logOnboardingStateChanged(shouldHideOnboarding)
     }
 }
+

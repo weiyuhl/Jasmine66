@@ -18,8 +18,8 @@
     <string name="feature_settings_impl_top_app_bar_action_icon_description">Settings</string>
     <string name="feature_settings_impl_top_app_bar_navigation_icon_description">Search</string>
     <string name="feature_settings_impl_title">设置</string>
-    <string name="feature_settings_impl_loading">加载中…</string>
-    <string name="feature_settings_impl_licenses">开源许可</string>
+    <string name="feature_settings_impl_loading">加载中�?/string>
+    <string name="feature_settings_impl_licenses">开源许�?/string>
     <string name="feature_settings_impl_theme">主题</string>
     <string name="feature_settings_impl_brand_default">默认</string>
     <string name="feature_settings_impl_brand_android">安卓</string>
@@ -27,8 +27,8 @@
     <string name="feature_settings_impl_dark_mode_config_system_default">系统默认</string>
     <string name="feature_settings_impl_dark_mode_config_light">浅色</string>
     <string name="feature_settings_impl_dark_mode_config_dark">深色</string>
-    <string name="feature_settings_impl_dynamic_color_preference">使用动态色彩</string>
-    <string name="feature_settings_impl_dynamic_color_yes">是</string>
-    <string name="feature_settings_impl_dynamic_color_no">否</string>
+    <string name="feature_settings_impl_dynamic_color_preference">使用动态色�?/string>
+    <string name="feature_settings_impl_dynamic_color_yes">�?/string>
+    <string name="feature_settings_impl_dynamic_color_no">�?/string>
     <string name="feature_settings_impl_dismiss_dialog_button_text">确定</string>
 </resources>
