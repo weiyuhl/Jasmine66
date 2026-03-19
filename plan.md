@@ -99,7 +99,7 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
 ## 项目结构分析
 
 ### 模块化架构
-项目采用高度模块化的架构，分为三个主要部分：
+项目采用高度模块化的架构，分为四个主要部分：
 
 #### 1. App 模块 (`app/`)
 - **功能**: 主应用模块，包含应用入口和主 Activity
@@ -110,7 +110,12 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
   - `navigation/`: 导航配置
   - `ui/`: 应用级 UI 组件
 
-#### 2. Core 模块 (`core/`)
+#### 2. Catalog 应用 (`app-jasmine-catalog/`)
+- **功能**: UI 组件目录应用，用于展示设计系统组件
+- **包名**: `com.lhzkml.jasmine.catalog`
+- **用途**: 开发和测试 UI 组件
+
+#### 3. Core 模块 (`core/`)
 包含核心功能和基础设施：
 
 - **analytics**: 分析功能，跟踪用户行为
@@ -121,6 +126,7 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
   - `di/`: 依赖注入配置
 - **database**: Room 数据库实现
 - **datastore**: DataStore 实现
+- **datastore-proto**: DataStore 协议缓冲区定义
 - **designsystem**: 设计系统
   - 主题、颜色、字体定义
   - 可复用 UI 组件
@@ -128,19 +134,15 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
   - `UseCase`: 业务逻辑封装
 - **model**: 数据模型定义
 - **navigation**: 导航相关组件
-- **network**: 网络层实现
+- **network**: 网络层实现 (待实现)
 - **notifications**: 通知功能
 - **ui**: UI 组件和工具
 
-#### 3. Feature 模块 (`feature/`)
+#### 4. Feature 模块 (`feature/`)
 功能模块，采用 API/Impl 分离模式：
 
-- **bookmarks**: 书签功能
-- **foryou**: "为你推荐"功能
-- **interests**: 兴趣功能
-- **search**: 搜索功能
+- **search**: 搜索功能 (API/Impl 分离)
 - **settings**: 设置功能
-- **topic**: 主题功能
 
 每个功能模块都分为：
 - `api/`: 接口定义
@@ -154,9 +156,9 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
 #### UI 层 (Presentation Layer)
 - **技术**: Jetpack Compose + Material Design 3
 - **组件**:
-  - Composable 函数 (如 `ForYouScreen`, `App`)
-  - ViewModel (如 `ForYouViewModel`, `MainActivityViewModel`)
-  - UI State (如 `OnboardingUiState`)
+  - Composable 函数 (如 `SearchScreen`, `SettingsDialog`, `JasmineApp`)
+  - ViewModel (如 `SearchViewModel`, `MainActivityViewModel`)
+  - UI State (如 `SearchResultUiState`, `RecentSearchQueriesUiState`)
 - **职责**:
   - 显示数据给用户
   - 处理用户交互
@@ -169,8 +171,8 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
 #### 领域层 (Domain Layer)
 - **技术**: Kotlin + UseCase 模式
 - **组件**:
-  - UseCase 类 (如 `GetFollowableTopicsUseCase`)
-  - 领域模型 (如 `FollowableTopic`)
+  - UseCase 类 (如 `GetRecentSearchQueriesUseCase`)
+  - 领域模型 (如 `RecentSearchQuery`)
 - **职责**:
   - 封装业务逻辑
   - 协调数据层操作
@@ -183,9 +185,9 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
 #### 数据层 (Data Layer)
 - **技术**: Repository 模式 + 多数据源
 - **组件**:
-  - Repository 接口 (如 `TopicsRepository`, `UserDataRepository`)
-  - Repository 实现 (如 `OfflineFirstTopicsRepository`, `OfflineFirstUserDataRepository`)
-  - 数据源 (如 `TopicDao`, `PreferencesDataSource`)
+  - Repository 接口 (如 `UserDataRepository`, `RecentSearchRepository`)
+  - Repository 实现 (如 `OfflineFirstUserDataRepository`, `DefaultRecentSearchRepository`)
+  - 数据源 (如 `PreferencesDataSource`, `RecentSearchQueryDao`)
 - **职责**:
   - 抽象数据源
   - 提供统一的数据访问接口
@@ -199,56 +201,34 @@ Jasmine 是一个基于现代 Android 架构的应用程序，采用模块化设
 ### 2. Repository 模式详解
 数据层使用 Repository 模式抽象数据源：
 
-#### TopicsRepository
-- **接口**: `TopicsRepository`
-- **实现**: `OfflineFirstTopicsRepository`
-- **数据源**: Room 数据库 (`TopicDao`)
-- **功能**: 提供主题数据访问
-
 #### UserDataRepository
 - **接口**: `UserDataRepository`
 - **实现**: `OfflineFirstUserDataRepository`
 - **数据源**: DataStore (`PreferencesDataSource`)
 - **功能**: 管理用户偏好和设置
 
-#### SearchContentsRepository
-- **接口**: `SearchContentsRepository`
-- **实现**: `DefaultSearchContentsRepository`
-- **数据源**: Room 数据库 + FTS (全文搜索)
-- **功能**: 提供搜索功能
+#### RecentSearchRepository
+- **接口**: `RecentSearchRepository`
+- **实现**: `DefaultRecentSearchRepository`
+- **数据源**: Room 数据库 (`RecentSearchQueryDao`)
+- **功能**: 管理搜索历史记录
 
 ### 3. UseCase 模式详解
 领域层使用 UseCase 封装业务逻辑：
 
-#### GetFollowableTopicsUseCase
-- **输入**: 排序参数 (可选)
-- **输出**: `Flow<List<FollowableTopic>>`
-- **逻辑**: 
-  1. 从 `TopicsRepository` 获取主题列表
-  2. 从 `UserDataRepository` 获取用户关注的主题
-  3. 合并数据，标记每个主题的关注状态
-  4. 根据排序参数排序结果
-
 #### GetRecentSearchQueriesUseCase
-- **输入**: 无
+- **输入**: 限制数量参数 (可选，默认10)
 - **输出**: `Flow<List<RecentSearchQuery>>`
-- **逻辑**: 从搜索历史数据源获取最近搜索查询
-
-#### GetSearchContentsUseCase
-- **输入**: 搜索查询字符串
-- **输出**: `Flow<List<SearchResult>>`
-- **逻辑**: 
-  1. 使用 FTS 搜索主题内容
-  2. 返回匹配的搜索结果
+- **逻辑**: 从 `RecentSearchRepository` 获取最近搜索查询
 
 ### 4. 依赖注入详解
 使用 Hilt 进行依赖注入：
 
 #### 注解使用
 - `@AndroidEntryPoint`: 标记 Android 组件 (如 `MainActivity`)
-- `@HiltViewModel`: 标记 ViewModel (如 `ForYouViewModel`)
+- `@HiltViewModel`: 标记 ViewModel (如 `MainActivityViewModel`, `SearchViewModel`)
 - `@Inject`: 注入依赖 (构造函数注入)
-- `@Singleton`: 标记单例组件 (如 `RetrofitNetwork`)
+- `@Singleton`: 标记单例组件
 
 #### 依赖图
 ```
@@ -256,14 +236,14 @@ MainActivity
 ├── MainActivityViewModel (@HiltViewModel)
 ├── NetworkMonitor (@Inject)
 ├── TimeZoneMonitor (@Inject)
-├── AnalyticsHelper (@Inject)
-└── SearchContentsRepository (@Inject)
+└── AnalyticsHelper (@Inject)
 
-ForYouViewModel (@HiltViewModel)
-├── SavedStateHandle (@Inject)
-├── AnalyticsHelper (@Inject)
+SearchViewModel (@HiltViewModel)
+├── RecentSearchQueriesUseCase (@Inject)
+├── RecentSearchRepository (@Inject)
 ├── UserDataRepository (@Inject)
-└── GetFollowableTopicsUseCase (@Inject)
+├── SavedStateHandle (@Inject)
+└── AnalyticsHelper (@Inject)
 ```
 
 ### 5. 状态管理详解
@@ -277,12 +257,16 @@ ForYouViewModel (@HiltViewModel)
   UserDataRepository.userData → MainActivityUiState
   ```
 
-#### ForYouViewModel
-- **状态**: `onboardingUiState: StateFlow<OnboardingUiState>`
-- **功能**: 管理"为你推荐"页面的引导状态
+#### SearchViewModel
+- **状态**: 
+  - `searchQuery: StateFlow<String>` - 搜索查询
+  - `recentSearchQueriesUiState: StateFlow<RecentSearchQueriesUiState>` - 搜索历史状态
+  - `searchResultUiState: StateFlow<SearchResultUiState>` - 搜索结果状态
+- **功能**: 管理搜索功能状态
 - **数据流**:
   ```
-  UserDataRepository.userData → OnboardingUiState
+  RecentSearchQueriesUseCase() → RecentSearchQueriesUiState
+  searchQuery → SearchResultUiState
   ```
 
 ### 6. 数据流架构
@@ -295,34 +279,29 @@ UI (Composable) → ViewModel → UseCase → Repository → DataSource
 ```
 
 #### 具体示例
-1. **用户关注主题**:
+1. **搜索功能**:
    ```
-   UI (点击关注按钮) → ForYouViewModel.updateTopicSelection() 
-   → UserDataRepository.setTopicIdFollowed() 
-   → PreferencesDataSource.setTopicIdFollowed()
-   → DataStore 更新
-   → UserDataRepository.userData Flow 发射新值
-   → ForYouViewModel.onboardingUiState 更新
+   UI (输入搜索查询) → SearchViewModel.onSearchQueryChanged()
+   → SavedStateHandle 更新
+   → SearchViewModel.searchResultUiState 更新
    → UI 重新组合
    ```
 
-2. **获取主题列表**:
+2. **保存搜索历史**:
    ```
-   UI (显示主题列表) → ForYouViewModel 
-   → GetFollowableTopicsUseCase.invoke()
-   → TopicsRepository.getTopics() + UserDataRepository.userData
-   → Room 数据库查询 + DataStore 读取
-   → 合并数据，返回 FollowableTopic 列表
-   → UI 显示主题列表
+   UI (触发搜索) → SearchViewModel.onSearchTriggered()
+   → RecentSearchRepository.insertOrReplaceRecentSearch()
+   → RecentSearchQueryDao.insertOrReplaceRecentSearch()
+   → Room 数据库更新
+   → RecentSearchRepository.getRecentSearchQueries() Flow 发射新值
+   → SearchViewModel.recentSearchQueriesUiState 更新
+   → UI 重新组合
    ```
 
 ### 7. 模块间依赖关系
 ```
 app
-├── feature:foryou:impl
-├── feature:interests:impl
-├── feature:bookmarks:impl
-├── feature:topic:impl
+├── feature:search:api
 ├── feature:search:impl
 ├── feature:settings:impl
 ├── core:common
@@ -332,22 +311,27 @@ app
 ├── core:model
 └── core:analytics
 
-feature:foryou:impl
-├── feature:foryou:api
-├── core:domain
-├── core:data
+feature:search:api
+└── core:navigation
+
+feature:search:impl
+├── feature:search:api
+├── core:designsystem
 ├── core:ui
-└── core:analytics
+└── core:domain
+
+feature:settings:impl
+├── core:data
+├── core:designsystem
+└── core:ui
 
 core:domain
-├── core:data
-└── core:model
+└── core:data
 
 core:data
 ├── core:common
 ├── core:database
 ├── core:datastore
-├── core:network
 ├── core:analytics
 └── core:notifications
 
@@ -355,7 +339,7 @@ core:database
 └── core:model
 
 core:datastore
-└── core:model
+└── core:datastore-proto
 ```
 
 ## 构建系统

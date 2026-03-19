@@ -21,27 +21,24 @@
 ## 项目结构
 ```
 app/                    # 主应用模块
-app--catalog/        # 目录应用模块
+app-jasmine-catalog/    # UI组件目录应用
 core/                   # 核心功能模块
   ├── analytics/        # 分析功能
   ├── common/           # 通用工具
   ├── data/             # 数据层
   ├── database/         # 数据库
   ├── datastore/        # 数据存储
+  ├── datastore-proto/  # DataStore协议定义
   ├── designsystem/     # 设计系统
   ├── domain/           # 领域层
   ├── model/            # 数据模型
   ├── navigation/       # 导航
-  ├── network/          # 网络层
+  ├── network/          # 网络层(待实现)
   ├── notifications/    # 通知
   └── ui/               # UI 组件
 feature/                # 功能模块
-  ├── bookmarks/        # 书签功能
-  ├── foryou/           # 为你推荐
-  ├── interests/        # 兴趣功能
-  ├── search/           # 搜索功能
-  ├── settings/         # 设置功能
-  └── topic/            # 主题功能
+  ├── search/           # 搜索功能(API/Impl分离)
+  └── settings/         # 设置功能
 build-logic/            # 构建逻辑
 ```
 
