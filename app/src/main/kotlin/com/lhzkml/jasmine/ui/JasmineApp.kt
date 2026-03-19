@@ -56,13 +56,13 @@ import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.GradientColors
 import com.lhzkml.jasmine.core.designsystem.theme.LocalGradientColors
+import com.lhzkml.jasmine.core.navigation.BookmarksNavKey
+import com.lhzkml.jasmine.core.navigation.ForYouNavKey
+import com.lhzkml.jasmine.core.navigation.InterestsNavKey
 import com.lhzkml.jasmine.core.navigation.Navigator
 import com.lhzkml.jasmine.core.navigation.toEntries
-import com.lhzkml.jasmine.feature.bookmarks.impl.navigation.LocalSnackbarHostState
-import com.lhzkml.jasmine.feature.bookmarks.impl.navigation.bookmarksEntry
-import com.lhzkml.jasmine.feature.foryou.api.navigation.ForYouNavKey
-import com.lhzkml.jasmine.feature.foryou.impl.navigation.forYouEntry
-import com.lhzkml.jasmine.feature.interests.impl.navigation.interestsEntry
+import com.lhzkml.jasmine.ui.LocalSnackbarHostState
+import com.lhzkml.jasmine.ui.stubEntries
 import com.lhzkml.jasmine.feature.search.api.navigation.SearchNavKey
 import com.lhzkml.jasmine.feature.search.impl.navigation.searchEntry
 import com.lhzkml.jasmine.feature.settings.impl.SettingsDialog
@@ -241,9 +241,7 @@ internal fun JasmineApp(
                     val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
 
                     val entryProvider = entryProvider {
-                        forYouEntry(navigator)
-                        bookmarksEntry(navigator)
-                        interestsEntry(navigator)
+                        stubEntries()
                         topicEntry(navigator)
                         searchEntry(navigator)
                     }

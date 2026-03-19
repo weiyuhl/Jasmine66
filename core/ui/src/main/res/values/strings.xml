@@ -16,4 +16,9 @@
     <string name="core_ui_interests_card_unfollow_button_content_desc">Unfollow interest</string>
     <string name="core_ui_feed_sharing">Feed sharing</string>
     <string name="core_ui_feed_sharing_data">%1$s: %2$s</string>
+
+    <!-- Jasmine Feature Titles -->
+    <string name="core_ui_for_you">为你推荐</string>
+    <string name="core_ui_bookmarks">书签</string>
+    <string name="core_ui_interests">兴趣</string>
 </resources>

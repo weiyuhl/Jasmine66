@@ -4,12 +4,10 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.lhzkml.jasmine.R
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
-import com.lhzkml.jasmine.feature.bookmarks.api.navigation.BookmarksNavKey
-import com.lhzkml.jasmine.feature.foryou.api.navigation.ForYouNavKey
-import com.lhzkml.jasmine.feature.interests.api.navigation.InterestsNavKey
-import com.lhzkml.jasmine.feature.bookmarks.api.R as bookmarksR
-import com.lhzkml.jasmine.feature.foryou.api.R as forYouR
-import com.lhzkml.jasmine.feature.search.api.R as searchR
+import com.lhzkml.jasmine.core.navigation.BookmarksNavKey
+import com.lhzkml.jasmine.core.navigation.ForYouNavKey
+import com.lhzkml.jasmine.core.navigation.InterestsNavKey
+import com.lhzkml.jasmine.core.ui.R as uiR
 
 /**
  * Type for the top level navigation items in the application. Contains UI information about the
@@ -32,27 +30,26 @@ data class TopLevelNavItem(
 val FOR_YOU = TopLevelNavItem(
     selectedIcon = JasmineIcons.Upcoming,
     unselectedIcon = JasmineIcons.UpcomingBorder,
-    iconTextId = forYouR.string.feature_foryou_api_title,
+    iconTextId = uiR.string.core_ui_for_you,
     titleTextId = R.string.app_name,
 )
 
 val BOOKMARKS = TopLevelNavItem(
     selectedIcon = JasmineIcons.Bookmarks,
     unselectedIcon = JasmineIcons.BookmarksBorder,
-    iconTextId = bookmarksR.string.feature_bookmarks_api_title,
-    titleTextId = bookmarksR.string.feature_bookmarks_api_title,
+    iconTextId = uiR.string.core_ui_bookmarks,
+    titleTextId = uiR.string.core_ui_bookmarks,
 )
 
 val INTERESTS = TopLevelNavItem(
     selectedIcon = JasmineIcons.Grid3x3,
     unselectedIcon = JasmineIcons.Grid3x3,
-    iconTextId = searchR.string.feature_search_api_interests,
-    titleTextId = searchR.string.feature_search_api_interests,
+    iconTextId = uiR.string.core_ui_interests,
+    titleTextId = uiR.string.core_ui_interests,
 )
 
 val TOP_LEVEL_NAV_ITEMS = mapOf(
     ForYouNavKey to FOR_YOU,
     BookmarksNavKey to BOOKMARKS,
-    InterestsNavKey(null) to INTERESTS,
+    InterestsNavKey to INTERESTS,
 )
-
