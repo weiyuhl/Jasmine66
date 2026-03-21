@@ -63,9 +63,7 @@ internal fun SettingsScreen(
                 titleRes = string.feature_settings_impl_title,
                 navigationIcon = JasmineIcons.ArrowBack,
                 navigationIconContentDescription = stringResource(id = string.feature_settings_impl_dismiss_dialog_button_text),
-                actionIcon = null,
-                actionIconContentDescription = null,
-                onNavigationClick = onBackClick
+                onNavigationClick = onBackClick,
             )
         }
     ) { padding ->
