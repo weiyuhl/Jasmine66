@@ -279,13 +279,15 @@ internal fun JasmineAppContent(
 
                 Box(
                     // Workaround for https://issuetracker.google.com/338478720
-                    modifier = Modifier.consumeWindowInsets(
-                        if (shouldShowTopAppBar) {
-                            WindowInsets.safeDrawing.only(WindowInsetsSides.Top)
-                        } else {
-                            WindowInsets(0, 0, 0, 0)
-                        },
-                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .consumeWindowInsets(
+                            if (shouldShowTopAppBar) {
+                                WindowInsets.safeDrawing.only(WindowInsetsSides.Top)
+                            } else {
+                                WindowInsets(0, 0, 0, 0)
+                            },
+                        ),
                 ) {
                     val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
 
@@ -304,28 +306,28 @@ internal fun JasmineAppContent(
                     )
                 }
 
-                 // TODO: We may want to add padding or spacer when the snackbar is shown so that
+                // Show chat composer only when on Chat destination
+                if (isChatDestination) {
+                    ChatComposer(
+                        value = chatPrompt,
+                        enabled = true,
+                        onValueChange = { chatPrompt = it },
+                        onSendClick = {
+                            // TODO: Implement send logic
+                            isChatRunning = true
+                            // Simulate response after delay
+                            coroutineScope.launch {
+                                kotlinx.coroutines.delay(2000)
+                                isChatRunning = false
+                                chatPrompt = ""
+                            }
+                        },
+                        isRunning = isChatRunning
+                    )
+                }
+                
+                // TODO: We may want to add padding or spacer when the snackbar is shown so that
                 //  content doesn't display behind it.
-            }
-            
-            // Show chat composer only when on Chat destination
-            if (isChatDestination) {
-                ChatComposer(
-                    value = chatPrompt,
-                    enabled = true,
-                    onValueChange = { chatPrompt = it },
-                    onSendClick = {
-                        // TODO: Implement send logic
-                        isChatRunning = true
-                        // Simulate response after delay
-                        coroutineScope.launch {
-                            kotlinx.coroutines.delay(2000)
-                            isChatRunning = false
-                            chatPrompt = ""
-                        }
-                    },
-                    isRunning = isChatRunning
-                )
             }
         }
     }
