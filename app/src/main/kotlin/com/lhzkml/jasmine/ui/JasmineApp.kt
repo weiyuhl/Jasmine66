@@ -82,6 +82,9 @@ import com.lhzkml.jasmine.feature.settings.impl.settingsEntry
 import com.lhzkml.jasmine.navigation.TOP_LEVEL_NAV_ITEMS
 import kotlinx.coroutines.launch
 import com.lhzkml.jasmine.feature.settings.impl.R as settingsR
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import com.lhzkml.jasmine.ui.ChatComposer
 
 @Composable
 fun JasmineApp(
@@ -144,6 +147,10 @@ internal fun JasmineAppContent(
     val coroutineScope = rememberCoroutineScope()
 
     val isTopLevelDestination = appState.navigationState.currentKey in appState.navigationState.topLevelKeys
+    val isChatDestination = appState.navigationState.currentKey == ChatNavKey
+    
+    var chatPrompt by rememberSaveable { mutableStateOf("") }
+    var isChatRunning by rememberSaveable { mutableStateOf(false) }
 
     DismissibleNavigationDrawer(
         drawerState = drawerState,
@@ -304,6 +311,26 @@ internal fun JasmineAppContent(
 
                  // TODO: We may want to add padding or spacer when the snackbar is shown so that
                 //  content doesn't display behind it.
+            }
+            
+            // Show chat composer only when on Chat destination
+            if (isChatDestination) {
+                ChatComposer(
+                    value = chatPrompt,
+                    enabled = true,
+                    onValueChange = { chatPrompt = it },
+                    onSendClick = {
+                        // TODO: Implement send logic
+                        isChatRunning = true
+                        // Simulate response after delay
+                        kotlinx.coroutines.launch {
+                            kotlinx.coroutines.delay(2000)
+                            isChatRunning = false
+                            chatPrompt = ""
+                        }
+                    },
+                    isRunning = isChatRunning
+                )
             }
         }
     }
