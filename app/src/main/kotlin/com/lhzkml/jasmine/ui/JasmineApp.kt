@@ -92,15 +92,10 @@ fun JasmineApp(
     modifier: Modifier = Modifier,
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
 ) {
-    val shouldShowGradientBackground = appState.navigationState.currentTopLevelKey == ChatNavKey
-
+    // 移除 Chat 页面的渐变背景，所有页面使用统一背景
     Background(modifier = modifier) {
         GradientBackground(
-            gradientColors = if (shouldShowGradientBackground) {
-                LocalGradientColors.current
-            } else {
-                GradientColors()
-            },
+            gradientColors = GradientColors(),
         ) {
             val snackbarHostState = remember { SnackbarHostState() }
 
@@ -323,7 +318,7 @@ internal fun JasmineAppContent(
                         // TODO: Implement send logic
                         isChatRunning = true
                         // Simulate response after delay
-                        kotlinx.coroutines.launch {
+                        coroutineScope.launch {
                             kotlinx.coroutines.delay(2000)
                             isChatRunning = false
                             chatPrompt = ""
