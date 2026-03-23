@@ -58,13 +58,9 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.lhzkml.jasmine.R
-import com.lhzkml.jasmine.core.designsystem.component.Background
-import com.lhzkml.jasmine.core.designsystem.component.GradientBackground
 import com.lhzkml.jasmine.core.designsystem.component.JasmineNavigationSuiteScaffold
 import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
-import com.lhzkml.jasmine.core.designsystem.theme.GradientColors
-import com.lhzkml.jasmine.core.designsystem.theme.LocalGradientColors
 import com.lhzkml.jasmine.feature.chat.api.navigation.ChatNavKey
 import com.lhzkml.jasmine.feature.tools.api.navigation.ToolsNavKey
 import com.lhzkml.jasmine.feature.knowledgebase.api.navigation.KnowledgeBaseNavKey
@@ -92,33 +88,27 @@ fun JasmineApp(
     modifier: Modifier = Modifier,
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo(),
 ) {
-    // 移除 Chat 页面的渐变背景，所有页面使用统一背景
-    Background(modifier = modifier) {
-        GradientBackground(
-            gradientColors = GradientColors(),
-        ) {
-            val snackbarHostState = remember { SnackbarHostState() }
+    // 直接使用 Scaffold，不使用 Background 和 GradientBackground 装饰器
+    val snackbarHostState = remember { SnackbarHostState() }
 
-            val isOffline by appState.isOffline.collectAsStateWithLifecycle()
+    val isOffline by appState.isOffline.collectAsStateWithLifecycle()
 
-            // If user is not connected to the internet show a snack bar to inform them.
-            val notConnectedMessage = stringResource(R.string.not_connected)
-            LaunchedEffect(isOffline) {
-                if (isOffline) {
-                    snackbarHostState.showSnackbar(
-                        message = notConnectedMessage,
-                        duration = Indefinite,
-                    )
-                }
-            }
-            CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
-                JasmineAppContent(
-                    appState = appState,
-                    modifier = modifier,
-                    windowAdaptiveInfo = windowAdaptiveInfo,
-                )
-            }
+    // If user is not connected to the internet show a snack bar to inform them.
+    val notConnectedMessage = stringResource(R.string.not_connected)
+    LaunchedEffect(isOffline) {
+        if (isOffline) {
+            snackbarHostState.showSnackbar(
+                message = notConnectedMessage,
+                duration = Indefinite,
+            )
         }
+    }
+    CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
+        JasmineAppContent(
+            appState = appState,
+            modifier = modifier,
+            windowAdaptiveInfo = windowAdaptiveInfo,
+        )
     }
 }
 
