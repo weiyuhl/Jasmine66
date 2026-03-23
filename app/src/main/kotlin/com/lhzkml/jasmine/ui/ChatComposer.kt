@@ -43,7 +43,6 @@ fun ChatComposer(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF5F5F5))
             .imePadding()
             .navigationBarsPadding()
             .padding(horizontal = 12.dp, vertical = 10.dp)
