@@ -86,6 +86,11 @@ dependencies {
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.coil.kt)
     implementation(libs.kotlinx.serialization.json)
+    
+    // Compottie - Lottie 动画支持
+    implementation("io.github.alexzhirkevich:compottie:1.6.0")
+    implementation("io.github.alexzhirkevich:compottie-dot:1.6.0")
+    implementation("io.github.alexzhirkevich:compottie-resources:1.6.0")
 
     ksp(libs.hilt.compiler)
 }
