@@ -315,14 +315,6 @@ internal fun JasmineAppContent(
                     }
                     
                     if (isChatDestination) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .weight(1f)
-                        ) {
-                            EmptyStateView()
-                        }
-                        
                         ChatComposer(
                             value = chatPrompt,
                             enabled = true,
@@ -385,8 +377,7 @@ private fun ChatComposer(
         modifier = Modifier
             .fillMaxWidth()
             .imePadding()
-            .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 10.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         if (isRunning) {
             Row(
