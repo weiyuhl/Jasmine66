@@ -2,12 +2,8 @@ package com.lhzkml.jasmine.feature.chat.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lhzkml.jasmine.core.data.repository.ChatProviderRepository
-import com.lhzkml.jasmine.core.prompt.executor.ApiType
-import com.lhzkml.jasmine.core.prompt.executor.ChatClientConfig
-import com.lhzkml.jasmine.core.prompt.executor.ChatClientFactory
-import com.lhzkml.jasmine.core.prompt.llm.ChatClient
-import com.lhzkml.jasmine.core.prompt.model.ChatMessage
+import com.lhzkml.jasmine.core.data.model.SimpleChatMessage
+import com.lhzkml.jasmine.core.data.repository.ChatClientManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +23,7 @@ data class UiChatMessage(
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
-    val providerRepo: ChatProviderRepository,
+    private val clientManager: ChatClientManager,
 ) : ViewModel() {
 
     private val _chatPrompt = MutableStateFlow("")
@@ -42,68 +38,25 @@ class ChatViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    /** 供应商是否已配置的详细状态 (内部诊断用) */
-    private val _providerSetupState = MutableStateFlow("尚未加载配置")
-    val providerSetupState: StateFlow<String> = _providerSetupState.asStateFlow()
+    /** 供应商是否已配置 — 委托给 ChatClientManager */
+    val isProviderConfigured: StateFlow<Boolean> = clientManager.isConfigured
 
-    private val _isProviderConfigured = MutableStateFlow(false)
-    val isProviderConfigured: StateFlow<Boolean> = _isProviderConfigured.asStateFlow()
+    /** 诊断信息 — 委托给 ChatClientManager */
+    val providerSetupState: StateFlow<String> = clientManager.setupState
 
-    private var chatClient: ChatClient? = null
     private var streamJob: Job? = null
 
     init {
         viewModelScope.launch {
-            providerRepo.configChangesFlow.collect {
-                refreshProviderState()
+            clientManager.configChangesFlow.collect {
+                clientManager.refreshState()
             }
         }
     }
 
+    /** 由 ChatScreen 在进入 Composition 时调用 */
     fun refreshProviderState() {
-        val id = providerRepo.getActiveProviderId()
-        if (id.isNullOrBlank()) {
-            _providerSetupState.value = "配置失败: ActiveProviderId 为空"
-            _isProviderConfigured.value = false
-            chatClient?.close()
-            chatClient = null
-            return
-        }
-        val preset = ChatProviderRepository.PRESETS.find { it.id == id }
-        if (preset == null) {
-            _providerSetupState.value = "配置失败: 找不到预设 ($id)"
-            _isProviderConfigured.value = false
-            chatClient?.close()
-            chatClient = null
-            return
-        }
-        val apiKey = providerRepo.getApiKey(id)
-        if (apiKey.isBlank()) {
-            _providerSetupState.value = "配置失败: API Key 为空 ($id)"
-            _isProviderConfigured.value = false
-            chatClient?.close()
-            chatClient = null
-            return
-        }
-
-        val config = buildActiveConfig()
-        _isProviderConfigured.value = config != null
-        if (config == null) {
-            _providerSetupState.value = "配置失败: config 构建失败"
-        } else {
-            _providerSetupState.value = "配置成功: ${config.providerName} (${config.providerId})"
-        }
-        
-        // 重建 client
-        chatClient?.close()
-        chatClient = config?.let {
-            try {
-                ChatClientFactory.create(it)
-            } catch (e: Exception) {
-                _providerSetupState.value = "配置失败: 工厂类抛出异常 (${e.message})"
-                null
-            }
-        }
+        clientManager.refreshState()
     }
 
     fun onPromptChange(value: String) {
@@ -118,9 +71,8 @@ class ChatViewModel @Inject constructor(
         val prompt = _chatPrompt.value.trim()
         if (prompt.isBlank() || _isChatRunning.value) return
 
-        val client = chatClient
-        if (client == null) {
-            _errorMessage.value = "发送失败: ${_providerSetupState.value}"
+        if (!clientManager.isConfigured.value) {
+            _errorMessage.value = "发送失败: ${clientManager.setupState.value}"
             return
         }
 
@@ -136,12 +88,12 @@ class ChatViewModel @Inject constructor(
         val assistantPlaceholder = UiChatMessage(role = "assistant", content = "", isStreaming = true)
         _messages.value = _messages.value + assistantPlaceholder
 
-        val model = providerRepo.getModel(providerRepo.getActiveProviderId() ?: "")
+        val model = clientManager.getActiveModel()
         val history = buildApiMessages()
 
         streamJob = viewModelScope.launch {
             try {
-                val result = client.chatStreamWithUsage(
+                clientManager.streamChat(
                     messages = history,
                     model = model,
                     onChunk = { chunk ->
@@ -178,49 +130,17 @@ class ChatViewModel @Inject constructor(
     }
 
     /**
-     * 将 UI 消息转换为 API 消息（不含最后的空 assistant 占位）
+     * 将 UI 消息转换为 core:data 层的 SimpleChatMessage（不含最后的空 assistant 占位）
      */
-    private fun buildApiMessages(): List<ChatMessage> {
+    private fun buildApiMessages(): List<SimpleChatMessage> {
         return _messages.value
             .filter { it.content.isNotEmpty() }
-            .map { msg ->
-                when (msg.role) {
-                    "user" -> ChatMessage.user(msg.content)
-                    "assistant" -> ChatMessage.assistant(msg.content)
-                    "system" -> ChatMessage.system(msg.content)
-                    else -> ChatMessage.user(msg.content)
-                }
-            }
-    }
-
-    /**
-     * 构建当前激活供应商的 ChatClientConfig。
-     * 从 core:data 读取基础字符串配置，在这里组装为特定于大模型的配置类。
-     */
-    private fun buildActiveConfig(): ChatClientConfig? {
-        val id = providerRepo.getActiveProviderId() ?: return null
-        val preset = ChatProviderRepository.PRESETS.find { it.id == id } ?: return null
-        val apiKey = providerRepo.getApiKey(id)
-        if (apiKey.isBlank()) return null
-
-        val apiType = try {
-            ApiType.valueOf(preset.apiTypeString)
-        } catch (e: IllegalArgumentException) {
-            ApiType.OPENAI
-        }
-
-        return ChatClientConfig(
-            providerId = id,
-            providerName = preset.name,
-            apiKey = apiKey,
-            baseUrl = providerRepo.getBaseUrl(id),
-            apiType = apiType,
-        )
+            .map { msg -> SimpleChatMessage(role = msg.role, content = msg.content) }
     }
 
     override fun onCleared() {
         super.onCleared()
         streamJob?.cancel()
-        chatClient?.close()
+        clientManager.close()
     }
 }

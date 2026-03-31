@@ -16,4 +16,5 @@ dependencies {
 
     implementation(projects.core.analytics)
     implementation(projects.core.notifications)
+    implementation(projects.jasmineCore.prompt.promptExecutor)
 }
