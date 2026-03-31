@@ -50,7 +50,11 @@ class ChatViewModel @Inject constructor(
     private var streamJob: Job? = null
 
     init {
-        refreshProviderState()
+        viewModelScope.launch {
+            providerRepo.configChangesFlow.collect {
+                refreshProviderState()
+            }
+        }
     }
 
     fun refreshProviderState() {

@@ -87,4 +87,23 @@ class ChatProviderRepository @Inject constructor(
             .putString(KEY_MODEL_PREFIX + providerId, model)
             .apply()
     }
+
+    private val _configChangesFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(
+        replay = 1,
+        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
+    )
+
+    /** 提供 Flow 供 ViewModel 监听配置变更 */
+    val configChangesFlow: kotlinx.coroutines.flow.Flow<Unit> = _configChangesFlow
+
+    private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == KEY_PROVIDER_ID || (key?.startsWith(KEY_API_KEY_PREFIX) == true)) {
+            _configChangesFlow.tryEmit(Unit)
+        }
+    }
+
+    init {
+        prefs.registerOnSharedPreferenceChangeListener(prefListener)
+        _configChangesFlow.tryEmit(Unit)
+    }
 }
