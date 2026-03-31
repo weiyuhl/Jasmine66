@@ -42,7 +42,10 @@ class ChatViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    /** 供应商是否已配置 */
+    /** 供应商是否已配置的详细状态 (内部诊断用) */
+    private val _providerSetupState = MutableStateFlow("尚未加载配置")
+    val providerSetupState: StateFlow<String> = _providerSetupState.asStateFlow()
+
     private val _isProviderConfigured = MutableStateFlow(false)
     val isProviderConfigured: StateFlow<Boolean> = _isProviderConfigured.asStateFlow()
 
@@ -58,14 +61,46 @@ class ChatViewModel @Inject constructor(
     }
 
     fun refreshProviderState() {
+        val id = providerRepo.getActiveProviderId()
+        if (id.isNullOrBlank()) {
+            _providerSetupState.value = "配置失败: ActiveProviderId 为空"
+            _isProviderConfigured.value = false
+            chatClient?.close()
+            chatClient = null
+            return
+        }
+        val preset = ChatProviderRepository.PRESETS.find { it.id == id }
+        if (preset == null) {
+            _providerSetupState.value = "配置失败: 找不到预设 ($id)"
+            _isProviderConfigured.value = false
+            chatClient?.close()
+            chatClient = null
+            return
+        }
+        val apiKey = providerRepo.getApiKey(id)
+        if (apiKey.isBlank()) {
+            _providerSetupState.value = "配置失败: API Key 为空 ($id)"
+            _isProviderConfigured.value = false
+            chatClient?.close()
+            chatClient = null
+            return
+        }
+
         val config = buildActiveConfig()
         _isProviderConfigured.value = config != null
+        if (config == null) {
+            _providerSetupState.value = "配置失败: config 构建失败"
+        } else {
+            _providerSetupState.value = "配置成功: ${config.providerName} (${config.providerId})"
+        }
+        
         // 重建 client
         chatClient?.close()
         chatClient = config?.let {
             try {
                 ChatClientFactory.create(it)
             } catch (e: Exception) {
+                _providerSetupState.value = "配置失败: 工厂类抛出异常 (${e.message})"
                 null
             }
         }
@@ -85,7 +120,7 @@ class ChatViewModel @Inject constructor(
 
         val client = chatClient
         if (client == null) {
-            _errorMessage.value = "请先配置供应商和 API Key"
+            _errorMessage.value = "发送失败: ${_providerSetupState.value}"
             return
         }
 

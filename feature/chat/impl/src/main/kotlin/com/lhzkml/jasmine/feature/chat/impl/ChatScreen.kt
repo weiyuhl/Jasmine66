@@ -71,6 +71,7 @@ internal fun ChatScreen(
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
     val isProviderConfigured by viewModel.isProviderConfigured.collectAsStateWithLifecycle()
+    val providerSetupState by viewModel.providerSetupState.collectAsStateWithLifecycle()
     var showBottomSheet by remember { mutableStateOf(false) }
 
     TrackScreenViewEvent(screenName = "Chat")
@@ -126,7 +127,7 @@ internal fun ChatScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "⚙️ 请前往设置页面配置大模型与 API Key",
+                    text = "⚙️ $providerSetupState\n(点击上方前往设置配置)",
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
