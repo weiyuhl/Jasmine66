@@ -86,6 +86,7 @@ fun JasmineNavigationBar(
 ) {
     NavigationBar(
         modifier = modifier,
+        containerColor = JasmineNavigationDefaults.navigationContainerColor(),
         contentColor = JasmineNavigationDefaults.navigationContentColor(),
         tonalElevation = 0.dp,
         content = content,
@@ -214,6 +215,7 @@ fun JasmineNavigationSuiteScaffold(
         layoutType = layoutType,
         containerColor = Color.Transparent,
         navigationSuiteColors = NavigationSuiteDefaults.colors(
+            navigationBarContainerColor = JasmineNavigationDefaults.navigationContainerColor(),
             navigationBarContentColor = JasmineNavigationDefaults.navigationContentColor(),
             navigationRailContainerColor = Color.Transparent,
         ),
@@ -337,6 +339,9 @@ fun JasmineNavigationRailPreview() {
  * Jasmine navigation default values.
  */
 object JasmineNavigationDefaults {
+    @Composable
+    fun navigationContainerColor() = MaterialTheme.colorScheme.surface
+
     @Composable
     fun navigationContentColor() = MaterialTheme.colorScheme.onSurfaceVariant
 
