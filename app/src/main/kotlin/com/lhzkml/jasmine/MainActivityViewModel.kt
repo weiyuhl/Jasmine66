@@ -32,8 +32,6 @@ sealed interface MainActivityUiState {
     data object Loading : MainActivityUiState
 
     data class Success(val userData: UserData) : MainActivityUiState {
-        override val shouldDisableDynamicTheming = !userData.useDynamicColor
-
         override val shouldUseAndroidTheme: Boolean = when (userData.themeBrand) {
             ThemeBrand.DEFAULT -> false
             ThemeBrand.ANDROID -> true
@@ -51,11 +49,6 @@ sealed interface MainActivityUiState {
      * Returns `true` if the state wasn't loaded yet and it should keep showing the splash screen.
      */
     fun shouldKeepSplashScreen() = this is Loading
-
-    /**
-     * Returns `true` if the dynamic color is disabled.
-     */
-    val shouldDisableDynamicTheming: Boolean get() = true
 
     /**
      * Returns `true` if the Android theme should be used.

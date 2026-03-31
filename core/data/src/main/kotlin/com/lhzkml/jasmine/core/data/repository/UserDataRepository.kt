@@ -23,11 +23,6 @@ interface UserDataRepository {
     suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig)
 
     /**
-     * Sets the preferred dynamic color config.
-     */
-    suspend fun setDynamicColorPreference(useDynamicColor: Boolean)
-
-    /**
      * Sets whether the user has completed the onboarding process.
      */
     suspend fun setShouldHideOnboarding(shouldHideOnboarding: Boolean)

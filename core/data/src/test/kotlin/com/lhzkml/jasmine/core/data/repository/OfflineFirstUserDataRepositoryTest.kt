@@ -1,4 +1,4 @@
-
+﻿
 package com.lhzkml.jasmine.core.data.repository
 
 import com.lhzkml.jasmine.core.analytics.NoOpJasmineAnalyticsHelper
@@ -47,7 +47,7 @@ class OfflineFirstUserDataRepositoryTest {
                     followedTopics = emptySet(),
                     themeBrand = ThemeBrand.DEFAULT,
                     darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
-                    useDynamicColor = false,
+                    
                     shouldHideOnboarding = false,
                 ),
                 subject.userData.first(),
@@ -131,9 +131,7 @@ class OfflineFirstUserDataRepositoryTest {
     @Test
     fun offlineFirstUserDataRepository_set_dynamic_color_delegates_to__preferences() =
         testScope.runTest {
-            subject.setDynamicColorPreference(true)
-
-            assertEquals(
+                        assertEquals(
                 true,
                 subject.userData
                     .map { it.useDynamicColor }
@@ -179,5 +177,6 @@ class OfflineFirstUserDataRepositoryTest {
             assertFalse(subject.userData.first().shouldHideOnboarding)
         }
 }
+
 
 

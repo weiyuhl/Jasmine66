@@ -24,16 +24,6 @@ internal fun JasmineAnalyticsHelper.logDarkThemeConfigChanged(darkThemeConfigNam
         ),
     )
 
-internal fun JasmineAnalyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor: Boolean) =
-    logEvent(
-        AnalyticsEvent(
-            type = "dynamic_color_preference_changed",
-            extras = listOf(
-                Param(key = "dynamic_color_preference", value = useDynamicColor.toString()),
-            ),
-        ),
-    )
-
 internal fun JasmineAnalyticsHelper.logOnboardingStateChanged(shouldHideOnboarding: Boolean) {
     val eventType = if (shouldHideOnboarding) "onboarding_complete" else "onboarding_reset"
     logEvent(

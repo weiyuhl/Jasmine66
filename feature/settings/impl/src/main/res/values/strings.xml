@@ -12,11 +12,7 @@
     <string name="feature_settings_impl_dark_mode_config_system_default">系统默认</string>
     <string name="feature_settings_impl_dark_mode_config_light">浅色</string>
     <string name="feature_settings_impl_dark_mode_config_dark">深色</string>
-    <string name="feature_settings_impl_dynamic_color_preference">使用动态色彩</string>
-    <string name="feature_settings_impl_dynamic_color_yes">是</string>
-    <string name="feature_settings_impl_dynamic_color_no">否</string>
     <string name="feature_settings_impl_dismiss_dialog_button_text">确定</string>
     <string name="feature_settings_impl_basic_settings">基本设置</string>
     <string name="feature_settings_impl_provider_config">大模型配置</string>
 </resources>
-

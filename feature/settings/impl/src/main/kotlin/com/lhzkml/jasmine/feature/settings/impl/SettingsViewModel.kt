@@ -29,7 +29,6 @@ class SettingsViewModel @Inject constructor(
                 Success(
                     settings = UserEditableSettings(
                         brand = userData.themeBrand,
-                        useDynamicColor = userData.useDynamicColor,
                         darkThemeConfig = userData.darkThemeConfig,
                     ),
                 )
@@ -51,12 +50,6 @@ class SettingsViewModel @Inject constructor(
             userDataRepository.setDarkThemeConfig(darkThemeConfig)
         }
     }
-
-    fun updateDynamicColorPreference(useDynamicColor: Boolean) {
-        viewModelScope.launch {
-            userDataRepository.setDynamicColorPreference(useDynamicColor)
-        }
-    }
 }
 
 /**
@@ -64,7 +57,6 @@ class SettingsViewModel @Inject constructor(
  */
 data class UserEditableSettings(
     val brand: ThemeBrand,
-    val useDynamicColor: Boolean,
     val darkThemeConfig: DarkThemeConfig,
 )
 

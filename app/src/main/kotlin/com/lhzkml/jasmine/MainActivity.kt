@@ -66,7 +66,6 @@ class MainActivity : ComponentActivity() {
             ThemeSettings(
                 darkTheme = resources.configuration.isSystemInDarkTheme,
                 androidTheme = Loading.shouldUseAndroidTheme,
-                disableDynamicTheming = Loading.shouldDisableDynamicTheming,
             ),
         )
 
@@ -80,7 +79,6 @@ class MainActivity : ComponentActivity() {
                     ThemeSettings(
                         darkTheme = uiState.shouldUseDarkTheme(systemDark),
                         androidTheme = uiState.shouldUseAndroidTheme,
-                        disableDynamicTheming = uiState.shouldDisableDynamicTheming,
                     )
                 }
                     .onEach { themeSettings = it }
@@ -128,7 +126,6 @@ class MainActivity : ComponentActivity() {
                 JasmineTheme(
                     darkTheme = themeSettings.darkTheme,
                     androidTheme = themeSettings.androidTheme,
-                    disableDynamicTheming = true,
                 ) {
                     JasmineApp(appState)
                 }
@@ -166,5 +163,4 @@ private val darkScrim = android.graphics.Color.argb(0x80, 0x1b, 0x1b, 0x1b)
 data class ThemeSettings(
     val darkTheme: Boolean,
     val androidTheme: Boolean,
-    val disableDynamicTheming: Boolean,
 )

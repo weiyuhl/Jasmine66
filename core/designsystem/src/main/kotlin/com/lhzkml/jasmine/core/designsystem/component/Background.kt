@@ -135,7 +135,7 @@ annotation class ThemePreviews
 @ThemePreviews
 @Composable
 fun BackgroundDefault() {
-    JasmineTheme(disableDynamicTheming = true) {
+    JasmineTheme {
         Background(Modifier.size(100.dp), content = {})
     }
 }
@@ -143,7 +143,7 @@ fun BackgroundDefault() {
 @ThemePreviews
 @Composable
 fun BackgroundDynamic() {
-    JasmineTheme(disableDynamicTheming = false) {
+    JasmineTheme {
         Background(Modifier.size(100.dp), content = {})
     }
 }
@@ -159,7 +159,7 @@ fun BackgroundAndroid() {
 @ThemePreviews
 @Composable
 fun GradientBackgroundDefault() {
-    JasmineTheme(disableDynamicTheming = true) {
+    JasmineTheme {
         GradientBackground(Modifier.size(100.dp), content = {})
     }
 }
@@ -167,7 +167,7 @@ fun GradientBackgroundDefault() {
 @ThemePreviews
 @Composable
 fun GradientBackgroundDynamic() {
-    JasmineTheme(disableDynamicTheming = false) {
+    JasmineTheme {
         GradientBackground(Modifier.size(100.dp), content = {})
     }
 }

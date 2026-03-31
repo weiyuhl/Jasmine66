@@ -1,4 +1,4 @@
-
+﻿
 package com.lhzkml.jasmine.core.designsystem
 
 import android.os.Build.VERSION.SDK_INT
@@ -37,8 +37,8 @@ import kotlin.test.assertEquals
  * Tests [JasmineTheme] using different combinations of the theme mode parameters:
  * darkTheme, disableDynamicTheming, and androidTheme.
  *
- * It verifies that the various composition locals �?[MaterialTheme], [LocalGradientColors] and
- * [LocalBackgroundTheme] �?have the expected values for a given theme mode, as specified by the
+ * It verifies that the various composition locals 锟?[MaterialTheme], [LocalGradientColors] and
+ * [LocalBackgroundTheme] 锟?have the expected values for a given theme mode, as specified by the
  * design system.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -52,7 +52,7 @@ class ThemeTest {
         composeTestRule.setContent {
             JasmineTheme(
                 darkTheme = false,
-                disableDynamicTheming = true,
+                
                 androidTheme = false,
             ) {
                 val colorScheme = LightDefaultColorScheme
@@ -72,7 +72,7 @@ class ThemeTest {
         composeTestRule.setContent {
             JasmineTheme(
                 darkTheme = true,
-                disableDynamicTheming = true,
+                
                 androidTheme = false,
             ) {
                 val colorScheme = DarkDefaultColorScheme
@@ -92,7 +92,7 @@ class ThemeTest {
         composeTestRule.setContent {
             JasmineTheme(
                 darkTheme = false,
-                disableDynamicTheming = false,
+                
                 androidTheme = false,
             ) {
                 val colorScheme = dynamicLightColorSchemeWithFallback()
@@ -112,7 +112,7 @@ class ThemeTest {
         composeTestRule.setContent {
             JasmineTheme(
                 darkTheme = true,
-                disableDynamicTheming = false,
+                
                 androidTheme = false,
             ) {
                 val colorScheme = dynamicDarkColorSchemeWithFallback()
@@ -132,7 +132,7 @@ class ThemeTest {
         composeTestRule.setContent {
             JasmineTheme(
                 darkTheme = false,
-                disableDynamicTheming = true,
+                
                 androidTheme = true,
             ) {
                 val colorScheme = LightAndroidColorScheme
@@ -152,7 +152,7 @@ class ThemeTest {
         composeTestRule.setContent {
             JasmineTheme(
                 darkTheme = true,
-                disableDynamicTheming = true,
+                
                 androidTheme = true,
             ) {
                 val colorScheme = DarkAndroidColorScheme
@@ -172,7 +172,7 @@ class ThemeTest {
         composeTestRule.setContent {
             JasmineTheme(
                 darkTheme = false,
-                disableDynamicTheming = false,
+                
                 androidTheme = true,
             ) {
                 val colorScheme = LightAndroidColorScheme
@@ -192,7 +192,7 @@ class ThemeTest {
         composeTestRule.setContent {
             JasmineTheme(
                 darkTheme = true,
-                disableDynamicTheming = false,
+                
                 androidTheme = true,
             ) {
                 val colorScheme = DarkAndroidColorScheme
@@ -282,3 +282,4 @@ class ThemeTest {
         assertEquals(expectedColorScheme.outline, actualColorScheme.outline)
     }
 }
+

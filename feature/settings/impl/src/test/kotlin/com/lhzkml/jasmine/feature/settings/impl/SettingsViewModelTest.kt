@@ -1,4 +1,4 @@
-
+﻿
 package com.lhzkml.jasmine.feature.settings.impl
 
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.DARK
@@ -47,11 +47,12 @@ class SettingsViewModelTest {
                 UserEditableSettings(
                     brand = ANDROID,
                     darkThemeConfig = DARK,
-                    useDynamicColor = false,
+                    
                 ),
             ),
             viewModel.settingsUiState.value,
         )
     }
 }
+
 

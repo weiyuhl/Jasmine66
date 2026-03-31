@@ -44,7 +44,6 @@ import androidx.navigation3.runtime.NavKey
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
-import com.lhzkml.jasmine.core.designsystem.theme.supportsDynamicTheming
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.DARK
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.FOLLOW_SYSTEM
@@ -230,11 +229,9 @@ private fun BasicSettingsScreen(
                 }
 
                 is SettingsUiState.Success -> {
-                    SettingsPanel(
+                    BasicSettingsPanel(
                         settings = state.settings,
-                        supportDynamicColor = supportsDynamicTheming(),
                         onChangeThemeBrand = viewModel::updateThemeBrand,
-                        onChangeDynamicColorPreference = viewModel::updateDynamicColorPreference,
                         onChangeDarkThemeConfig = viewModel::updateDarkThemeConfig,
                     )
                 }
@@ -246,11 +243,9 @@ private fun BasicSettingsScreen(
 // ==================== 设置面板（保留原有逻辑） ====================
 
 @Composable
-internal fun ColumnScope.SettingsPanel(
+internal fun ColumnScope.BasicSettingsPanel(
     settings: UserEditableSettings,
-    supportDynamicColor: Boolean,
     onChangeThemeBrand: (themeBrand: ThemeBrand) -> Unit,
-    onChangeDynamicColorPreference: (useDynamicColor: Boolean) -> Unit,
     onChangeDarkThemeConfig: (darkThemeConfig: DarkThemeConfig) -> Unit,
 ) {
     SettingsDialogSectionTitle(text = stringResource(string.feature_settings_impl_theme))
@@ -265,23 +260,6 @@ internal fun ColumnScope.SettingsPanel(
             selected = settings.brand == ANDROID,
             onClick = { onChangeThemeBrand(ANDROID) },
         )
-    }
-    AnimatedVisibility(visible = settings.brand == DEFAULT && supportDynamicColor) {
-        Column {
-            SettingsDialogSectionTitle(text = stringResource(string.feature_settings_impl_dynamic_color_preference))
-            Column(Modifier.selectableGroup()) {
-                SettingsDialogThemeChooserRow(
-                    text = stringResource(string.feature_settings_impl_dynamic_color_yes),
-                    selected = settings.useDynamicColor,
-                    onClick = { onChangeDynamicColorPreference(true) },
-                )
-                SettingsDialogThemeChooserRow(
-                    text = stringResource(string.feature_settings_impl_dynamic_color_no),
-                    selected = !settings.useDynamicColor,
-                    onClick = { onChangeDynamicColorPreference(false) },
-                )
-            }
-        }
     }
     SettingsDialogSectionTitle(text = stringResource(string.feature_settings_impl_dark_mode_preference))
     Column(Modifier.selectableGroup()) {

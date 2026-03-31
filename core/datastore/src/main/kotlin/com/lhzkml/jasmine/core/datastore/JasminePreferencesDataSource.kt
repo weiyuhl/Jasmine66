@@ -32,7 +32,6 @@ class JasminePreferencesDataSource @Inject constructor(
                         DarkThemeConfig.LIGHT
                     DarkThemeConfigProto.DARK_THEME_CONFIG_DARK -> DarkThemeConfig.DARK
                 },
-                useDynamicColor = it.useDynamicColor,
                 shouldHideOnboarding = it.shouldHideOnboarding,
             )
         }
@@ -45,12 +44,6 @@ class JasminePreferencesDataSource @Inject constructor(
                     ThemeBrand.ANDROID -> ThemeBrandProto.THEME_BRAND_ANDROID
                 }
             }
-        }
-    }
-
-    suspend fun setDynamicColorPreference(useDynamicColor: Boolean) {
-        userPreferences.updateData {
-            it.copy { this.useDynamicColor = useDynamicColor }
         }
     }
 

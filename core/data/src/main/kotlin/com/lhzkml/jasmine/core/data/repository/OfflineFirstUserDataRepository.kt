@@ -26,11 +26,6 @@ internal class OfflineFirstUserDataRepository @Inject constructor(
         JasmineAnalyticsHelper.logDarkThemeConfigChanged(darkThemeConfig.name)
     }
 
-    override suspend fun setDynamicColorPreference(useDynamicColor: Boolean) {
-        JasminePreferencesDataSource.setDynamicColorPreference(useDynamicColor)
-        JasmineAnalyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor)
-    }
-
     override suspend fun setShouldHideOnboarding(shouldHideOnboarding: Boolean) {
         JasminePreferencesDataSource.setShouldHideOnboarding(shouldHideOnboarding)
         JasmineAnalyticsHelper.logOnboardingStateChanged(shouldHideOnboarding)

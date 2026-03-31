@@ -1,4 +1,4 @@
-
+﻿
 package com.lhzkml.jasmine.core.datastore
 
 import com.lhzkml.jasmine.core.datastore.test.InMemoryDataStore
@@ -62,14 +62,10 @@ class JasminePreferencesDataSourceTest {
         }
 
     @Test
-    fun shouldUseDynamicColorFalseByDefault() = testScope.runTest {
-        assertFalse(subject.userData.first().useDynamicColor)
-    }
+    
 
     @Test
-    fun userShouldUseDynamicColorIsTrueWhenSet() = testScope.runTest {
-        subject.setDynamicColorPreference(true)
-        assertTrue(subject.userData.first().useDynamicColor)
-    }
+    
 }
+
 
