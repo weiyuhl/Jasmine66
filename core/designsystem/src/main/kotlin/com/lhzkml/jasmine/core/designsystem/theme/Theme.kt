@@ -47,6 +47,16 @@ val LightDefaultColorScheme = lightColorScheme(
     inverseSurface = Mono20,
     inverseOnSurface = Mono95,
     outline = Mono80,
+    outlineVariant = Mono90,
+    surfaceTint = Mono100,
+    scrim = Mono10,
+    surfaceBright = Mono100,
+    surfaceContainer = Mono95,
+    surfaceContainerHigh = Mono90,
+    surfaceContainerHighest = Mono80,
+    surfaceContainerLow = Mono98,
+    surfaceContainerLowest = Mono100,
+    surfaceDim = Mono80,
 )
 
 /**
@@ -79,6 +89,16 @@ val DarkDefaultColorScheme = darkColorScheme(
     inverseSurface = Mono90,
     inverseOnSurface = Mono10,
     outline = Mono60,
+    outlineVariant = Mono20,
+    surfaceTint = Mono10,
+    scrim = Mono100,
+    surfaceBright = Mono20,
+    surfaceContainer = Mono20,
+    surfaceContainerHigh = Mono40,
+    surfaceContainerHighest = Mono60,
+    surfaceContainerLow = Mono10,
+    surfaceContainerLowest = Mono10,
+    surfaceDim = Mono10,
 )
 
 /**

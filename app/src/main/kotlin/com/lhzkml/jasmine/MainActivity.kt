@@ -128,7 +128,7 @@ class MainActivity : ComponentActivity() {
                 JasmineTheme(
                     darkTheme = themeSettings.darkTheme,
                     androidTheme = themeSettings.androidTheme,
-                    disableDynamicTheming = themeSettings.disableDynamicTheming,
+                    disableDynamicTheming = true,
                 ) {
                     JasmineApp(appState)
                 }
