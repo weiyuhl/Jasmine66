@@ -6,6 +6,17 @@ import androidx.compose.ui.graphics.Color
 /**
  * Jasmine colors.
  */
+internal val Mono10 = Color(0xFF111111)
+internal val Mono20 = Color(0xFF222222)
+internal val Mono40 = Color(0xFF444444)
+internal val Mono60 = Color(0xFF666666)
+internal val Mono80 = Color(0xFFCCCCCC)
+internal val Mono90 = Color(0xFFE5E5E5)
+internal val Mono95 = Color(0xFFF2F2F2)
+internal val Mono98 = Color(0xFFFAFAFA)
+internal val Mono99 = Color(0xFFFDFDFD)
+internal val Mono100 = Color(0xFFFFFFFF)
+
 internal val Blue10 = Color(0xFF001F28)
 internal val Blue20 = Color(0xFF003544)
 internal val Blue30 = Color(0xFF004D61)
