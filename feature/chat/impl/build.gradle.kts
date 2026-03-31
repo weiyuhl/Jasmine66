@@ -10,4 +10,5 @@ android {
 dependencies {
     implementation(projects.feature.chat.api)
     implementation(libs.compottie)
+    implementation(projects.jasmineCore.prompt.promptExecutor)
 }
