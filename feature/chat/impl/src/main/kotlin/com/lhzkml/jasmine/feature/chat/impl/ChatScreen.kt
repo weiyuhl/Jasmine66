@@ -2,6 +2,7 @@ package com.lhzkml.jasmine.feature.chat.impl
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,40 +16,48 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
-import io.github.alexzhirkevich.compottie.Compottie
-import io.github.alexzhirkevich.compottie.LottieCompositionSpec
-import io.github.alexzhirkevich.compottie.rememberLottieComposition
-import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
+import io.github.alexzhirkevich.compottie.Compottie
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import kotlin.math.max
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,6 +68,9 @@ internal fun ChatScreen(
 ) {
     val chatPrompt by viewModel.chatPrompt.collectAsStateWithLifecycle()
     val isChatRunning by viewModel.isChatRunning.collectAsStateWithLifecycle()
+    val messages by viewModel.messages.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
+    val isProviderConfigured by viewModel.isProviderConfigured.collectAsStateWithLifecycle()
     var showBottomSheet by remember { mutableStateOf(false) }
 
     TrackScreenViewEvent(screenName = "Chat")
@@ -66,23 +78,64 @@ internal fun ChatScreen(
     val density = LocalDensity.current
     val imeBottom = WindowInsets.ime.getBottom(density)
     val navBarsBottom = WindowInsets.navigationBars.getBottom(density)
-    // Material 3 NavigationBar has a standard height of 80.dp
     val bottomBarHeightPx = with(density) { 80.dp.roundToPx() } + navBarsBottom
-    // Subtract the bottom bar height from the keyboard inset so ChatComposer rides perfectly on top
-    // without floating 80dp in the air.
     val extraPaddingPx = max(0, imeBottom - bottomBarHeightPx)
     val extraPaddingDp = with(density) { extraPaddingPx.toDp() }
 
     Column(modifier = modifier.fillMaxSize().padding(bottom = extraPaddingDp)) {
-        // Chat message area
-        Box(
-            modifier = Modifier.weight(1f),
-            contentAlignment = Alignment.Center,
-        ) {
-            EmptyStateView()
+        // 消息区域
+        Box(modifier = Modifier.weight(1f)) {
+            if (messages.isEmpty()) {
+                EmptyStateView()
+            } else {
+                MessageList(messages = messages)
+            }
         }
 
-        // Chat composer at bottom
+        // 错误提示
+        errorMessage?.let { error ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    fontSize = 13.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = { viewModel.clearError() }) {
+                    Text("关闭", fontSize = 12.sp)
+                }
+            }
+        }
+
+        // 未配置供应商时的提示
+        if (!isProviderConfigured) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showBottomSheet = true }
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "⚙️ 点此配置 AI 供应商以开始对话",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
+        }
+
+        // 输入框
         ChatComposer(
             value = chatPrompt,
             enabled = true,
@@ -93,38 +146,208 @@ internal fun ChatScreen(
         )
     }
 
+    // 底部配置面板
     if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ProviderConfigSheet(
+            providerRepo = viewModel.providerRepo,
+            onDismiss = {
+                showBottomSheet = false
+                viewModel.refreshProviderState()
+            },
+        )
+    }
+}
+
+// ==================== 消息列表 ====================
+
+@Composable
+private fun MessageList(messages: List<UiChatMessage>) {
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.lastIndex)
+        }
+    }
+
+    LazyColumn(
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        reverseLayout = false,
+    ) {
+        item { Spacer(modifier = Modifier.height(8.dp)) }
+        items(messages) { msg ->
+            ChatBubble(message = msg)
+        }
+        item { Spacer(modifier = Modifier.height(8.dp)) }
+    }
+}
+
+@Composable
+private fun ChatBubble(message: UiChatMessage) {
+    val isUser = message.role == "user"
+    val colorScheme = MaterialTheme.colorScheme
+
+    val bubbleColor = if (isUser) colorScheme.primary else colorScheme.surfaceVariant
+    val textColor = if (isUser) colorScheme.onPrimary else colorScheme.onSurfaceVariant
+    val alignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
+    val shape = RoundedCornerShape(
+        topStart = 16.dp,
+        topEnd = 16.dp,
+        bottomStart = if (isUser) 16.dp else 4.dp,
+        bottomEnd = if (isUser) 4.dp else 16.dp,
+    )
+
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = alignment,
+    ) {
+        Box(
+            modifier = Modifier
+                .widthIn(max = 300.dp)
+                .background(bubbleColor, shape)
+                .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
-            Column(
+            val displayText = if (message.content.isEmpty() && message.isStreaming) "..." else message.content
+            Text(
+                text = displayText,
+                color = textColor,
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+            )
+        }
+    }
+}
+
+// ==================== 供应商配置 Bottom Sheet ====================
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ProviderConfigSheet(
+    providerRepo: ChatProviderRepository,
+    onDismiss: () -> Unit,
+) {
+    val presets = ChatProviderRepository.PRESETS
+    val currentId = providerRepo.getActiveProviderId()
+
+    var selectedId by remember { mutableStateOf(currentId ?: presets.first().id) }
+    var apiKey by remember { mutableStateOf(providerRepo.getApiKey(selectedId)) }
+    var baseUrl by remember { mutableStateOf(providerRepo.getBaseUrl(selectedId)) }
+    var model by remember { mutableStateOf(providerRepo.getModel(selectedId)) }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp),
+        ) {
+            Text(
+                text = "供应商配置",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 供应商选择
+            Text(text = "选择供应商", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                presets.forEach { preset ->
+                    val isSelected = preset.id == selectedId
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                selectedId = preset.id
+                                apiKey = providerRepo.getApiKey(preset.id)
+                                baseUrl = providerRepo.getBaseUrl(preset.id)
+                                model = providerRepo.getModel(preset.id)
+                            }
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surfaceVariant,
+                                RoundedCornerShape(8.dp),
+                            )
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                    ) {
+                        Text(
+                            text = preset.name,
+                            fontSize = 13.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // API Key
+            OutlinedTextField(
+                value = apiKey,
+                onValueChange = { apiKey = it },
+                label = { Text("API Key") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Base URL
+            OutlinedTextField(
+                value = baseUrl,
+                onValueChange = { baseUrl = it },
+                label = { Text("Base URL") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Model
+            OutlinedTextField(
+                value = model,
+                onValueChange = { model = it },
+                label = { Text("模型名称") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 保存按钮
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable {
+                        providerRepo.saveProviderConfig(selectedId, apiKey, baseUrl, model)
+                        onDismiss()
+                    }
+                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center,
             ) {
-                BasicText(
-                    text = "扩展功能",
-                    style = TextStyle(
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                Text(
+                    text = "保存配置",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                BasicText(
-                    text = "（在此处添加需要的自定义操作内容）",
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
 }
+
+// ==================== 输入框 ====================
 
 @Composable
 private fun ChatComposer(
@@ -261,6 +484,8 @@ private fun ChatComposer(
         }
     }
 }
+
+// ==================== 空状态动画 ====================
 
 @Composable
 private fun EmptyStateView() {
