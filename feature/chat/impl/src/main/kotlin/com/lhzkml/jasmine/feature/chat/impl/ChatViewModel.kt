@@ -58,7 +58,9 @@ class ChatViewModel @Inject constructor(
 
     /** 由 ChatScreen 在进入 Composition 时调用 */
     fun refreshProviderState() {
-        clientManager.refreshState()
+        viewModelScope.launch {
+            clientManager.refreshState()
+        }
     }
 
     fun onPromptChange(value: String) {
@@ -153,14 +155,21 @@ class ChatViewModel @Inject constructor(
      * 将 UI 消息转换为 core:data 层的 SimpleChatMessage（不含最后的空 assistant 占位）
      */
     private fun buildApiMessages(): List<SimpleChatMessage> {
-        return _messages.value
-            .filter { it.content.isNotEmpty() }
-            .map { msg -> SimpleChatMessage(role = msg.role, content = msg.content) }
+        // 过滤掉最后一条正在生成的空 assistant 消息，但保留历史中的所有消息
+        val current = _messages.value
+        if (current.isEmpty()) return emptyList()
+        
+        val history = if (current.last().role == "assistant" && current.last().content.isEmpty()) {
+            current.dropLast(1)
+        } else {
+            current
+        }
+        
+        return history.map { msg -> SimpleChatMessage(role = msg.role, content = msg.content) }
     }
 
     override fun onCleared() {
         super.onCleared()
         streamJob?.cancel()
-        clientManager.close()
     }
 }

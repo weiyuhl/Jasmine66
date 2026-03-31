@@ -12,7 +12,7 @@ import com.lhzkml.jasmine.core.prompt.model.ModelInfo
 object ModelRegistry {
 
     /** API 动态获取的模型数据 */
-    private val models = mutableMapOf<String, LLModel>()
+    private val models = java.util.concurrent.ConcurrentHashMap<String, LLModel>()
 
     /**
      * 根据模型 ID 查找模型元数据

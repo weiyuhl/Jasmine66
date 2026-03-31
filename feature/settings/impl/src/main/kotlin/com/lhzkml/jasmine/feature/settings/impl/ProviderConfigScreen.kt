@@ -295,21 +295,13 @@ private fun ProviderDetailScreen(
                     text = if (isLoadingModels) "加载中..." else "获取列表",
                     enabled = !isLoadingModels && apiKey.isNotBlank(),
                     onClick = {
-                        // 先临时保存配置以便 clientManager 能创建客户端
-                        providerRepo.saveProviderConfig(preset.id, apiKey, baseUrl, model)
-                        val wasActive = providerRepo.getActiveProviderId()
-                        providerRepo.setActiveProviderId(preset.id)
-                        clientManager.refreshState()
-
                         isLoadingModels = true
                         coroutineScope.launch {
-                            modelList = clientManager.listModels()
+                            val list = clientManager.listModelsFor(preset.id, apiKey, baseUrl)
                             isLoadingModels = false
-                            showModelDropdown = modelList.isNotEmpty()
-                            // 恢复原来的 active provider
-                            if (wasActive != null && wasActive != preset.id) {
-                                providerRepo.setActiveProviderId(wasActive)
-                                clientManager.refreshState()
+                            if (list.isNotEmpty()) {
+                                modelList = list
+                                showModelDropdown = true
                             }
                         }
                     },
@@ -407,20 +399,10 @@ private fun ProviderDetailScreen(
                     text = if (isLoadingBalance) "查询中..." else "查询余额",
                     enabled = !isLoadingBalance && apiKey.isNotBlank(),
                     onClick = {
-                        providerRepo.saveProviderConfig(preset.id, apiKey, baseUrl, model)
-                        val wasActive = providerRepo.getActiveProviderId()
-                        providerRepo.setActiveProviderId(preset.id)
-                        clientManager.refreshState()
-
                         isLoadingBalance = true
                         coroutineScope.launch {
-                            balanceText = clientManager.getBalance() ?: "该供应商不支持余额查询"
+                            balanceText = clientManager.getBalanceFor(preset.id, apiKey, baseUrl) ?: "该供应商不支持余额查询"
                             isLoadingBalance = false
-                            // 恢复原来的 active provider
-                            if (wasActive != null && wasActive != preset.id) {
-                                providerRepo.setActiveProviderId(wasActive)
-                                clientManager.refreshState()
-                            }
                         }
                     },
                 )

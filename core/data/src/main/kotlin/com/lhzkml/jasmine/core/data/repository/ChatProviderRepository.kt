@@ -147,7 +147,17 @@ class ChatProviderRepository @Inject constructor(
     val configChangesFlow: kotlinx.coroutines.flow.Flow<Long> = _configChangesFlow
 
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key == KEY_PROVIDER_ID || (key?.startsWith(KEY_API_KEY_PREFIX) == true)) {
+        if (key == null) return@OnSharedPreferenceChangeListener
+        // 任何影响 Client 配置或活跃供应商的变更都触发刷新流
+        if (key == KEY_PROVIDER_ID ||
+            key.startsWith(KEY_API_KEY_PREFIX) ||
+            key.startsWith(KEY_BASE_URL_PREFIX) ||
+            key.startsWith(KEY_MODEL_PREFIX) ||
+            key.startsWith(KEY_SYSTEM_PROMPT_PREFIX) ||
+            key.startsWith(KEY_TEMPERATURE_PREFIX) ||
+            key.startsWith(KEY_TOP_P_PREFIX) ||
+            key.startsWith(KEY_MAX_TOKENS_PREFIX)
+        ) {
             _configChangesFlow.value = System.currentTimeMillis()
         }
     }
