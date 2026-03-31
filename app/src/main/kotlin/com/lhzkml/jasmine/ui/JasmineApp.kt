@@ -3,12 +3,14 @@ package com.lhzkml.jasmine.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -104,6 +106,7 @@ fun JasmineApp(
     ExperimentalMaterial3Api::class,
     ExperimentalComposeUiApi::class,
     ExperimentalMaterial3AdaptiveApi::class,
+    ExperimentalLayoutApi::class,
 )
 internal fun JasmineAppContent(
     appState: JasmineAppState,
@@ -160,7 +163,8 @@ internal fun JasmineAppContent(
         },
     ) {
         val currentKey = appState.navigationState.currentKey
-        val showBottomBar = currentKey in appState.navigationState.topLevelKeys
+        val isImeVisible = WindowInsets.isImeVisible
+        val showBottomBar = currentKey in appState.navigationState.topLevelKeys && !isImeVisible
 
         JasmineNavigationSuiteScaffold(
             showNavigationSuite = showBottomBar,
