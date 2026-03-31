@@ -2,40 +2,45 @@ package com.lhzkml.jasmine.feature.settings.impl
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
-import com.lhzkml.jasmine.core.designsystem.component.JasmineTextButton
 import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.supportsDynamicTheming
@@ -51,12 +56,50 @@ import com.lhzkml.jasmine.core.navigation.SettingsNavKey
 import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
 import com.lhzkml.jasmine.feature.settings.impl.R.string
 
+/**
+ * 设置页面的子页面枚举
+ */
+private enum class SettingsSubPage {
+    NONE,
+    BASIC_SETTINGS,
+}
+
 @Composable
 internal fun SettingsScreen(
     onBackClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
+    var currentSubPage by remember { mutableStateOf(SettingsSubPage.NONE) }
+
+    when (currentSubPage) {
+        SettingsSubPage.NONE -> {
+            // 设置入口列表
+            SettingsMenuScreen(
+                onBackClick = onBackClick,
+                onBasicSettingsClick = { currentSubPage = SettingsSubPage.BASIC_SETTINGS },
+            )
+        }
+        SettingsSubPage.BASIC_SETTINGS -> {
+            // 基本设置子页面
+            BasicSettingsScreen(
+                settingsUiState = settingsUiState,
+                viewModel = viewModel,
+                onBackClick = { currentSubPage = SettingsSubPage.NONE },
+            )
+        }
+    }
+}
+
+// ==================== 设置入口列表 ====================
+
+@Composable
+private fun SettingsMenuScreen(
+    onBackClick: () -> Unit,
+    onBasicSettingsClick: () -> Unit,
+) {
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -65,14 +108,94 @@ internal fun SettingsScreen(
                 navigationIconContentDescription = stringResource(id = string.feature_settings_impl_dismiss_dialog_button_text),
                 onNavigationClick = onBackClick,
             )
+        },
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
+            TrackScreenViewEvent(screenName = "Settings")
+
+            // 基本设置
+            SettingsMenuItem(
+                title = "基本设置",
+                subtitle = "主题、动态色彩、深色模式",
+                onClick = onBasicSettingsClick,
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+            // 开源许可
+            SettingsMenuItem(
+                title = stringResource(string.feature_settings_impl_licenses),
+                subtitle = "查看第三方开源许可证",
+                onClick = {
+                    context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
+                },
+            )
         }
+    }
+}
+
+@Composable
+private fun SettingsMenuItem(
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Text(
+            text = "›",
+            fontSize = 22.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+// ==================== 基本设置子页面 ====================
+
+@Composable
+private fun BasicSettingsScreen(
+    settingsUiState: SettingsUiState,
+    viewModel: SettingsViewModel,
+    onBackClick: () -> Unit,
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                titleRes = string.feature_settings_impl_basic_settings,
+                navigationIcon = JasmineIcons.ArrowBack,
+                navigationIconContentDescription = stringResource(id = string.feature_settings_impl_dismiss_dialog_button_text),
+                onNavigationClick = onBackClick,
+            )
+        },
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
         ) {
             when (val state = settingsUiState) {
                 SettingsUiState.Loading -> {
@@ -92,14 +215,12 @@ internal fun SettingsScreen(
                     )
                 }
             }
-            HorizontalDivider(Modifier.padding(top = 8.dp))
-            LinksPanel()
-            TrackScreenViewEvent(screenName = "Settings")
         }
     }
 }
 
-// [ColumnScope] is used for using the [ColumnScope.AnimatedVisibility] extension overload composable.
+// ==================== 设置面板（保留原有逻辑） ====================
+
 @Composable
 internal fun ColumnScope.SettingsPanel(
     settings: UserEditableSettings,
@@ -190,27 +311,6 @@ fun SettingsDialogThemeChooserRow(
         )
         Spacer(Modifier.width(8.dp))
         Text(text)
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-internal fun LinksPanel() {
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(
-            space = 16.dp,
-            alignment = Alignment.CenterHorizontally,
-        ),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        val context = LocalContext.current
-        JasmineTextButton(
-            onClick = {
-                context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
-            },
-        ) {
-            Text(text = stringResource(string.feature_settings_impl_licenses))
-        }
     }
 }
 

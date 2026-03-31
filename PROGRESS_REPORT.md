@@ -56,9 +56,24 @@ maven {
 
 ---
 
+### 8. 接入真实 LLM 流式对话
+- [x] 创建 `ChatProviderRepository.kt` — SharedPreferences 轻量供应商配置存储
+- [x] 内置 5 个供应商预设（DeepSeek、OpenAI、Claude、Gemini、硅基流动）
+- [x] 重写 `ChatViewModel.kt` — 接入 `ChatClientFactory.create()` + `chatStreamWithUsage()` 流式对话
+- [x] 消息列表状态管理（`UiChatMessage` 数据类 + 流式追加）
+- [x] 错误处理与生命周期管理（`ChatClient.close()`）
+
+### 9. 供应商配置 UI & 消息列表
+- [x] 重写 `ChatScreen.kt` — 消息气泡列表（`LazyColumn` + 自动滚动）
+- [x] 复用 "+" 按钮的 Bottom Sheet 改为供应商配置表单
+- [x] 配置表单包含：供应商选择、API Key、Base URL、模型名称、保存按钮
+- [x] 未配置时显示提示条，已配置后可直接发送消息
+- [x] Kotlin 编译全部通过 ✅
+
+---
+
 ## 待开发
 
-- [ ] 在 `ChatViewModel` 中接入 `ChatClientFactory` 实现真实的 LLM 对话
-- [ ] 实现供应商配置 UI（选择供应商、输入 API Key、设置模型等）
 - [ ] 接入 `config-manager` 模块（需先解耦 agent 依赖）
 - [ ] 接入 `conversation-storage` 模块实现聊天历史持久化
+- [ ] 工具调用（Tool Calls）/ Agent 模式
