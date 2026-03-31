@@ -6,7 +6,13 @@ import com.lhzkml.jasmine.core.prompt.executor.ApiType
 import com.lhzkml.jasmine.core.prompt.executor.ChatClientConfig
 import com.lhzkml.jasmine.core.prompt.executor.ChatClientFactory
 import com.lhzkml.jasmine.core.prompt.llm.ChatClient
+import com.lhzkml.jasmine.core.prompt.llm.ContextManager
+import com.lhzkml.jasmine.core.prompt.llm.StreamResumeHelper
+import com.lhzkml.jasmine.core.prompt.llm.SystemPromptManager
+import com.lhzkml.jasmine.core.prompt.llm.chatStreamWithUsageAndThinking
 import com.lhzkml.jasmine.core.prompt.model.ChatMessage
+import com.lhzkml.jasmine.core.prompt.model.ModelInfo
+import com.lhzkml.jasmine.core.prompt.model.SamplingParams
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,6 +23,11 @@ import javax.inject.Singleton
  * ChatClient 的生命周期管理器。
  * 位于 core:data 层，封装对 jasmine-core 的所有直接依赖。
  * feature 层通过注入此类来使用聊天功能，无需直接依赖 jasmine-core。
+ *
+ * 集成功能：
+ * - P0: System Prompt 自动注入 + Context Manager 上下文窗口裁剪
+ * - P1: SamplingParams 采样参数 + ThinkingChatClient 思考过程 + StreamResumeHelper 断流续传
+ * - P2: listModels 动态模型列表 + getBalance 余额查询
  */
 @Singleton
 class ChatClientManager @Inject constructor(
@@ -35,15 +46,48 @@ class ChatClientManager @Inject constructor(
 
     private var chatClient: ChatClient? = null
 
+    /** System Prompt 管理器 */
+    private val systemPromptManager = SystemPromptManager()
+
+    /** 断流续传助手 */
+    private val streamResumeHelper = StreamResumeHelper(maxResumes = 3)
+
+    /** 上下文窗口管理器（在 refreshState 时根据模型更新） */
+    private var contextManager: ContextManager = ContextManager()
+
+    // ==================== 基本状态管理 ====================
+
     /** 获取当前活跃模型名称 */
     fun getActiveModel(): String {
         val id = providerRepo.getActiveProviderId() ?: return ""
         return providerRepo.getModel(id)
     }
 
+    /** 获取 System Prompt 预设列表 */
+    fun getSystemPromptPresets(): List<Pair<String, String>> {
+        return SystemPromptManager.presets.map { it.name to it.prompt }
+    }
+
+    /** 获取当前供应商的自定义 System Prompt */
+    fun getCustomSystemPrompt(): String {
+        val id = providerRepo.getActiveProviderId() ?: return ""
+        return providerRepo.getSystemPrompt(id)
+    }
+
+    /** 设置当前供应商的自定义 System Prompt */
+    fun setCustomSystemPrompt(prompt: String) {
+        val id = providerRepo.getActiveProviderId() ?: return
+        providerRepo.setSystemPrompt(id, prompt)
+    }
+
+    /** 估算消息列表的 token 数 */
+    fun estimateTokens(messages: List<SimpleChatMessage>): Int {
+        val apiMessages = messages.map { toApiMessage(it) }
+        return contextManager.estimateTokens(apiMessages)
+    }
+
     /**
      * 刷新供应商状态并重建 ChatClient。
-     * 由 ChatScreen 在进入 Composition 时调用，也由 configChangesFlow 触发。
      */
     fun refreshState() {
         val id = providerRepo.getActiveProviderId()
@@ -89,54 +133,152 @@ class ChatClientManager @Inject constructor(
                 null
             }
         }
+
+        // 更新 ContextManager（根据模型上下文长度）
+        contextManager = ContextManager()
     }
 
+    // ==================== 核心聊天方法 ====================
+
     /**
-     * 流式聊天。
+     * 流式聊天（集成全部功能）。
+     *
+     * 内部自动处理：
+     * 1. System Prompt 注入
+     * 2. Context Manager 裁剪
+     * 3. SamplingParams 传入
+     * 4. ThinkingChatClient 检测 + onThinking 回调
+     * 5. StreamResumeHelper 断流续传
+     *
      * @param messages  消息历史（使用 core:data 层的 SimpleChatMessage）
      * @param model     模型名称
      * @param onChunk   每收到一个 token 回调
+     * @param onThinking 思考过程回调（DeepSeek/Claude 推理模型）
+     * @param onResumeAttempt 断流续传尝试回调
      * @return 聊天结果摘要
-     * @throws IllegalStateException 如果供应商未配置
-     * @throws Exception 网络或 API 异常
      */
     suspend fun streamChat(
         messages: List<SimpleChatMessage>,
         model: String,
         onChunk: suspend (String) -> Unit,
+        onThinking: suspend (String) -> Unit = {},
+        onResumeAttempt: suspend (Int) -> Unit = {},
     ): StreamChatResult {
         val client = chatClient
             ?: throw IllegalStateException("发送失败: ${_setupState.value}")
 
-        // SimpleChatMessage → jasmine-core ChatMessage
-        val apiMessages = messages.map { msg ->
-            when (msg.role) {
-                "user" -> ChatMessage.user(msg.content)
-                "assistant" -> ChatMessage.assistant(msg.content)
-                "system" -> ChatMessage.system(msg.content)
-                else -> ChatMessage.user(msg.content)
-            }
-        }
+        // 1. 转换消息并注入 System Prompt
+        val apiMessages = buildApiMessagesWithSystemPrompt(messages)
 
-        val result = client.chatStreamWithUsage(
-            messages = apiMessages,
+        // 2. 上下文窗口裁剪
+        val trimmedMessages = contextManager.trimMessages(apiMessages)
+
+        // 3. 读取采样参数
+        val samplingParams = buildSamplingParams()
+
+        // 4. 使用 StreamResumeHelper 进行带断流续传的流式请求
+        val result = streamResumeHelper.streamWithResume(
+            client = client,
+            messages = trimmedMessages,
             model = model,
+            maxTokens = samplingParams.maxTokens,
+            samplingParams = samplingParams.coreSamplingParams,
             onChunk = onChunk,
+            onThinking = onThinking,
+            onResumeAttempt = onResumeAttempt,
         )
 
         return StreamChatResult(
             content = result.content,
             finishReason = result.finishReason,
+            thinking = result.thinking,
         )
     }
 
-    /** 关闭当前 client（ViewModel onCleared 时调用） */
+    // ==================== P2: 模型列表 & 余额 ====================
+
+    /**
+     * 获取当前供应商可用的模型列表
+     */
+    suspend fun listModels(): List<String> {
+        val client = chatClient ?: return emptyList()
+        return try {
+            val models: List<ModelInfo> = client.listModels()
+            models.map { it.id }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    /**
+     * 查询当前供应商的 API 余额
+     * @return 余额描述字符串，不支持时返回 null
+     */
+    suspend fun getBalance(): String? {
+        val client = chatClient ?: return null
+        return try {
+            val balance = client.getBalance() ?: return null
+            balance.toString()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /** 关闭当前 client */
     fun close() {
         chatClient?.close()
         chatClient = null
     }
 
     // ==================== 私有方法 ====================
+
+    /**
+     * 构建包含 System Prompt 的 API 消息列表
+     */
+    private fun buildApiMessagesWithSystemPrompt(messages: List<SimpleChatMessage>): List<ChatMessage> {
+        val result = mutableListOf<ChatMessage>()
+
+        // 注入 System Prompt
+        val id = providerRepo.getActiveProviderId() ?: ""
+        val customPrompt = providerRepo.getSystemPrompt(id)
+        val systemMsg = systemPromptManager.createSystemMessage(
+            if (customPrompt.isNotBlank()) customPrompt else null
+        )
+        result.add(systemMsg)
+
+        // 转换用户消息
+        for (msg in messages) {
+            result.add(toApiMessage(msg))
+        }
+
+        return result
+    }
+
+    private fun toApiMessage(msg: SimpleChatMessage): ChatMessage {
+        return when (msg.role) {
+            "user" -> ChatMessage.user(msg.content)
+            "assistant" -> ChatMessage.assistant(msg.content)
+            "system" -> ChatMessage.system(msg.content)
+            else -> ChatMessage.user(msg.content)
+        }
+    }
+
+    /**
+     * 读取当前供应商的采样参数
+     */
+    private fun buildSamplingParams(): ResolvedSamplingParams {
+        val id = providerRepo.getActiveProviderId() ?: return ResolvedSamplingParams()
+        val temperature = providerRepo.getTemperature(id)
+        val topP = providerRepo.getTopP(id)
+        val maxTokens = providerRepo.getMaxTokens(id)
+
+        val core = if (temperature != null || topP != null) {
+            SamplingParams(temperature = temperature, topP = topP)
+        } else {
+            null
+        }
+        return ResolvedSamplingParams(coreSamplingParams = core, maxTokens = maxTokens)
+    }
 
     private fun buildActiveConfig(
         id: String,
@@ -157,4 +299,12 @@ class ChatClientManager @Inject constructor(
             apiType = apiType,
         )
     }
+
+    /**
+     * 内部解析后的采样参数（含 maxTokens 单独拆出）
+     */
+    private data class ResolvedSamplingParams(
+        val coreSamplingParams: SamplingParams? = null,
+        val maxTokens: Int? = null,
+    )
 }

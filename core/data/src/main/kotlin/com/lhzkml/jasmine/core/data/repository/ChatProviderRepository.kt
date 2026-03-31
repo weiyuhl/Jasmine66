@@ -34,6 +34,10 @@ class ChatProviderRepository @Inject constructor(
         private const val KEY_API_KEY_PREFIX = "api_key_"
         private const val KEY_BASE_URL_PREFIX = "base_url_"
         private const val KEY_MODEL_PREFIX = "model_"
+        private const val KEY_SYSTEM_PROMPT_PREFIX = "system_prompt_"
+        private const val KEY_TEMPERATURE_PREFIX = "temperature_"
+        private const val KEY_TOP_P_PREFIX = "top_p_"
+        private const val KEY_MAX_TOKENS_PREFIX = "max_tokens_"
 
         /** 内置供应商列表 */
         val PRESETS = listOf(
@@ -85,6 +89,56 @@ class ChatProviderRepository @Inject constructor(
             .putString(KEY_BASE_URL_PREFIX + providerId, baseUrl)
             .putString(KEY_MODEL_PREFIX + providerId, model)
             .apply()
+    }
+
+    // ==================== System Prompt ====================
+
+    fun getSystemPrompt(providerId: String): String =
+        prefs.getString(KEY_SYSTEM_PROMPT_PREFIX + providerId, "") ?: ""
+
+    fun setSystemPrompt(providerId: String, prompt: String) {
+        prefs.edit().putString(KEY_SYSTEM_PROMPT_PREFIX + providerId, prompt).apply()
+    }
+
+    // ==================== Sampling Params ====================
+
+    fun getTemperature(providerId: String): Double? {
+        val v = prefs.getString(KEY_TEMPERATURE_PREFIX + providerId, null) ?: return null
+        return v.toDoubleOrNull()
+    }
+
+    fun setTemperature(providerId: String, value: Double?) {
+        if (value == null) {
+            prefs.edit().remove(KEY_TEMPERATURE_PREFIX + providerId).apply()
+        } else {
+            prefs.edit().putString(KEY_TEMPERATURE_PREFIX + providerId, value.toString()).apply()
+        }
+    }
+
+    fun getTopP(providerId: String): Double? {
+        val v = prefs.getString(KEY_TOP_P_PREFIX + providerId, null) ?: return null
+        return v.toDoubleOrNull()
+    }
+
+    fun setTopP(providerId: String, value: Double?) {
+        if (value == null) {
+            prefs.edit().remove(KEY_TOP_P_PREFIX + providerId).apply()
+        } else {
+            prefs.edit().putString(KEY_TOP_P_PREFIX + providerId, value.toString()).apply()
+        }
+    }
+
+    fun getMaxTokens(providerId: String): Int? {
+        val v = prefs.getString(KEY_MAX_TOKENS_PREFIX + providerId, null) ?: return null
+        return v.toIntOrNull()
+    }
+
+    fun setMaxTokens(providerId: String, value: Int?) {
+        if (value == null) {
+            prefs.edit().remove(KEY_MAX_TOKENS_PREFIX + providerId).apply()
+        } else {
+            prefs.edit().putString(KEY_MAX_TOKENS_PREFIX + providerId, value.toString()).apply()
+        }
     }
 
     private val _configChangesFlow = kotlinx.coroutines.flow.MutableStateFlow(System.currentTimeMillis())

@@ -19,6 +19,8 @@ data class UiChatMessage(
     val role: String,
     val content: String,
     val isStreaming: Boolean = false,
+    /** 思考/推理过程（DeepSeek reasoning / Claude thinking） */
+    val thinking: String? = null,
 )
 
 @HiltViewModel
@@ -93,27 +95,33 @@ class ChatViewModel @Inject constructor(
 
         streamJob = viewModelScope.launch {
             try {
-                clientManager.streamChat(
+                val result = clientManager.streamChat(
                     messages = history,
                     model = model,
                     onChunk = { chunk ->
                         // 实时追加到最后一条 assistant 消息
-                        val current = _messages.value.toMutableList()
-                        val lastIndex = current.lastIndex
-                        if (lastIndex >= 0 && current[lastIndex].role == "assistant") {
-                            current[lastIndex] = current[lastIndex].copy(
-                                content = current[lastIndex].content + chunk,
-                            )
-                            _messages.value = current
+                        updateLastAssistant { it.copy(content = it.content + chunk) }
+                    },
+                    onThinking = { thinkChunk ->
+                        // 实时追加思考过程到最后一条 assistant 消息
+                        updateLastAssistant {
+                            it.copy(thinking = (it.thinking ?: "") + thinkChunk)
                         }
                     },
+                    onResumeAttempt = { attempt ->
+                        _errorMessage.value = "网络中断，正在续传 (第 $attempt 次)..."
+                    },
                 )
-                // 流结束，标记为非 streaming
-                val current = _messages.value.toMutableList()
-                val lastIndex = current.lastIndex
-                if (lastIndex >= 0 && current[lastIndex].role == "assistant") {
-                    current[lastIndex] = current[lastIndex].copy(isStreaming = false)
-                    _messages.value = current
+                // 流结束，标记为非 streaming，写入最终思考内容
+                updateLastAssistant {
+                    it.copy(
+                        isStreaming = false,
+                        thinking = result.thinking ?: it.thinking,
+                    )
+                }
+                // 清除续传提示
+                if (_errorMessage.value?.contains("续传") == true) {
+                    _errorMessage.value = null
                 }
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "请求失败"
@@ -126,6 +134,18 @@ class ChatViewModel @Inject constructor(
             } finally {
                 _isChatRunning.value = false
             }
+        }
+    }
+
+    /**
+     * 更新最后一条 assistant 消息
+     */
+    private fun updateLastAssistant(transform: (UiChatMessage) -> UiChatMessage) {
+        val current = _messages.value.toMutableList()
+        val lastIndex = current.lastIndex
+        if (lastIndex >= 0 && current[lastIndex].role == "assistant") {
+            current[lastIndex] = transform(current[lastIndex])
+            _messages.value = current
         }
     }
 

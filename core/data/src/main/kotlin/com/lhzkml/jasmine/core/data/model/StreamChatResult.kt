@@ -7,4 +7,6 @@ package com.lhzkml.jasmine.core.data.model
 data class StreamChatResult(
     val content: String,
     val finishReason: String? = null,
+    /** 思考/推理过程内容（DeepSeek reasoning_content / Claude extended thinking） */
+    val thinking: String? = null,
 )
