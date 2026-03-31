@@ -200,19 +200,83 @@ private fun ChatBubble(message: UiChatMessage) {
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = alignment,
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .widthIn(max = 300.dp)
                 .background(bubbleColor, shape)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
-            val displayText = if (message.content.isEmpty() && message.isStreaming) "..." else message.content
-            Text(
-                text = displayText,
-                color = textColor,
-                fontSize = 15.sp,
-                lineHeight = 22.sp,
-            )
+            // 思考过程折叠区域（仅 assistant 且有 thinking 内容时显示）
+            if (!isUser && !message.thinking.isNullOrBlank()) {
+                var isThinkingExpanded by remember { mutableStateOf(false) }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { isThinkingExpanded = !isThinkingExpanded }
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = if (isThinkingExpanded) "▼" else "▶",
+                        fontSize = 10.sp,
+                        color = textColor.copy(alpha = 0.6f),
+                    )
+                    Text(
+                        text = "💭 思考过程",
+                        fontSize = 12.sp,
+                        color = textColor.copy(alpha = 0.7f),
+                        fontWeight = FontWeight.Medium,
+                    )
+                    if (message.isStreaming && message.content.isEmpty()) {
+                        Text(
+                            text = "思考中...",
+                            fontSize = 11.sp,
+                            color = textColor.copy(alpha = 0.5f),
+                        )
+                    }
+                }
+
+                androidx.compose.animation.AnimatedVisibility(visible = isThinkingExpanded) {
+                    Text(
+                        text = message.thinking ?: "",
+                        color = textColor.copy(alpha = 0.65f),
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                    )
+                }
+
+                // 分隔线
+                if (message.content.isNotEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(textColor.copy(alpha = 0.15f))
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                }
+            }
+
+            // 主要内容
+            val displayText = if (message.content.isEmpty() && message.isStreaming) {
+                if (!message.thinking.isNullOrBlank()) "" else "..."
+            } else {
+                message.content
+            }
+            if (displayText.isNotEmpty()) {
+                Text(
+                    text = displayText,
+                    color = textColor,
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp,
+                )
+            }
         }
     }
 }

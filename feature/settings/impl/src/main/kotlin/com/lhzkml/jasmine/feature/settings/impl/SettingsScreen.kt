@@ -95,6 +95,7 @@ internal fun SettingsScreen(
             // 大模型供应商配置子页面
             ProviderConfigScreen(
                 providerRepo = viewModel.providerRepo,
+                clientManager = viewModel.clientManager,
                 onBackClick = { currentSubPage = SettingsSubPage.NONE },
             )
         }

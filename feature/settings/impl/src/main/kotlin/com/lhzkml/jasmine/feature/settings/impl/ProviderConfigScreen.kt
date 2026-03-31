@@ -2,6 +2,7 @@ package com.lhzkml.jasmine.feature.settings.impl
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,49 +20,53 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lhzkml.jasmine.core.data.repository.ChatClientManager
 import com.lhzkml.jasmine.core.data.repository.ChatProviderRepository
 import com.lhzkml.jasmine.core.data.repository.ProviderPreset
 import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun ProviderConfigScreen(
     providerRepo: ChatProviderRepository,
+    clientManager: ChatClientManager,
     onBackClick: () -> Unit,
 ) {
     var editingProviderId by remember { mutableStateOf<String?>(null) }
-    // Observe the active provider ID so UI (the switches) updates when one is activated
     var activeProviderId by remember { mutableStateOf(providerRepo.getActiveProviderId()) }
 
-    // Re-read active provider whenever this composable compositions
     LaunchedEffect(Unit) {
         providerRepo.configChangesFlow.collect {
             activeProviderId = providerRepo.getActiveProviderId()
         }
     }
 
-    // Capture system back gesture when editing a specific provider details
     BackHandler(enabled = editingProviderId != null) {
         editingProviderId = null
     }
@@ -75,7 +80,6 @@ internal fun ProviderConfigScreen(
                 onProviderClick = { editingProviderId = it },
                 onToggleActive = { newActiveId ->
                     providerRepo.setActiveProviderId(newActiveId)
-                    // Config flow normally triggers update, but we optimistically update UI state for snappiness
                     activeProviderId = newActiveId
                 }
             )
@@ -85,10 +89,10 @@ internal fun ProviderConfigScreen(
                 ProviderDetailScreen(
                     preset = preset,
                     providerRepo = providerRepo,
+                    clientManager = clientManager,
                     onBackClick = { editingProviderId = null }
                 )
             } else {
-                // Fallback if ID is somehow invalid
                 editingProviderId = null
             }
         }
@@ -179,11 +183,29 @@ private fun ProviderListScreen(
 private fun ProviderDetailScreen(
     preset: ProviderPreset,
     providerRepo: ChatProviderRepository,
+    clientManager: ChatClientManager,
     onBackClick: () -> Unit,
 ) {
     var apiKey by remember { mutableStateOf(providerRepo.getApiKey(preset.id)) }
     var baseUrl by remember { mutableStateOf(providerRepo.getBaseUrl(preset.id)) }
     var model by remember { mutableStateOf(providerRepo.getModel(preset.id)) }
+    var systemPrompt by remember { mutableStateOf(providerRepo.getSystemPrompt(preset.id)) }
+
+    // 采样参数
+    var temperature by remember { mutableFloatStateOf(providerRepo.getTemperature(preset.id)?.toFloat() ?: 1.0f) }
+    var topP by remember { mutableFloatStateOf(providerRepo.getTopP(preset.id)?.toFloat() ?: 1.0f) }
+    var maxTokensText by remember { mutableStateOf(providerRepo.getMaxTokens(preset.id)?.toString() ?: "") }
+
+    // 模型列表
+    var modelList by remember { mutableStateOf<List<String>>(emptyList()) }
+    var isLoadingModels by remember { mutableStateOf(false) }
+    var showModelDropdown by remember { mutableStateOf(false) }
+
+    // 余额
+    var balanceText by remember { mutableStateOf<String?>(null) }
+    var isLoadingBalance by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -209,6 +231,9 @@ private fun ProviderDetailScreen(
             )
             Spacer(modifier = Modifier.height(24.dp))
 
+            // ==================== 基础配置 ====================
+            SectionHeader("基础配置")
+
             // API Key
             OutlinedTextField(
                 value = apiKey,
@@ -217,7 +242,7 @@ private fun ProviderDetailScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Base URL
             OutlinedTextField(
@@ -227,26 +252,203 @@ private fun ProviderDetailScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Model
+            // Model（带获取列表按钮）
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    OutlinedTextField(
+                        value = model,
+                        onValueChange = {
+                            model = it
+                            showModelDropdown = false
+                        },
+                        label = { Text("模型名称") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    // 模型下拉列表
+                    DropdownMenu(
+                        expanded = showModelDropdown && modelList.isNotEmpty(),
+                        onDismissRequest = { showModelDropdown = false },
+                    ) {
+                        modelList.forEach { modelName ->
+                            DropdownMenuItem(
+                                text = { Text(modelName, fontSize = 14.sp) },
+                                onClick = {
+                                    model = modelName
+                                    showModelDropdown = false
+                                },
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // 获取模型列表按钮
+                SmallActionButton(
+                    text = if (isLoadingModels) "加载中..." else "获取列表",
+                    enabled = !isLoadingModels && apiKey.isNotBlank(),
+                    onClick = {
+                        // 先临时保存配置以便 clientManager 能创建客户端
+                        providerRepo.saveProviderConfig(preset.id, apiKey, baseUrl, model)
+                        val wasActive = providerRepo.getActiveProviderId()
+                        providerRepo.setActiveProviderId(preset.id)
+                        clientManager.refreshState()
+
+                        isLoadingModels = true
+                        coroutineScope.launch {
+                            modelList = clientManager.listModels()
+                            isLoadingModels = false
+                            showModelDropdown = modelList.isNotEmpty()
+                            // 恢复原来的 active provider
+                            if (wasActive != null && wasActive != preset.id) {
+                                providerRepo.setActiveProviderId(wasActive)
+                                clientManager.refreshState()
+                            }
+                        }
+                    },
+                )
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ==================== System Prompt ====================
+            SectionHeader("系统提示词")
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "定义 AI 助手的角色和行为，留空则使用默认",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
-                value = model,
-                onValueChange = { model = it },
-                label = { Text("模型名称") },
+                value = systemPrompt,
+                onValueChange = { systemPrompt = it },
+                label = { Text("自定义 System Prompt") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp),
+                maxLines = 5,
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ==================== 采样参数 ====================
+            SectionHeader("采样参数")
+
+            // Temperature
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Temperature", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = String.format("%.1f", temperature),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Slider(
+                value = temperature,
+                onValueChange = { temperature = it },
+                valueRange = 0f..2f,
+                steps = 19,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            // Top P
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Top P", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = String.format("%.2f", topP),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Slider(
+                value = topP,
+                onValueChange = { topP = it },
+                valueRange = 0f..1f,
+                steps = 19,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            // Max Tokens
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(
+                value = maxTokensText,
+                onValueChange = { maxTokensText = it.filter { c -> c.isDigit() } },
+                label = { Text("Max Tokens (留空使用默认值)") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ==================== 余额查询 ====================
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SectionHeader("API 余额")
+                SmallActionButton(
+                    text = if (isLoadingBalance) "查询中..." else "查询余额",
+                    enabled = !isLoadingBalance && apiKey.isNotBlank(),
+                    onClick = {
+                        providerRepo.saveProviderConfig(preset.id, apiKey, baseUrl, model)
+                        val wasActive = providerRepo.getActiveProviderId()
+                        providerRepo.setActiveProviderId(preset.id)
+                        clientManager.refreshState()
+
+                        isLoadingBalance = true
+                        coroutineScope.launch {
+                            balanceText = clientManager.getBalance() ?: "该供应商不支持余额查询"
+                            isLoadingBalance = false
+                            // 恢复原来的 active provider
+                            if (wasActive != null && wasActive != preset.id) {
+                                providerRepo.setActiveProviderId(wasActive)
+                                clientManager.refreshState()
+                            }
+                        }
+                    },
+                )
+            }
+            balanceText?.let { balance ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = balance,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
-            // 保存按钮
+            // ==================== 保存按钮 ====================
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
                     .clickable {
                         providerRepo.saveProviderConfig(preset.id, apiKey, baseUrl, model)
-                        onBackClick() // 保存后退出详情
+                        providerRepo.setSystemPrompt(preset.id, systemPrompt)
+                        providerRepo.setTemperature(preset.id, temperature.toDouble())
+                        providerRepo.setTopP(preset.id, topP.toDouble())
+                        val maxTokens = maxTokensText.toIntOrNull()
+                        providerRepo.setMaxTokens(preset.id, maxTokens)
+                        onBackClick()
                     }
                     .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
                     .padding(vertical = 14.dp),
@@ -259,6 +461,51 @@ private fun ProviderDetailScreen(
                     fontSize = 15.sp,
                 )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+}
+
+// ==================== 辅助组件 ====================
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary,
+    )
+}
+
+@Composable
+private fun SmallActionButton(
+    text: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .then(
+                if (enabled) Modifier.clickable(onClick = onClick)
+                else Modifier
+            )
+            .background(
+                if (enabled) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surfaceVariant,
+                RoundedCornerShape(8.dp),
+            )
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
