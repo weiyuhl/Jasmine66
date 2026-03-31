@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -24,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
+import kotlin.math.max
 
 @Composable
 internal fun ChatScreen(
@@ -42,7 +46,17 @@ internal fun ChatScreen(
 
     TrackScreenViewEvent(screenName = "Chat")
 
-    Column(modifier = modifier.fillMaxSize().imePadding()) {
+    val density = LocalDensity.current
+    val imeBottom = WindowInsets.ime.getBottom(density)
+    val navBarsBottom = WindowInsets.navigationBars.getBottom(density)
+    // Material 3 NavigationBar has a standard height of 80.dp
+    val bottomBarHeightPx = with(density) { 80.dp.roundToPx() } + navBarsBottom
+    // Subtract the bottom bar height from the keyboard inset so ChatComposer rides perfectly on top
+    // without floating 80dp in the air.
+    val extraPaddingPx = max(0, imeBottom - bottomBarHeightPx)
+    val extraPaddingDp = with(density) { extraPaddingPx.toDp() }
+
+    Column(modifier = modifier.fillMaxSize().padding(bottom = extraPaddingDp)) {
         // Chat message area
         Box(
             modifier = Modifier.weight(1f),

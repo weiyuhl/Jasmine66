@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -163,8 +162,7 @@ internal fun JasmineAppContent(
         },
     ) {
         val currentKey = appState.navigationState.currentKey
-        val isImeVisible = WindowInsets.isImeVisible
-        val showBottomBar = currentKey in appState.navigationState.topLevelKeys && !isImeVisible
+        val showBottomBar = currentKey in appState.navigationState.topLevelKeys
 
         JasmineNavigationSuiteScaffold(
             showNavigationSuite = showBottomBar,
