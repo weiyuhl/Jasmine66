@@ -8,7 +8,9 @@ import androidx.compose.ui.graphics.Color
  */
 internal val Mono10 = Color(0xFF111111)
 internal val Mono20 = Color(0xFF222222)
+internal val Mono30 = Color(0xFF333333)
 internal val Mono40 = Color(0xFF444444)
+internal val Mono50 = Color(0xFF555555)
 internal val Mono60 = Color(0xFF666666)
 internal val Mono80 = Color(0xFFCCCCCC)
 internal val Mono90 = Color(0xFFE5E5E5)
