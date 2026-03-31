@@ -10,6 +10,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.google.oss.licenses)
     implementation(projects.core.data)
     implementation(projects.core.navigation)

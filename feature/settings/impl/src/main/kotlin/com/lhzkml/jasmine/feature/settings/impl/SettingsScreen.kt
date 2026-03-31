@@ -1,6 +1,7 @@
 package com.lhzkml.jasmine.feature.settings.impl
 
 import android.content.Intent
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -72,6 +73,10 @@ internal fun SettingsScreen(
 ) {
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
     var currentSubPage by remember { mutableStateOf(SettingsSubPage.NONE) }
+
+    BackHandler(enabled = currentSubPage != SettingsSubPage.NONE) {
+        currentSubPage = SettingsSubPage.NONE
+    }
 
     when (currentSubPage) {
         SettingsSubPage.NONE -> {

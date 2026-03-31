@@ -1,5 +1,6 @@
 package com.lhzkml.jasmine.feature.settings.impl
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -58,6 +59,11 @@ internal fun ProviderConfigScreen(
         providerRepo.configChangesFlow.collect {
             activeProviderId = providerRepo.getActiveProviderId()
         }
+    }
+
+    // Capture system back gesture when editing a specific provider details
+    BackHandler(enabled = editingProviderId != null) {
+        editingProviderId = null
     }
 
     AnimatedContent(targetState = editingProviderId, label = "ProviderConfigs") { targetId ->
