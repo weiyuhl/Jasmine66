@@ -2,9 +2,7 @@ package com.lhzkml.jasmine.core.model.data
 
 /**
  * Class summarizing user interest data
- */
-data class UserData(
-    val themeBrand: ThemeBrand,
+ */data class UserData(
     val darkThemeConfig: DarkThemeConfig,
     val shouldHideOnboarding: Boolean,
 )

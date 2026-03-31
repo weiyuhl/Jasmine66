@@ -16,11 +16,6 @@ internal class OfflineFirstUserDataRepository @Inject constructor(
     override val userData: Flow<UserData> =
         JasminePreferencesDataSource.userData
 
-    override suspend fun setThemeBrand(themeBrand: ThemeBrand) {
-        JasminePreferencesDataSource.setThemeBrand(themeBrand)
-        JasmineAnalyticsHelper.logThemeChanged(themeBrand.name)
-    }
-
     override suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
         JasminePreferencesDataSource.setDarkThemeConfig(darkThemeConfig)
         JasmineAnalyticsHelper.logDarkThemeConfigChanged(darkThemeConfig.name)

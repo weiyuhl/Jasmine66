@@ -32,11 +32,6 @@ sealed interface MainActivityUiState {
     data object Loading : MainActivityUiState
 
     data class Success(val userData: UserData) : MainActivityUiState {
-        override val shouldUseAndroidTheme: Boolean = when (userData.themeBrand) {
-            ThemeBrand.DEFAULT -> false
-            ThemeBrand.ANDROID -> true
-        }
-
         override fun shouldUseDarkTheme(isSystemDarkTheme: Boolean) =
             when (userData.darkThemeConfig) {
                 DarkThemeConfig.FOLLOW_SYSTEM -> isSystemDarkTheme
@@ -49,11 +44,6 @@ sealed interface MainActivityUiState {
      * Returns `true` if the state wasn't loaded yet and it should keep showing the splash screen.
      */
     fun shouldKeepSplashScreen() = this is Loading
-
-    /**
-     * Returns `true` if the Android theme should be used.
-     */
-    val shouldUseAndroidTheme: Boolean get() = false
 
     /**
      * Returns `true` if dark theme should be used.

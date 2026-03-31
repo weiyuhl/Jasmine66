@@ -2,7 +2,6 @@
 package com.lhzkml.jasmine.feature.settings.impl
 
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.DARK
-import com.lhzkml.jasmine.core.model.data.ThemeBrand.ANDROID
 import com.lhzkml.jasmine.core.testing.repository.TestUserDataRepository
 import com.lhzkml.jasmine.core.testing.util.MainDispatcherRule
 import com.lhzkml.jasmine.feature.settings.impl.SettingsUiState.Loading
@@ -39,14 +38,12 @@ class SettingsViewModelTest {
     fun stateIsSuccessAfterUserDataLoaded() = runTest {
         backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.settingsUiState.collect() }
 
-        userDataRepository.setThemeBrand(ANDROID)
-        userDataRepository.setDarkThemeConfig(DARK)
+                userDataRepository.setDarkThemeConfig(DARK)
 
         assertEquals(
             Success(
                 UserEditableSettings(
-                    brand = ANDROID,
-                    darkThemeConfig = DARK,
+                                        darkThemeConfig = DARK,
                     
                 ),
             ),
@@ -54,5 +51,6 @@ class SettingsViewModelTest {
         )
     }
 }
+
 
 

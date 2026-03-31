@@ -151,7 +151,7 @@ fun BackgroundDynamic() {
 @ThemePreviews
 @Composable
 fun BackgroundAndroid() {
-    JasmineTheme(androidTheme = true) {
+    JasmineTheme {
         Background(Modifier.size(100.dp), content = {})
     }
 }
@@ -175,7 +175,7 @@ fun GradientBackgroundDynamic() {
 @ThemePreviews
 @Composable
 fun GradientBackgroundAndroid() {
-    JasmineTheme(androidTheme = true) {
+    JasmineTheme {
         GradientBackground(Modifier.size(100.dp), content = {})
     }
 }

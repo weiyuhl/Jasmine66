@@ -13,14 +13,6 @@ class JasminePreferencesDataSource @Inject constructor(
     val userData = userPreferences.data
         .map {
             UserData(
-                themeBrand = when (it.themeBrand) {
-                    null,
-                    ThemeBrandProto.THEME_BRAND_UNSPECIFIED,
-                    ThemeBrandProto.UNRECOGNIZED,
-                    ThemeBrandProto.THEME_BRAND_DEFAULT,
-                    -> ThemeBrand.DEFAULT
-                    ThemeBrandProto.THEME_BRAND_ANDROID -> ThemeBrand.ANDROID
-                },
                 darkThemeConfig = when (it.darkThemeConfig) {
                     null,
                     DarkThemeConfigProto.DARK_THEME_CONFIG_UNSPECIFIED,
@@ -35,17 +27,6 @@ class JasminePreferencesDataSource @Inject constructor(
                 shouldHideOnboarding = it.shouldHideOnboarding,
             )
         }
-
-    suspend fun setThemeBrand(themeBrand: ThemeBrand) {
-        userPreferences.updateData {
-            it.copy {
-                this.themeBrand = when (themeBrand) {
-                    ThemeBrand.DEFAULT -> ThemeBrandProto.THEME_BRAND_DEFAULT
-                    ThemeBrand.ANDROID -> ThemeBrandProto.THEME_BRAND_ANDROID
-                }
-            }
-        }
-    }
 
     suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
         userPreferences.updateData {

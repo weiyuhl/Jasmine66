@@ -44,15 +44,12 @@ import androidx.navigation3.runtime.NavKey
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
+import com.lhzkml.jasmine.core.navigation.Navigator
+import com.lhzkml.jasmine.core.navigation.SettingsNavKey
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.DARK
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.FOLLOW_SYSTEM
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.LIGHT
-import com.lhzkml.jasmine.core.model.data.ThemeBrand
-import com.lhzkml.jasmine.core.model.data.ThemeBrand.ANDROID
-import com.lhzkml.jasmine.core.model.data.ThemeBrand.DEFAULT
-import com.lhzkml.jasmine.core.navigation.Navigator
-import com.lhzkml.jasmine.core.navigation.SettingsNavKey
 import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
 import com.lhzkml.jasmine.feature.settings.impl.R.string
 
@@ -231,7 +228,6 @@ private fun BasicSettingsScreen(
                 is SettingsUiState.Success -> {
                     BasicSettingsPanel(
                         settings = state.settings,
-                        onChangeThemeBrand = viewModel::updateThemeBrand,
                         onChangeDarkThemeConfig = viewModel::updateDarkThemeConfig,
                     )
                 }
@@ -245,22 +241,8 @@ private fun BasicSettingsScreen(
 @Composable
 internal fun ColumnScope.BasicSettingsPanel(
     settings: UserEditableSettings,
-    onChangeThemeBrand: (themeBrand: ThemeBrand) -> Unit,
     onChangeDarkThemeConfig: (darkThemeConfig: DarkThemeConfig) -> Unit,
 ) {
-    SettingsDialogSectionTitle(text = stringResource(string.feature_settings_impl_theme))
-    Column(Modifier.selectableGroup()) {
-        SettingsDialogThemeChooserRow(
-            text = stringResource(string.feature_settings_impl_brand_default),
-            selected = settings.brand == DEFAULT,
-            onClick = { onChangeThemeBrand(DEFAULT) },
-        )
-        SettingsDialogThemeChooserRow(
-            text = stringResource(string.feature_settings_impl_brand_android),
-            selected = settings.brand == ANDROID,
-            onClick = { onChangeThemeBrand(ANDROID) },
-        )
-    }
     SettingsDialogSectionTitle(text = stringResource(string.feature_settings_impl_dark_mode_preference))
     Column(Modifier.selectableGroup()) {
         SettingsDialogThemeChooserRow(

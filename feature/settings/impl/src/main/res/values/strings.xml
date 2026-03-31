@@ -5,9 +5,6 @@
     <string name="feature_settings_impl_title">设置</string>
     <string name="feature_settings_impl_loading">加载中</string>
     <string name="feature_settings_impl_licenses">开源许可</string>
-    <string name="feature_settings_impl_theme">主题</string>
-    <string name="feature_settings_impl_brand_default">默认</string>
-    <string name="feature_settings_impl_brand_android">安卓</string>
     <string name="feature_settings_impl_dark_mode_preference">深色模式偏好</string>
     <string name="feature_settings_impl_dark_mode_config_system_default">系统默认</string>
     <string name="feature_settings_impl_dark_mode_config_light">浅色</string>

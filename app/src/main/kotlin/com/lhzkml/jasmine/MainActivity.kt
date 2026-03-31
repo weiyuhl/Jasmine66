@@ -65,7 +65,6 @@ class MainActivity : ComponentActivity() {
         var themeSettings by mutableStateOf(
             ThemeSettings(
                 darkTheme = resources.configuration.isSystemInDarkTheme,
-                androidTheme = Loading.shouldUseAndroidTheme,
             ),
         )
 
@@ -78,7 +77,6 @@ class MainActivity : ComponentActivity() {
                 ) { systemDark, uiState ->
                     ThemeSettings(
                         darkTheme = uiState.shouldUseDarkTheme(systemDark),
-                        androidTheme = uiState.shouldUseAndroidTheme,
                     )
                 }
                     .onEach { themeSettings = it }
@@ -125,7 +123,6 @@ class MainActivity : ComponentActivity() {
             ) {
                 JasmineTheme(
                     darkTheme = themeSettings.darkTheme,
-                    androidTheme = themeSettings.androidTheme,
                 ) {
                     JasmineApp(appState)
                 }
@@ -162,5 +159,4 @@ private val darkScrim = android.graphics.Color.argb(0x80, 0x1b, 0x1b, 0x1b)
  */
 data class ThemeSettings(
     val darkTheme: Boolean,
-    val androidTheme: Boolean,
 )

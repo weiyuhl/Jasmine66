@@ -6,7 +6,6 @@ import com.lhzkml.jasmine.core.datastore.JasminePreferencesDataSource
 import com.lhzkml.jasmine.core.datastore.UserPreferences
 import com.lhzkml.jasmine.core.datastore.test.InMemoryDataStore
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
-import com.lhzkml.jasmine.core.model.data.ThemeBrand
 import com.lhzkml.jasmine.core.model.data.UserData
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -45,8 +44,7 @@ class OfflineFirstUserDataRepositoryTest {
             assertEquals(
                 UserData(
                     followedTopics = emptySet(),
-                    themeBrand = ThemeBrand.DEFAULT,
-                    darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
+                    theme                    darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
                     
                     shouldHideOnboarding = false,
                 ),
@@ -111,19 +109,15 @@ class OfflineFirstUserDataRepositoryTest {
     @Test
     fun offlineFirstUserDataRepository_set_theme_brand_delegates_to__preferences() =
         testScope.runTest {
-            subject.setThemeBrand(ThemeBrand.ANDROID)
-
-            assertEquals(
+                        assertEquals(
                 ThemeBrand.ANDROID,
                 subject.userData
-                    .map { it.themeBrand }
                     .first(),
             )
             assertEquals(
                 ThemeBrand.ANDROID,
                 JasminePreferencesDataSource
                     .userData
-                    .map { it.themeBrand }
                     .first(),
             )
         }
@@ -177,6 +171,7 @@ class OfflineFirstUserDataRepositoryTest {
             assertFalse(subject.userData.first().shouldHideOnboarding)
         }
 }
+
 
 
 
