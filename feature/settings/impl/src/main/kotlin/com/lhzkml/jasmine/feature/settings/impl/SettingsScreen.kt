@@ -62,6 +62,7 @@ import com.lhzkml.jasmine.feature.settings.impl.R.string
 private enum class SettingsSubPage {
     NONE,
     BASIC_SETTINGS,
+    PROVIDER_CONFIG,
 }
 
 @Composable
@@ -78,6 +79,7 @@ internal fun SettingsScreen(
             SettingsMenuScreen(
                 onBackClick = onBackClick,
                 onBasicSettingsClick = { currentSubPage = SettingsSubPage.BASIC_SETTINGS },
+                onProviderConfigClick = { currentSubPage = SettingsSubPage.PROVIDER_CONFIG },
             )
         }
         SettingsSubPage.BASIC_SETTINGS -> {
@@ -85,6 +87,13 @@ internal fun SettingsScreen(
             BasicSettingsScreen(
                 settingsUiState = settingsUiState,
                 viewModel = viewModel,
+                onBackClick = { currentSubPage = SettingsSubPage.NONE },
+            )
+        }
+        SettingsSubPage.PROVIDER_CONFIG -> {
+            // 大模型供应商配置子页面
+            ProviderConfigScreen(
+                providerRepo = viewModel.providerRepo,
                 onBackClick = { currentSubPage = SettingsSubPage.NONE },
             )
         }
@@ -97,6 +106,7 @@ internal fun SettingsScreen(
 private fun SettingsMenuScreen(
     onBackClick: () -> Unit,
     onBasicSettingsClick: () -> Unit,
+    onProviderConfigClick: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -122,6 +132,15 @@ private fun SettingsMenuScreen(
                 title = "基本设置",
                 subtitle = "主题、动态色彩、深色模式",
                 onClick = onBasicSettingsClick,
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+            // 大模型配置
+            SettingsMenuItem(
+                title = stringResource(string.feature_settings_impl_provider_config),
+                subtitle = "API Key 与供应商选择",
+                onClick = onProviderConfigClick,
             )
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))

@@ -121,13 +121,12 @@ internal fun ChatScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { showBottomSheet = true }
                     .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
                     .padding(horizontal = 16.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "⚙️ 点此配置 AI 供应商以开始对话",
+                    text = "⚙️ 请前往设置页面配置大模型与 API Key",
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
@@ -141,22 +140,12 @@ internal fun ChatScreen(
             enabled = true,
             onValueChange = viewModel::onPromptChange,
             onSendClick = viewModel::onSendClick,
-            onAddClick = { showBottomSheet = true },
+            onAddClick = { /* TODO: 将来在此打开工具/附件面板 */ },
             isRunning = isChatRunning,
         )
     }
-
-    // 底部配置面板
-    if (showBottomSheet) {
-        ProviderConfigSheet(
-            providerRepo = viewModel.providerRepo,
-            onDismiss = {
-                showBottomSheet = false
-                viewModel.refreshProviderState()
-            },
-        )
-    }
 }
+
 
 // ==================== 消息列表 ====================
 
@@ -222,130 +211,7 @@ private fun ChatBubble(message: UiChatMessage) {
     }
 }
 
-// ==================== 供应商配置 Bottom Sheet ====================
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ProviderConfigSheet(
-    providerRepo: ChatProviderRepository,
-    onDismiss: () -> Unit,
-) {
-    val presets = ChatProviderRepository.PRESETS
-    val currentId = providerRepo.getActiveProviderId()
-
-    var selectedId by remember { mutableStateOf(currentId ?: presets.first().id) }
-    var apiKey by remember { mutableStateOf(providerRepo.getApiKey(selectedId)) }
-    var baseUrl by remember { mutableStateOf(providerRepo.getBaseUrl(selectedId)) }
-    var model by remember { mutableStateOf(providerRepo.getModel(selectedId)) }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 32.dp),
-        ) {
-            Text(
-                text = "供应商配置",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 供应商选择
-            Text(text = "选择供应商", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                presets.forEach { preset ->
-                    val isSelected = preset.id == selectedId
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                selectedId = preset.id
-                                apiKey = providerRepo.getApiKey(preset.id)
-                                baseUrl = providerRepo.getBaseUrl(preset.id)
-                                model = providerRepo.getModel(preset.id)
-                            }
-                            .background(
-                                if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                                else MaterialTheme.colorScheme.surfaceVariant,
-                                RoundedCornerShape(8.dp),
-                            )
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                    ) {
-                        Text(
-                            text = preset.name,
-                            fontSize = 13.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // API Key
-            OutlinedTextField(
-                value = apiKey,
-                onValueChange = { apiKey = it },
-                label = { Text("API Key") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Base URL
-            OutlinedTextField(
-                value = baseUrl,
-                onValueChange = { baseUrl = it },
-                label = { Text("Base URL") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Model
-            OutlinedTextField(
-                value = model,
-                onValueChange = { model = it },
-                label = { Text("模型名称") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // 保存按钮
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable {
-                        providerRepo.saveProviderConfig(selectedId, apiKey, baseUrl, model)
-                        onDismiss()
-                    }
-                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
-                    .padding(vertical = 14.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "保存配置",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                )
-            }
-        }
-    }
-}
 
 // ==================== 输入框 ====================
 

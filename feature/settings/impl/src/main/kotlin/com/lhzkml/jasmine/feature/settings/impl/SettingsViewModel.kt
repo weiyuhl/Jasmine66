@@ -3,6 +3,7 @@ package com.lhzkml.jasmine.feature.settings.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lhzkml.jasmine.core.data.repository.ChatProviderRepository
 import com.lhzkml.jasmine.core.data.repository.UserDataRepository
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
 import com.lhzkml.jasmine.core.model.data.ThemeBrand
@@ -20,6 +21,7 @@ import kotlin.time.Duration.Companion.seconds
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
+    val providerRepo: ChatProviderRepository,
 ) : ViewModel() {
     val settingsUiState: StateFlow<SettingsUiState> =
         userDataRepository.userData

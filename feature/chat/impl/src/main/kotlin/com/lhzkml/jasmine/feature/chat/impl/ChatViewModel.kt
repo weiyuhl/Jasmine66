@@ -2,6 +2,9 @@ package com.lhzkml.jasmine.feature.chat.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lhzkml.jasmine.core.data.repository.ChatProviderRepository
+import com.lhzkml.jasmine.core.prompt.executor.ApiType
+import com.lhzkml.jasmine.core.prompt.executor.ChatClientConfig
 import com.lhzkml.jasmine.core.prompt.executor.ChatClientFactory
 import com.lhzkml.jasmine.core.prompt.llm.ChatClient
 import com.lhzkml.jasmine.core.prompt.model.ChatMessage
@@ -51,7 +54,7 @@ class ChatViewModel @Inject constructor(
     }
 
     fun refreshProviderState() {
-        val config = providerRepo.getActiveConfig()
+        val config = buildActiveConfig()
         _isProviderConfigured.value = config != null
         // 重建 client
         chatClient?.close()
@@ -149,6 +152,31 @@ class ChatViewModel @Inject constructor(
                     else -> ChatMessage.user(msg.content)
                 }
             }
+    }
+
+    /**
+     * 构建当前激活供应商的 ChatClientConfig。
+     * 从 core:data 读取基础字符串配置，在这里组装为特定于大模型的配置类。
+     */
+    private fun buildActiveConfig(): ChatClientConfig? {
+        val id = providerRepo.getActiveProviderId() ?: return null
+        val preset = ChatProviderRepository.PRESETS.find { it.id == id } ?: return null
+        val apiKey = providerRepo.getApiKey(id)
+        if (apiKey.isBlank()) return null
+
+        val apiType = try {
+            ApiType.valueOf(preset.apiTypeString)
+        } catch (e: IllegalArgumentException) {
+            ApiType.OPENAI
+        }
+
+        return ChatClientConfig(
+            providerId = id,
+            providerName = preset.name,
+            apiKey = apiKey,
+            baseUrl = providerRepo.getBaseUrl(id),
+            apiType = apiType,
+        )
     }
 
     override fun onCleared() {

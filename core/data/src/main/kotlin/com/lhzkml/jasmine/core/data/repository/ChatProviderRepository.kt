@@ -1,9 +1,7 @@
-package com.lhzkml.jasmine.feature.chat.impl
+package com.lhzkml.jasmine.core.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.lhzkml.jasmine.core.prompt.executor.ApiType
-import com.lhzkml.jasmine.core.prompt.executor.ChatClientConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,13 +13,14 @@ data class ProviderPreset(
     val id: String,
     val name: String,
     val defaultBaseUrl: String,
-    val apiType: ApiType,
+    val apiTypeString: String,
     val defaultModel: String,
 )
 
 /**
- * 轻量级供应商配置仓库
+ * 轻量级供应商配置仓库（位于 core:data，被各个 feature 共享）
  * 使用 SharedPreferences 持久化供应商选择、API Key、Base URL 和模型名称。
+ * 注意：此处不依赖任何 jasmine-core 的具体模型类型，只存储字符串配置。
  */
 @Singleton
 class ChatProviderRepository @Inject constructor(
@@ -38,11 +37,11 @@ class ChatProviderRepository @Inject constructor(
 
         /** 内置供应商列表 */
         val PRESETS = listOf(
-            ProviderPreset("deepseek", "DeepSeek", "https://api.deepseek.com", ApiType.OPENAI, "deepseek-chat"),
-            ProviderPreset("openai", "OpenAI", "https://api.openai.com", ApiType.OPENAI, "gpt-4o"),
-            ProviderPreset("claude", "Claude", "https://api.anthropic.com", ApiType.CLAUDE, "claude-sonnet-4-20250514"),
-            ProviderPreset("gemini", "Gemini", "https://generativelanguage.googleapis.com", ApiType.GEMINI, "gemini-2.5-flash"),
-            ProviderPreset("siliconflow", "硅基流动", "https://api.siliconflow.cn", ApiType.OPENAI, "deepseek-ai/DeepSeek-V3"),
+            ProviderPreset("deepseek", "DeepSeek", "https://api.deepseek.com", "OPENAI", "deepseek-chat"),
+            ProviderPreset("openai", "OpenAI", "https://api.openai.com", "OPENAI", "gpt-4o"),
+            ProviderPreset("claude", "Claude", "https://api.anthropic.com", "CLAUDE", "claude-sonnet-4-20250514"),
+            ProviderPreset("gemini", "Gemini", "https://generativelanguage.googleapis.com", "GEMINI", "gemini-2.5-flash"),
+            ProviderPreset("siliconflow", "硅基流动", "https://api.siliconflow.cn", "OPENAI", "deepseek-ai/DeepSeek-V3"),
         )
     }
 
@@ -77,25 +76,6 @@ class ChatProviderRepository @Inject constructor(
 
     fun setModel(providerId: String, model: String) {
         prefs.edit().putString(KEY_MODEL_PREFIX + providerId, model).apply()
-    }
-
-    /**
-     * 构建当前激活供应商的 ChatClientConfig，
-     * 如果未配置供应商或 API Key 为空则返回 null。
-     */
-    fun getActiveConfig(): ChatClientConfig? {
-        val id = getActiveProviderId() ?: return null
-        val preset = PRESETS.find { it.id == id } ?: return null
-        val apiKey = getApiKey(id)
-        if (apiKey.isBlank()) return null
-
-        return ChatClientConfig(
-            providerId = id,
-            providerName = preset.name,
-            apiKey = apiKey,
-            baseUrl = getBaseUrl(id),
-            apiType = preset.apiType,
-        )
     }
 
     /** 保存完整供应商配置 */

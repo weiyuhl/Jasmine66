@@ -17,5 +17,6 @@
     <string name="feature_settings_impl_dynamic_color_no">否</string>
     <string name="feature_settings_impl_dismiss_dialog_button_text">确定</string>
     <string name="feature_settings_impl_basic_settings">基本设置</string>
+    <string name="feature_settings_impl_provider_config">大模型配置</string>
 </resources>
 
