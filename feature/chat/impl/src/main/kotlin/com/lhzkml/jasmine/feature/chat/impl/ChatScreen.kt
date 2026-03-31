@@ -18,11 +18,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.Image
+import androidx.compose.ui.platform.LocalContext
+import io.github.alexzhirkevich.compottie.Compottie
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
@@ -60,8 +67,9 @@ internal fun ChatScreen(
         // Chat message area
         Box(
             modifier = Modifier.weight(1f),
+            contentAlignment = Alignment.Center,
         ) {
-            // Chat messages will be displayed here
+            EmptyStateView()
         }
 
         // Chat composer at bottom
@@ -205,5 +213,31 @@ private fun ChatComposer(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun EmptyStateView() {
+    val context = LocalContext.current
+    val jsonString = remember {
+        context.assets.open("Coding_Slide.json").bufferedReader().use { it.readText() }
+    }
+    val composition by rememberLottieComposition {
+        LottieCompositionSpec.JsonString(jsonString)
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            modifier = Modifier.size(240.dp),
+            painter = rememberLottiePainter(
+                composition = composition,
+                iterations = Compottie.IterateForever,
+                speed = 0.6f
+            ),
+            contentDescription = null
+        )
     }
 }

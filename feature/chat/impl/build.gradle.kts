@@ -9,4 +9,5 @@ android {
 
 dependencies {
     implementation(projects.feature.chat.api)
+    implementation(libs.compottie)
 }

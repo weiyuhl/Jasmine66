@@ -30,6 +30,7 @@ coil = "2.7.0"
 dependencyGuard = "0.5.0"
 googleOss = "17.1.0"
 googleOssPlugin = "0.10.9"
+compottie = "2.0.0-rc02"
 hilt = "2.59"
 hiltExt = "1.2.0"
 kotlin = "2.3.0"
@@ -87,6 +88,7 @@ androidx-work-ktx = { group = "androidx.work", name = "work-runtime-ktx", versio
 coil-kt = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 coil-kt-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
+compottie = { group = "io.github.alexzhirkevich", name = "compottie", version.ref = "compottie" }
 google-oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "googleOss" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
