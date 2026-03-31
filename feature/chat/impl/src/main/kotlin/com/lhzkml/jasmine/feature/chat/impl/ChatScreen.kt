@@ -74,6 +74,11 @@ internal fun ChatScreen(
     val providerSetupState by viewModel.providerSetupState.collectAsStateWithLifecycle()
     var showBottomSheet by remember { mutableStateOf(false) }
 
+    // 每次 ChatScreen 进入 Composition 时（包括从设置页返回），主动刷新供应商状态
+    LaunchedEffect(Unit) {
+        viewModel.refreshProviderState()
+    }
+
     TrackScreenViewEvent(screenName = "Chat")
 
     val density = LocalDensity.current
