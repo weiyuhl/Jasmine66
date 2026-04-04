@@ -68,6 +68,19 @@ include(":feature:knowledgebase:impl")
 include(":jasmine-core:prompt:prompt-model")
 include(":jasmine-core:prompt:prompt-llm")
 include(":jasmine-core:prompt:prompt-executor")
+include(":jasmine-core:prompt:prompt-mnn")
+
+// Agent modules
+include(":jasmine-core:agent:agent-tools")
+include(":jasmine-core:agent:agent-observe")
+include(":jasmine-core:agent:agent-graph")
+include(":jasmine-core:agent:agent-planner")
+include(":jasmine-core:agent:agent-mcp")
+include(":jasmine-core:agent:agent-runtime")
+
+// Config and conversation (required by agent-runtime)
+include(":jasmine-core:config:config-manager")
+include(":jasmine-core:conversation:conversation-storage")
 
 include(":linux-sandbox:sandbox")
 

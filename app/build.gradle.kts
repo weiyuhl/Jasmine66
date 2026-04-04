@@ -77,6 +77,13 @@ dependencies {
     // Linux Sandbox module
     implementation(projects.linuxSandbox.sandbox)
 
+    // Agent modules
+    implementation(projects.jasmineCore.agent.agentRuntime)
+    implementation(projects.jasmineCore.config.configManager)
+    implementation(projects.jasmineCore.conversation.conversationStorage)
+
+    implementation(libs.androidx.activity.compose)
+
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation3.ui)
