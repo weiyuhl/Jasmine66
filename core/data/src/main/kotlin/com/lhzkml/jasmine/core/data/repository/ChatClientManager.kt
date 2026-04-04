@@ -20,13 +20,18 @@ import com.lhzkml.jasmine.core.prompt.model.SamplingParams
 import com.lhzkml.jasmine.core.prompt.model.ToolCall
 import com.lhzkml.jasmine.core.prompt.model.ToolDescriptor
 import com.lhzkml.jasmine.core.prompt.model.ToolResult
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * ChatClient 的生命周期管理器。
@@ -275,14 +280,18 @@ class ChatClientManager @Inject constructor(
         var finalThinking = ""
         var finalFinishReason: String? = null
         var iterations = 0
-        val maxIterations = 10
+        val maxIterations = 15
+        val recentToolSignatures = mutableListOf<String>()
+        val maxRepeatedCalls = 3
 
         while (iterations < maxIterations) {
             iterations++
 
+            val trimmedMessages = contextManager.trimMessages(mutableMessages.toList())
+
             val result = streamResumeHelper.streamWithResume(
                 client = client,
-                messages = mutableMessages,
+                messages = trimmedMessages,
                 model = model,
                 maxTokens = samplingParams.maxTokens,
                 samplingParams = samplingParams.coreSamplingParams,
@@ -304,15 +313,26 @@ class ChatClientManager @Inject constructor(
                 break
             }
 
+            val signatures = result.toolCalls.map { "${it.name}:${it.arguments.hashCode()}" }
+            if (isRepeatingToolCalls(recentToolSignatures, signatures, maxRepeatedCalls)) {
+                finalContent = result.content
+                finalFinishReason = "repeated_tool_calls"
+                break
+            }
+            recentToolSignatures.addAll(signatures)
+            while (recentToolSignatures.size > maxRepeatedCalls * 2) {
+                recentToolSignatures.removeAt(0)
+            }
+
             allToolCalls.addAll(toolManager.toToolCallInfoList(result.toolCalls))
 
-            for (call in result.toolCalls) {
-                onToolCallStart(call.name, call.arguments)
+            val toolResults = executeToolCallsInParallel(
+                toolCalls = result.toolCalls,
+                onToolCallStart = onToolCallStart,
+                onToolCallResult = onToolCallResult,
+            )
 
-                val toolResult = toolManager.execute(call)
-
-                onToolCallResult(call.name, toolResult.content)
-
+            for (toolResult in toolResults) {
                 mutableMessages.add(ChatMessage.toolResult(toolResult))
             }
 
@@ -324,7 +344,7 @@ class ChatClientManager @Inject constructor(
         if (iterations >= maxIterations && finalContent.isEmpty()) {
             mutableMessages.add(ChatMessage.user("你已经进行了 $maxIterations 轮工具调用。请根据目前收集到的信息，直接给出总结回复，不要再调用工具。"))
             val finalResult = client.chatStreamWithUsageAndThinking(
-                messages = mutableMessages,
+                messages = contextManager.trimMessages(mutableMessages),
                 model = model,
                 maxTokens = samplingParams.maxTokens,
                 samplingParams = samplingParams.coreSamplingParams,
@@ -342,6 +362,33 @@ class ChatClientManager @Inject constructor(
             thinking = finalThinking,
             toolCalls = allToolCalls,
         )
+    }
+
+    private fun isRepeatingToolCalls(
+        recentSignatures: List<String>,
+        currentSignatures: List<String>,
+        maxRepeatedCalls: Int,
+    ): Boolean {
+        if (recentSignatures.isEmpty()) return false
+        val repeatedCount = currentSignatures.count { it in recentSignatures }
+        return repeatedCount >= maxRepeatedCalls
+    }
+
+    private suspend fun executeToolCallsInParallel(
+        toolCalls: List<ToolCall>,
+        onToolCallStart: suspend (String, String) -> Unit,
+        onToolCallResult: suspend (String, String) -> Unit,
+    ): List<ToolResult> = coroutineScope {
+        toolCalls.map { call ->
+            async {
+                onToolCallStart(call.name, call.arguments)
+                val result = withTimeout(120.seconds) {
+                    toolManager.execute(call)
+                }
+                onToolCallResult(call.name, result.content)
+                result
+            }
+        }.awaitAll()
     }
 
     // ==================== P2: 模型列表 & 余额 ====================
