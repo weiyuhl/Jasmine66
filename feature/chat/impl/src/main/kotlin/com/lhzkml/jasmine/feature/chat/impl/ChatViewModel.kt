@@ -3,6 +3,7 @@ package com.lhzkml.jasmine.feature.chat.impl
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lhzkml.jasmine.core.data.model.SimpleChatMessage
+import com.lhzkml.jasmine.core.data.model.ToolCallInfo
 import com.lhzkml.jasmine.core.data.repository.ChatClientManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -12,15 +13,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * UI 层聊天消息
- */
 data class UiChatMessage(
     val role: String,
     val content: String,
     val isStreaming: Boolean = false,
-    /** 思考/推理过程（DeepSeek reasoning / Claude thinking） */
     val thinking: String? = null,
+    val toolCalls: List<ToolCallInfo> = emptyList(),
+)
+
+data class ToolCallEvent(
+    val toolName: String,
+    val arguments: String,
+    val result: String? = null,
+    val isRunning: Boolean = true,
 )
 
 @HiltViewModel
@@ -40,10 +45,11 @@ class ChatViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    /** 供应商是否已配置 — 委托给 ChatClientManager */
+    private val _toolCallEvents = MutableStateFlow<List<ToolCallEvent>>(emptyList())
+    val toolCallEvents: StateFlow<List<ToolCallEvent>> = _toolCallEvents.asStateFlow()
+
     val isProviderConfigured: StateFlow<Boolean> = clientManager.isConfigured
 
-    /** 诊断信息 — 委托给 ChatClientManager */
     val providerSetupState: StateFlow<String> = clientManager.setupState
 
     private var streamJob: Job? = null
@@ -56,7 +62,6 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    /** 由 ChatScreen 在进入 Composition 时调用 */
     fun refreshProviderState() {
         viewModelScope.launch {
             clientManager.refreshState()
@@ -71,6 +76,10 @@ class ChatViewModel @Inject constructor(
         _errorMessage.value = null
     }
 
+    fun clearToolCallEvents() {
+        _toolCallEvents.value = emptyList()
+    }
+
     fun onSendClick() {
         val prompt = _chatPrompt.value.trim()
         if (prompt.isBlank() || _isChatRunning.value) return
@@ -83,12 +92,11 @@ class ChatViewModel @Inject constructor(
         _chatPrompt.value = ""
         _isChatRunning.value = true
         _errorMessage.value = null
+        _toolCallEvents.value = emptyList()
 
-        // 添加用户消息
         val userMsg = UiChatMessage(role = "user", content = prompt)
         _messages.value = _messages.value + userMsg
 
-        // 添加空的 assistant 占位消息
         val assistantPlaceholder = UiChatMessage(role = "assistant", content = "", isStreaming = true)
         _messages.value = _messages.value + assistantPlaceholder
 
@@ -101,11 +109,9 @@ class ChatViewModel @Inject constructor(
                     messages = history,
                     model = model,
                     onChunk = { chunk ->
-                        // 实时追加到最后一条 assistant 消息
                         updateLastAssistant { it.copy(content = it.content + chunk) }
                     },
                     onThinking = { thinkChunk ->
-                        // 实时追加思考过程到最后一条 assistant 消息
                         updateLastAssistant {
                             it.copy(thinking = (it.thinking ?: "") + thinkChunk)
                         }
@@ -113,21 +119,44 @@ class ChatViewModel @Inject constructor(
                     onResumeAttempt = { attempt ->
                         _errorMessage.value = "网络中断，正在续传 (第 $attempt 次)..."
                     },
+                    onToolCallStart = { toolName, args ->
+                        _toolCallEvents.value = _toolCallEvents.value + ToolCallEvent(
+                            toolName = toolName,
+                            arguments = args,
+                            isRunning = true,
+                        )
+                    },
+                    onToolCallResult = { toolName, resultContent ->
+                        val events = _toolCallEvents.value.toMutableList()
+                        val lastIdx = events.lastIndex
+                        if (lastIdx >= 0 && events[lastIdx].toolName == toolName && events[lastIdx].isRunning) {
+                            events[lastIdx] = events[lastIdx].copy(
+                                result = resultContent,
+                                isRunning = false,
+                            )
+                            _toolCallEvents.value = events
+                        } else {
+                            _toolCallEvents.value = events + ToolCallEvent(
+                                toolName = toolName,
+                                arguments = "",
+                                result = resultContent,
+                                isRunning = false,
+                            )
+                        }
+                    },
                 )
-                // 流结束，标记为非 streaming，写入最终思考内容
                 updateLastAssistant {
                     it.copy(
                         isStreaming = false,
                         thinking = result.thinking ?: it.thinking,
+                        toolCalls = result.toolCalls,
                     )
                 }
-                // 清除续传提示
                 if (_errorMessage.value?.contains("续传") == true) {
                     _errorMessage.value = null
                 }
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "请求失败"
-                // 移除空的 assistant 占位
                 val current = _messages.value.toMutableList()
                 if (current.isNotEmpty() && current.last().role == "assistant" && current.last().content.isEmpty()) {
                     current.removeAt(current.lastIndex)
@@ -139,9 +168,6 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    /**
-     * 更新最后一条 assistant 消息
-     */
     private fun updateLastAssistant(transform: (UiChatMessage) -> UiChatMessage) {
         val current = _messages.value.toMutableList()
         val lastIndex = current.lastIndex
@@ -151,11 +177,7 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    /**
-     * 将 UI 消息转换为 core:data 层的 SimpleChatMessage（不含最后的空 assistant 占位）
-     */
     private fun buildApiMessages(): List<SimpleChatMessage> {
-        // 过滤掉最后一条正在生成的空 assistant 消息，但保留历史中的所有消息
         val current = _messages.value
         if (current.isEmpty()) return emptyList()
         
@@ -165,7 +187,24 @@ class ChatViewModel @Inject constructor(
             current
         }
         
-        return history.map { msg -> SimpleChatMessage(role = msg.role, content = msg.content) }
+        return history.map { msg ->
+            val toolCalls = if (msg.toolCalls.isNotEmpty()) {
+                msg.toolCalls.map { tc ->
+                    com.lhzkml.jasmine.core.data.model.ToolCallInfo(
+                        id = tc.id,
+                        name = tc.name,
+                        arguments = tc.arguments,
+                    )
+                }
+            } else {
+                null
+            }
+            SimpleChatMessage(
+                role = msg.role,
+                content = msg.content,
+                toolCalls = toolCalls,
+            )
+        }
     }
 
     override fun onCleared() {

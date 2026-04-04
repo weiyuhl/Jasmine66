@@ -2,6 +2,7 @@ package com.lhzkml.jasmine.core.data.repository
 
 import com.lhzkml.jasmine.core.data.model.SimpleChatMessage
 import com.lhzkml.jasmine.core.data.model.StreamChatResult
+import com.lhzkml.jasmine.core.data.model.ToolCallInfo
 import com.lhzkml.jasmine.core.prompt.executor.ApiType
 import com.lhzkml.jasmine.core.prompt.executor.ChatClientConfig
 import com.lhzkml.jasmine.core.prompt.executor.ChatClientFactory
@@ -16,6 +17,9 @@ import com.lhzkml.jasmine.core.prompt.llm.chatStreamWithUsageAndThinking
 import com.lhzkml.jasmine.core.prompt.model.ChatMessage
 import com.lhzkml.jasmine.core.prompt.model.ModelInfo
 import com.lhzkml.jasmine.core.prompt.model.SamplingParams
+import com.lhzkml.jasmine.core.prompt.model.ToolCall
+import com.lhzkml.jasmine.core.prompt.model.ToolDescriptor
+import com.lhzkml.jasmine.core.prompt.model.ToolResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +41,7 @@ import javax.inject.Singleton
 @Singleton
 class ChatClientManager @Inject constructor(
     private val providerRepo: ChatProviderRepository,
+    private val toolManager: ChatToolManager,
 ) {
     private val _isConfigured = MutableStateFlow(false)
     /** 供应商是否已就绪 */
@@ -183,12 +188,15 @@ class ChatClientManager @Inject constructor(
      * 3. SamplingParams 传入
      * 4. ThinkingChatClient 检测 + onThinking 回调
      * 5. StreamResumeHelper 断流续传
+     * 6. Tool Calling 工具调用
      *
      * @param messages  消息历史（使用 core:data 层的 SimpleChatMessage）
      * @param model     模型名称
      * @param onChunk   每收到一个 token 回调
      * @param onThinking 思考过程回调（DeepSeek/Claude 推理模型）
      * @param onResumeAttempt 断流续传尝试回调
+     * @param onToolCallStart 工具调用开始回调
+     * @param onToolCallResult 工具调用结果回调
      * @return 聊天结果摘要
      */
     suspend fun streamChat(
@@ -197,9 +205,14 @@ class ChatClientManager @Inject constructor(
         onChunk: suspend (String) -> Unit,
         onThinking: suspend (String) -> Unit = {},
         onResumeAttempt: suspend (Int) -> Unit = {},
+        onToolCallStart: suspend (String, String) -> Unit = { _, _ -> },
+        onToolCallResult: suspend (String, String) -> Unit = { _, _ -> },
     ): StreamChatResult {
         val client = chatClient
             ?: throw IllegalStateException("发送失败: ${_setupState.value}")
+
+        val tools = toolManager.descriptors()
+        val hasTools = tools.isNotEmpty()
 
         // 1. 转换消息并注入 System Prompt
         val apiMessages = buildApiMessagesWithSystemPrompt(messages)
@@ -210,22 +223,124 @@ class ChatClientManager @Inject constructor(
         // 3. 读取采样参数
         val samplingParams = buildSamplingParams()
 
-        // 4. 使用 StreamResumeHelper 进行带断流续传的流式请求
-        val result = streamResumeHelper.streamWithResume(
+        if (!hasTools) {
+            // 无工具模式：直接调用
+            val result = streamResumeHelper.streamWithResume(
+                client = client,
+                messages = trimmedMessages,
+                model = model,
+                maxTokens = samplingParams.maxTokens,
+                samplingParams = samplingParams.coreSamplingParams,
+                onChunk = onChunk,
+                onThinking = onThinking,
+                onResumeAttempt = onResumeAttempt,
+            )
+
+            return StreamChatResult(
+                content = result.content,
+                finishReason = result.finishReason,
+                thinking = result.thinking,
+                toolCalls = toolManager.toToolCallInfoList(result.toolCalls),
+            )
+        }
+
+        // 工具调用模式：执行 agent loop
+        return executeToolLoop(
             client = client,
             messages = trimmedMessages,
             model = model,
-            maxTokens = samplingParams.maxTokens,
-            samplingParams = samplingParams.coreSamplingParams,
+            samplingParams = samplingParams,
             onChunk = onChunk,
             onThinking = onThinking,
             onResumeAttempt = onResumeAttempt,
+            onToolCallStart = onToolCallStart,
+            onToolCallResult = onToolCallResult,
         )
+    }
+
+    private suspend fun executeToolLoop(
+        client: ChatClient,
+        messages: List<ChatMessage>,
+        model: String,
+        samplingParams: ResolvedSamplingParams,
+        onChunk: suspend (String) -> Unit,
+        onThinking: suspend (String) -> Unit,
+        onResumeAttempt: suspend (Int) -> Unit,
+        onToolCallStart: suspend (String, String) -> Unit,
+        onToolCallResult: suspend (String, String) -> Unit,
+    ): StreamChatResult {
+        val mutableMessages = messages.toMutableList()
+        val allToolCalls = mutableListOf<ToolCallInfo>()
+        var finalContent = ""
+        var finalThinking = ""
+        var finalFinishReason: String? = null
+        var iterations = 0
+        val maxIterations = 10
+
+        while (iterations < maxIterations) {
+            iterations++
+
+            val result = streamResumeHelper.streamWithResume(
+                client = client,
+                messages = mutableMessages,
+                model = model,
+                maxTokens = samplingParams.maxTokens,
+                samplingParams = samplingParams.coreSamplingParams,
+                tools = toolManager.descriptors(),
+                onChunk = onChunk,
+                onThinking = onThinking,
+                onResumeAttempt = onResumeAttempt,
+            )
+
+            finalFinishReason = result.finishReason
+            if (result.thinking.isNullOrBlank().not()) {
+                finalThinking = result.thinking ?: finalThinking
+            }
+
+            if (!result.hasToolCalls) {
+                if (result.content.isNotEmpty()) {
+                    finalContent = result.content
+                }
+                break
+            }
+
+            allToolCalls.addAll(toolManager.toToolCallInfoList(result.toolCalls))
+
+            for (call in result.toolCalls) {
+                onToolCallStart(call.name, call.arguments)
+
+                val toolResult = toolManager.execute(call)
+
+                onToolCallResult(call.name, toolResult.content)
+
+                mutableMessages.add(ChatMessage.toolResult(toolResult))
+            }
+
+            if (result.content.isNotEmpty()) {
+                finalContent = result.content
+            }
+        }
+
+        if (iterations >= maxIterations && finalContent.isEmpty()) {
+            mutableMessages.add(ChatMessage.user("你已经进行了 $maxIterations 轮工具调用。请根据目前收集到的信息，直接给出总结回复，不要再调用工具。"))
+            val finalResult = client.chatStreamWithUsageAndThinking(
+                messages = mutableMessages,
+                model = model,
+                maxTokens = samplingParams.maxTokens,
+                samplingParams = samplingParams.coreSamplingParams,
+                tools = emptyList(),
+                onChunk = onChunk,
+                onThinking = onThinking,
+            )
+            finalContent = finalResult.content
+            finalFinishReason = "max_iterations"
+        }
 
         return StreamChatResult(
-            content = result.content,
-            finishReason = result.finishReason,
-            thinking = result.thinking,
+            content = finalContent,
+            finishReason = finalFinishReason,
+            thinking = finalThinking,
+            toolCalls = allToolCalls,
         )
     }
 
@@ -359,7 +474,26 @@ class ChatClientManager @Inject constructor(
     private fun toApiMessage(msg: SimpleChatMessage): ChatMessage {
         return when (msg.role) {
             "user" -> ChatMessage.user(msg.content)
-            "assistant" -> ChatMessage.assistant(msg.content)
+            "assistant" -> {
+                if (!msg.toolCalls.isNullOrEmpty()) {
+                    val toolCalls = msg.toolCalls.map {
+                        com.lhzkml.jasmine.core.prompt.model.ToolCall(
+                            id = it.id,
+                            name = it.name,
+                            arguments = it.arguments,
+                        )
+                    }
+                    ChatMessage.assistantWithToolCalls(toolCalls, msg.content)
+                } else {
+                    ChatMessage.assistant(msg.content)
+                }
+            }
+            "tool" -> ChatMessage(
+                role = "tool",
+                content = msg.content,
+                toolCallId = msg.toolCallId,
+                toolName = msg.toolName,
+            )
             "system" -> ChatMessage.system(msg.content)
             else -> ChatMessage.user(msg.content)
         }

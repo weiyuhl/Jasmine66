@@ -72,6 +72,7 @@ internal fun ChatScreen(
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
     val isProviderConfigured by viewModel.isProviderConfigured.collectAsStateWithLifecycle()
     val providerSetupState by viewModel.providerSetupState.collectAsStateWithLifecycle()
+    val toolCallEvents by viewModel.toolCallEvents.collectAsStateWithLifecycle()
     var showBottomSheet by remember { mutableStateOf(false) }
 
     // 每次 ChatScreen 进入 Composition 时（包括从设置页返回），主动刷新供应商状态
@@ -94,7 +95,7 @@ internal fun ChatScreen(
             if (messages.isEmpty()) {
                 EmptyStateView()
             } else {
-                MessageList(messages = messages)
+                MessageList(messages = messages, toolCallEvents = toolCallEvents)
             }
         }
 
@@ -156,10 +157,10 @@ internal fun ChatScreen(
 // ==================== 消息列表 ====================
 
 @Composable
-private fun MessageList(messages: List<UiChatMessage>) {
+private fun MessageList(messages: List<UiChatMessage>, toolCallEvents: List<ToolCallEvent>) {
     val listState = rememberLazyListState()
 
-    LaunchedEffect(messages.size) {
+    LaunchedEffect(messages.size, toolCallEvents.size) {
         if (messages.isNotEmpty()) {
             listState.animateScrollToItem(messages.lastIndex)
         }
@@ -176,6 +177,11 @@ private fun MessageList(messages: List<UiChatMessage>) {
         item { Spacer(modifier = Modifier.height(8.dp)) }
         items(messages) { msg ->
             ChatBubble(message = msg)
+        }
+        if (toolCallEvents.isNotEmpty()) {
+            item {
+                ToolCallEventsView(events = toolCallEvents)
+            }
         }
         item { Spacer(modifier = Modifier.height(8.dp)) }
     }
@@ -275,6 +281,84 @@ private fun ChatBubble(message: UiChatMessage) {
                     color = textColor,
                     fontSize = 15.sp,
                     lineHeight = 22.sp,
+                )
+            }
+        }
+    }
+}
+
+
+
+// ==================== 工具调用事件 ====================
+
+@Composable
+private fun ToolCallEventsView(events: List<ToolCallEvent>) {
+    if (events.isEmpty()) return
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        events.forEach { event ->
+            ToolCallEventItem(event = event)
+        }
+    }
+}
+
+@Composable
+private fun ToolCallEventItem(event: ToolCallEvent) {
+    var isExpanded by remember { mutableStateOf(false) }
+    val colorScheme = MaterialTheme.colorScheme
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .clickable { if (event.result != null) isExpanded = !isExpanded }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = if (event.isRunning) "⏳" else "✅",
+                fontSize = 12.sp,
+            )
+            Text(
+                text = event.toolName,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+            if (event.result != null) {
+                Text(
+                    text = if (isExpanded) "▼" else "▶",
+                    fontSize = 10.sp,
+                    color = colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                )
+            }
+        }
+
+        if (isExpanded && event.result != null) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(colorScheme.surface)
+                    .padding(8.dp),
+            ) {
+                Text(
+                    text = event.result,
+                    fontSize = 12.sp,
+                    color = colorScheme.onSurfaceVariant,
+                    lineHeight = 16.sp,
                 )
             }
         }

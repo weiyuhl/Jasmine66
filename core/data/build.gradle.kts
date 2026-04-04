@@ -17,4 +17,7 @@ dependencies {
     implementation(projects.core.analytics)
     implementation(projects.core.notifications)
     implementation(projects.jasmineCore.prompt.promptExecutor)
+    implementation(projects.jasmineCore.agent.agentTools)
+    implementation(projects.jasmineCore.agent.agentRuntime)
+    implementation(projects.linuxSandbox.sandbox)
 }

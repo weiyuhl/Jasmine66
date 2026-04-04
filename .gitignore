@@ -14,6 +14,7 @@ gen/
 out/
 build/
 generated/
+Kai-main/
 
 # Local configuration file (sdk path, etc)
 local.properties
