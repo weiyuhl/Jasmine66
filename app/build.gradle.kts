@@ -45,6 +45,9 @@ android {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
+        jniLibs {
+            useLegacyPackaging = true
+        }
     }
     namespace = "com.lhzkml.jasmine"
 }
@@ -61,12 +64,18 @@ dependencies {
     implementation(projects.feature.search.impl)
     implementation(projects.feature.settings.impl)
 
+    implementation(projects.feature.sandbox.api)
+    implementation(projects.feature.sandbox.impl)
+
     implementation(projects.core.common)
     implementation(projects.core.ui)
     implementation(projects.core.designsystem)
     implementation(projects.core.data)
     implementation(projects.core.model)
     implementation(projects.core.analytics)
+
+    // Linux Sandbox module
+    implementation(projects.linuxSandbox.sandbox)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

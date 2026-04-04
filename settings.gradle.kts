@@ -69,6 +69,11 @@ include(":jasmine-core:prompt:prompt-model")
 include(":jasmine-core:prompt:prompt-llm")
 include(":jasmine-core:prompt:prompt-executor")
 
+include(":linux-sandbox:sandbox")
+
+include(":feature:sandbox:api")
+include(":feature:sandbox:impl")
+
 check(JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
     """
     Jasmine requires JDK 17+ but it is currently using JDK ${JavaVersion.current()}.

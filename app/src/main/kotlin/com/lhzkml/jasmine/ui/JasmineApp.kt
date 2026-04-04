@@ -66,6 +66,7 @@ import com.lhzkml.jasmine.feature.knowledgebase.impl.navigation.knowledgeBaseEnt
 import com.lhzkml.jasmine.feature.search.api.navigation.SearchNavKey
 import com.lhzkml.jasmine.feature.search.impl.navigation.searchEntry
 import com.lhzkml.jasmine.feature.settings.impl.settingsEntry
+import com.lhzkml.jasmine.feature.sandbox.impl.navigation.sandboxEntry
 import com.lhzkml.jasmine.feature.tools.impl.navigation.toolsEntry
 import com.lhzkml.jasmine.navigation.TOP_LEVEL_NAV_ITEMS
 import com.lhzkml.jasmine.ui.LocalSnackbarHostState
@@ -268,6 +269,7 @@ internal fun JasmineAppContent(
                             knowledgeBaseEntry(navigator)
                             searchEntry(navigator)
                             settingsEntry(navigator)
+                            sandboxEntry(navigator)
                         }
 
                         NavDisplay(

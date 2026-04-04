@@ -44,13 +44,14 @@ import androidx.navigation3.runtime.NavKey
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
-import com.lhzkml.jasmine.core.navigation.Navigator
-import com.lhzkml.jasmine.core.navigation.SettingsNavKey
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.DARK
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.FOLLOW_SYSTEM
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.LIGHT
+import com.lhzkml.jasmine.core.navigation.Navigator
+import com.lhzkml.jasmine.core.navigation.SettingsNavKey
 import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
+import com.lhzkml.jasmine.feature.sandbox.api.navigation.SandboxNavKey
 import com.lhzkml.jasmine.feature.settings.impl.R.string
 
 /**
@@ -65,6 +66,7 @@ private enum class SettingsSubPage {
 @Composable
 internal fun SettingsScreen(
     onBackClick: () -> Unit,
+    navigator: Navigator,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
@@ -76,23 +78,24 @@ internal fun SettingsScreen(
 
     when (currentSubPage) {
         SettingsSubPage.NONE -> {
-            // 设置入口列表
             SettingsMenuScreen(
                 onBackClick = onBackClick,
+                navigator = navigator,
                 onBasicSettingsClick = { currentSubPage = SettingsSubPage.BASIC_SETTINGS },
                 onProviderConfigClick = { currentSubPage = SettingsSubPage.PROVIDER_CONFIG },
+                onSandboxClick = { navigator.navigate(SandboxNavKey) },
             )
         }
+
         SettingsSubPage.BASIC_SETTINGS -> {
-            // 基本设置子页面
             BasicSettingsScreen(
                 settingsUiState = settingsUiState,
                 viewModel = viewModel,
                 onBackClick = { currentSubPage = SettingsSubPage.NONE },
             )
         }
+
         SettingsSubPage.PROVIDER_CONFIG -> {
-            // 大模型供应商配置子页面
             ProviderConfigScreen(
                 providerRepo = viewModel.providerRepo,
                 clientManager = viewModel.clientManager,
@@ -107,8 +110,10 @@ internal fun SettingsScreen(
 @Composable
 private fun SettingsMenuScreen(
     onBackClick: () -> Unit,
+    navigator: Navigator,
     onBasicSettingsClick: () -> Unit,
     onProviderConfigClick: () -> Unit,
+    onSandboxClick: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -129,7 +134,6 @@ private fun SettingsMenuScreen(
         ) {
             TrackScreenViewEvent(screenName = "Settings")
 
-            // 基本设置
             SettingsMenuItem(
                 title = "基本设置",
                 subtitle = "主题、动态色彩、深色模式",
@@ -138,7 +142,6 @@ private fun SettingsMenuScreen(
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
-            // 大模型配置
             SettingsMenuItem(
                 title = stringResource(string.feature_settings_impl_provider_config),
                 subtitle = "API Key 与供应商选择",
@@ -147,7 +150,14 @@ private fun SettingsMenuScreen(
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
-            // 开源许可
+            SettingsMenuItem(
+                title = "Linux Sandbox",
+                subtitle = "Alpine Linux 终端环境",
+                onClick = onSandboxClick,
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
             SettingsMenuItem(
                 title = stringResource(string.feature_settings_impl_licenses),
                 subtitle = "查看第三方开源许可证",
@@ -301,6 +311,6 @@ fun SettingsDialogThemeChooserRow(
 
 fun EntryProviderScope<NavKey>.settingsEntry(navigator: Navigator) {
     entry<SettingsNavKey> {
-        SettingsScreen(onBackClick = { navigator.goBack() })
+        SettingsScreen(onBackClick = { navigator.goBack() }, navigator = navigator)
     }
 }
