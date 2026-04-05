@@ -68,6 +68,8 @@ include(":feature:knowledgebase:impl")
 include(":jasmine-core:prompt:prompt-model")
 include(":jasmine-core:prompt:prompt-llm")
 include(":jasmine-core:prompt:prompt-executor")
+include(":jasmine-core:prompt:prompt-ui")
+include(":jasmine-core:prompt:prompt-ui")
 include(":jasmine-core:prompt:prompt-mnn")
 
 // Agent modules

@@ -75,6 +75,10 @@ internal fun ChatScreen(
     val toolCallEvents by viewModel.toolCallEvents.collectAsStateWithLifecycle()
     var showBottomSheet by remember { mutableStateOf(false) }
 
+    val onUiCallback: (String, Map<String, String>) -> Unit = { event, data ->
+        viewModel.onUiCallback(event, data)
+    }
+
     // 每次 ChatScreen 进入 Composition 时（包括从设置页返回），主动刷新供应商状态
     LaunchedEffect(Unit) {
         viewModel.refreshProviderState()
@@ -95,7 +99,7 @@ internal fun ChatScreen(
             if (messages.isEmpty()) {
                 EmptyStateView()
             } else {
-                MessageList(messages = messages, toolCallEvents = toolCallEvents)
+                MessageList(messages = messages, toolCallEvents = toolCallEvents, onUiCallback = onUiCallback)
             }
         }
 
@@ -157,7 +161,7 @@ internal fun ChatScreen(
 // ==================== 消息列表 ====================
 
 @Composable
-private fun MessageList(messages: List<UiChatMessage>, toolCallEvents: List<ToolCallEvent>) {
+private fun MessageList(messages: List<UiChatMessage>, toolCallEvents: List<ToolCallEvent>, onUiCallback: ((String, Map<String, String>) -> Unit)? = null) {
     val listState = rememberLazyListState()
 
     LaunchedEffect(messages.size, toolCallEvents.size) {
@@ -176,7 +180,7 @@ private fun MessageList(messages: List<UiChatMessage>, toolCallEvents: List<Tool
     ) {
         item { Spacer(modifier = Modifier.height(8.dp)) }
         items(messages) { msg ->
-            ChatBubble(message = msg)
+            ChatBubble(message = msg, onUiCallback = onUiCallback)
         }
         if (toolCallEvents.isNotEmpty()) {
             item {
@@ -188,7 +192,7 @@ private fun MessageList(messages: List<UiChatMessage>, toolCallEvents: List<Tool
 }
 
 @Composable
-private fun ChatBubble(message: UiChatMessage) {
+private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<String, String>) -> Unit)? = null) {
     val isUser = message.role == "user"
     val colorScheme = MaterialTheme.colorScheme
 
@@ -276,12 +280,50 @@ private fun ChatBubble(message: UiChatMessage) {
                 message.content
             }
             if (displayText.isNotEmpty()) {
-                Text(
-                    text = displayText,
-                    color = textColor,
-                    fontSize = 15.sp,
-                    lineHeight = 22.sp,
-                )
+                if (message.role == "assistant" && !message.isStreaming && com.lhzkml.jasmine.core.prompt.ui.KaiUiParser.containsUiBlocks(displayText)) {
+                    val segments = remember(displayText) { com.lhzkml.jasmine.core.prompt.ui.KaiUiParser.parse(displayText) }
+                    Column {
+                        for (segment in segments) {
+                            when (segment) {
+                                is com.lhzkml.jasmine.core.prompt.ui.KaiUiParser.MarkdownSegment -> {
+                                    Text(
+                                        text = segment.content,
+                                        color = textColor,
+                                        fontSize = 15.sp,
+                                        lineHeight = 22.sp,
+                                    )
+                                }
+                                is com.lhzkml.jasmine.core.prompt.ui.KaiUiParser.UiSegment -> {
+                                    com.lhzkml.jasmine.core.prompt.ui.KaiUiRenderer(
+                                        node = segment.node,
+                                        isInteractive = true,
+                                        onCallback = onUiCallback ?: { _, _ -> },
+                                        wrapInCard = true,
+                                    )
+                                }
+                                is com.lhzkml.jasmine.core.prompt.ui.KaiUiParser.ErrorSegment -> {
+                                    Text(
+                                        text = segment.rawJson,
+                                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                                            .padding(8.dp),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Text(
+                        text = displayText,
+                        color = textColor,
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
+                    )
+                }
             }
         }
     }

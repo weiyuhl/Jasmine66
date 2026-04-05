@@ -80,6 +80,58 @@ class ChatViewModel @Inject constructor(
         _toolCallEvents.value = emptyList()
     }
 
+    fun onUiCallback(event: String, data: Map<String, String>) {
+        val message = if (data.isNotEmpty()) {
+            val formattedData = data.entries.joinToString(", ") { "${it.key}: ${it.value}" }
+            "Responded with: $formattedData"
+        } else {
+            "Pressed: $event"
+        }
+        val userMsg = UiChatMessage(role = "user", content = message)
+        _messages.value = _messages.value + userMsg
+
+        val assistantPlaceholder = UiChatMessage(role = "assistant", content = "", isStreaming = true)
+        _messages.value = _messages.value + assistantPlaceholder
+
+        val model = clientManager.getActiveModel()
+        val history = buildApiMessages()
+
+        streamJob = viewModelScope.launch {
+            try {
+                val result = clientManager.streamChat(
+                    messages = history,
+                    model = model,
+                    onChunk = { chunk ->
+                        updateLastAssistant { it.copy(content = it.content + chunk) }
+                    },
+                    onThinking = { thinkChunk ->
+                        updateLastAssistant {
+                            it.copy(thinking = (it.thinking ?: "") + thinkChunk)
+                        }
+                    },
+                )
+                updateLastAssistant {
+                    it.copy(
+                        isStreaming = false,
+                        thinking = result.thinking ?: it.thinking,
+                        toolCalls = result.toolCalls,
+                    )
+                }
+            } catch (e: Exception) {
+                val errorMsg = e.message ?: "请求失败"
+                _errorMessage.value = errorMsg
+                com.lhzkml.jasmine.core.data.log.FileLogger.logError("ChatViewModel", "UI callback failed: $errorMsg", e)
+                val current = _messages.value.toMutableList()
+                if (current.isNotEmpty() && current.last().role == "assistant" && current.last().content.isEmpty()) {
+                    current.removeAt(current.lastIndex)
+                    _messages.value = current
+                }
+            } finally {
+                _isChatRunning.value = false
+            }
+        }
+    }
+
     fun onSendClick() {
         val prompt = _chatPrompt.value.trim()
         if (prompt.isBlank() || _isChatRunning.value) return
