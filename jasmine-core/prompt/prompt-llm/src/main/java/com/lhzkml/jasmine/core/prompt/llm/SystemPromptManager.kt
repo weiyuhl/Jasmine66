@@ -22,7 +22,47 @@ When the user asks you to check system information, run commands, or perform tas
 2. If the sandbox is not installed, inform the user and tell them to go to Settings > Linux Sandbox to install it
 3. If packages are missing (e.g., python3, git, nodejs), suggest the user install them via `apk add <package>` and provide the exact command
 
-You can use the execute_shell_command tool to run commands in the sandbox. Common packages that may need installation: python3, py3-pip, nodejs, git, curl, wget, jq, bash, gcc, make."""
+You can use the execute_shell_command tool to run commands in the sandbox. Common packages that may need installation: python3, py3-pip, nodejs, git, curl, wget, jq, bash, gcc, make.
+
+## Interactive UI (kai-ui)
+You can render interactive UI components in your responses by using code blocks with the `kai-ui` language tag. Each code block should contain one or more JSON objects, one per line. The app will parse and render these as interactive components.
+
+### Supported components:
+- **button**: `{ "type": "button", "label": "Click me", "action": { "type": "callback", "event": "my_event" } }`
+- **alert**: `{ "type": "alert", "message": "Info text", "severity": "info" }` (severity: info, success, warning, error)
+- **progress**: `{ "type": "progress", "value": 0.5, "label": "Loading..." }` (value 0-1, omit for indeterminate)
+- **text**: `{ "type": "text", "value": "Some text", "style": "title" }` (style: headline, title, body, caption)
+- **text_input**: `{ "type": "text_input", "id": "input1", "label": "Name", "placeholder": "Enter name" }`
+- **checkbox**: `{ "type": "checkbox", "id": "check1", "label": "Agree" }`
+- **select**: `{ "type": "select", "id": "sel1", "label": "Choose", "options": ["A", "B", "C"] }`
+- **switch**: `{ "type": "switch", "id": "sw1", "label": "Enable" }`
+- **slider**: `{ "type": "slider", "id": "sl1", "label": "Volume", "min": 0, "max": 100, "value": 50 }`
+- **radio_group**: `{ "type": "radio_group", "id": "radio1", "label": "Option", "options": ["A", "B"] }`
+- **chip_group**: `{ "type": "chip_group", "id": "chips1", "chips": [{"label": "Tag1", "value": "t1"}] }`
+- **card**: `{ "type": "card", "children": [ ...nodes... ] }`
+- **column**: `{ "type": "column", "children": [ ...nodes... ] }`
+- **row**: `{ "type": "row", "children": [ ...nodes... ] }`
+- **divider**: `{ "type": "divider" }`
+- **spacer**: `{ "type": "spacer", "height": 16 }`
+- **code**: `{ "type": "code", "code": "print('hello')", "language": "python" }`
+- **table**: `{ "type": "table", "headers": ["A", "B"], "rows": [["1", "2"]] }`
+- **quote**: `{ "type": "quote", "text": "Quote text", "source": "Author" }`
+- **badge**: `{ "type": "badge", "value": "New", "color": "primary" }`
+- **stat**: `{ "type": "stat", "value": "42", "label": "Count" }`
+- **image**: `{ "type": "image", "url": "https://example.com/img.png" }`
+
+### Button actions:
+- **callback**: `{ "type": "callback", "event": "event_name", "collectFrom": ["input1", "check1"] }` — sends event + form data back to you as a user message
+- **toggle**: `{ "type": "toggle", "targetId": "some_id" }` — shows/hides element by id
+- **open_url**: `{ "type": "open_url", "url": "https://example.com" }` — opens URL in browser
+
+### Example:
+```kai-ui
+{ "type": "alert", "message": "Sandbox not installed. Please install it first.", "severity": "warning" }
+{ "type": "button", "label": "Install Sandbox", "action": { "type": "callback", "event": "install_sandbox" } }
+```
+
+When the user clicks a button with a callback action, you receive a message like "Pressed: install_sandbox" or "Responded with: input1: value". Use this to create interactive workflows."""
 
         /** 内置预设模板 */
         val presets = listOf(
