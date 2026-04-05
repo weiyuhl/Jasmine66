@@ -287,22 +287,20 @@ private fun TerminalContent(
 
                         is TerminalLine.Output -> {
                             Text(
-                                text = line.text,
+                                text = parseAnsiToAnnotatedString(line.text, terminalText),
                                 style = TextStyle(
                                     fontFamily = FontFamily.Monospace,
                                     fontSize = 13.sp,
-                                    color = terminalText,
                                 ),
                             )
                         }
 
                         is TerminalLine.Error -> {
                             Text(
-                                text = line.text,
+                                text = parseAnsiToAnnotatedString(line.text, terminalError),
                                 style = TextStyle(
                                     fontFamily = FontFamily.Monospace,
                                     fontSize = 13.sp,
-                                    color = terminalError,
                                 ),
                             )
                         }

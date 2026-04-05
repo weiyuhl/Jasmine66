@@ -156,7 +156,9 @@ class ChatViewModel @Inject constructor(
                     _errorMessage.value = null
                 }
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "请求失败"
+                val errorMsg = e.message ?: "请求失败"
+                _errorMessage.value = errorMsg
+                com.lhzkml.jasmine.core.data.log.FileLogger.logError("ChatViewModel", "Chat request failed: $errorMsg\nFull exception: ${e}\nCause: ${e.cause}", e)
                 val current = _messages.value.toMutableList()
                 if (current.isNotEmpty() && current.last().role == "assistant" && current.last().content.isEmpty()) {
                     current.removeAt(current.lastIndex)

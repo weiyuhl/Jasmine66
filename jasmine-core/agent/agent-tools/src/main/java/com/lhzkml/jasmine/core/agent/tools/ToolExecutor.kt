@@ -223,7 +223,9 @@ class ToolExecutor(
                 ))
 
                 try {
-                    val toolResult = registry.execute(call)
+                    val toolResult = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        registry.execute(call)
+                    }
                     eventListener?.onToolCallResult(call.name, toolResult.content)
 
                     tracing?.emit(TraceEvent.ToolCallCompleted(
@@ -379,7 +381,9 @@ class ToolExecutor(
                 ))
 
                 try {
-                    val toolResult = registry.execute(call)
+                    val toolResult = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        registry.execute(call)
+                    }
                     eventListener?.onToolCallResult(call.name, toolResult.content)
 
                     tracing?.emit(TraceEvent.ToolCallCompleted(

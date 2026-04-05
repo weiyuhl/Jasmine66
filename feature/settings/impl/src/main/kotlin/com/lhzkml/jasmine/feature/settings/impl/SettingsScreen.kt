@@ -1,8 +1,11 @@
 package com.lhzkml.jasmine.feature.settings.impl
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
+import com.lhzkml.jasmine.core.data.log.FileLogger
 import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
@@ -154,6 +158,14 @@ private fun SettingsMenuScreen(
                 title = "Linux Sandbox",
                 subtitle = "Alpine Linux 终端环境",
                 onClick = onSandboxClick,
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+            SettingsMenuItem(
+                title = "导出日志",
+                subtitle = "导出应用日志用于问题排查",
+                onClick = { exportLogs(context) },
             )
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -312,5 +324,44 @@ fun SettingsDialogThemeChooserRow(
 fun EntryProviderScope<NavKey>.settingsEntry(navigator: Navigator) {
     entry<SettingsNavKey> {
         SettingsScreen(onBackClick = { navigator.goBack() }, navigator = navigator)
+    }
+}
+
+private fun exportLogs(context: Context) {
+    try {
+        val logContent = FileLogger.getCombinedLogs()
+        if (logContent.isEmpty()) {
+            Toast.makeText(context, "暂无日志记录", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val logFiles = FileLogger.getLogFiles()
+        if (logFiles.isNotEmpty()) {
+            val latestLog = logFiles.first()
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_SUBJECT, "Jasmine 应用日志")
+                putExtra(Intent.EXTRA_TEXT, logContent)
+                putExtra(Intent.EXTRA_STREAM, androidx.core.content.FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    latestLog
+                ))
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(Intent.createChooser(intent, "分享日志"))
+        } else {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_SUBJECT, "Jasmine 应用日志")
+                putExtra(Intent.EXTRA_TEXT, logContent)
+            }
+            context.startActivity(Intent.createChooser(intent, "分享日志"))
+        }
+    } catch (e: Exception) {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val logContent = FileLogger.getCombinedLogs()
+        clipboard.setPrimaryClip(ClipData.newPlainText("Jasmine Logs", logContent))
+        Toast.makeText(context, "日志已复制到剪贴板", Toast.LENGTH_SHORT).show()
     }
 }

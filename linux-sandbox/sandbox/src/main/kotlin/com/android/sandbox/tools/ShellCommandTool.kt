@@ -2,6 +2,7 @@ package com.android.sandbox.tools
 
 import com.android.sandbox.core.LinuxSandboxManager
 import com.android.sandbox.core.SandboxState
+import java.io.File
 import kotlin.time.Duration.Companion.seconds
 
 private const val TOOL_DESCRIPTION = """Execute a shell command in an Alpine Linux sandbox and return stdout, stderr, and exit code. The environment is a full Alpine Linux system running via proot with:
@@ -36,12 +37,19 @@ class ShellCommandTool(
         ),
     )
 
+    private fun isSandboxReady(): Boolean {
+        if (sandboxManager.state.value is SandboxState.Ready) return true
+        val rootfs = File(sandboxManager.rootfsPath)
+        val proot = File(sandboxManager.prootPath)
+        return rootfs.isDirectory && proot.exists() && proot.canExecute()
+    }
+
     @Suppress("UNCHECKED_CAST")
     override suspend fun execute(args: Map<String, Any>): Any {
         val command = args["command"] as? String
             ?: return mapOf("success" to false, "error" to "Command is required")
 
-        if (sandboxManager.state.value !is SandboxState.Ready) {
+        if (!isSandboxReady()) {
             return mapOf("success" to false, "error" to "Linux sandbox is not installed. Set it up first.")
         }
 

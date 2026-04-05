@@ -35,6 +35,7 @@ class ChatClientException(
     message: String,
     val errorType: ErrorType = ErrorType.UNKNOWN,
     val statusCode: Int? = null,
+    val rawResponseBody: String? = null,
     cause: Throwable? = null
 ) : RuntimeException("[$providerName] $message", cause) {
 
@@ -45,21 +46,28 @@ class ChatClientException(
             else -> false
         }
 
+    override fun toString(): String {
+        val base = super.toString()
+        return if (rawResponseBody != null) {
+            "$base\nRaw Response Body: $rawResponseBody"
+        } else {
+            base
+        }
+    }
+
     companion object {
-        /**
-         * 根据 HTTP 状态码创建异常
-         */
         fun fromStatusCode(providerName: String, statusCode: Int, responseBody: String? = null): ChatClientException {
             val (errorType, message) = when (statusCode) {
                 401 -> ErrorType.AUTHENTICATION to "API Key 无效或已过期"
                 403 -> ErrorType.AUTHENTICATION to "无权访问该资源"
                 429 -> ErrorType.RATE_LIMIT to "请求过于频繁，请稍后重试"
-                400 -> ErrorType.INVALID_REQUEST to "请求参数错误: ${responseBody ?: "未知"}"
+                400 -> ErrorType.INVALID_REQUEST to "请求参数错误"
                 404 -> ErrorType.MODEL_UNAVAILABLE to "模型不存在或不可用"
                 500, 502, 503, 504 -> ErrorType.SERVER_ERROR to "服务器错误，请稍后重试"
                 else -> ErrorType.UNKNOWN to "请求失败，状态码: $statusCode"
             }
-            return ChatClientException(providerName, message, errorType, statusCode)
+            return ChatClientException(providerName, message, errorType, statusCode, responseBody)
         }
     }
 }
+

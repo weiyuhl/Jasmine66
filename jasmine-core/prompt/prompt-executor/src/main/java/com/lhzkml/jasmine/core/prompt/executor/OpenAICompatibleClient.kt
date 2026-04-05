@@ -98,7 +98,7 @@ abstract class OpenAICompatibleClient(
                 )
                 msg.role == "tool" -> OpenAIRequestMessage(
                     role = "tool",
-                    content = msg.content,
+                    content = msg.content.ifEmpty { "Tool returned empty result" },
                     toolCallId = msg.toolCallId
                 )
                 else -> OpenAIRequestMessage(role = msg.role, content = msg.content)
@@ -203,6 +203,8 @@ abstract class OpenAICompatibleClient(
                 
                 val requestBody = json.encodeToString(request)
                     .toRequestBody("application/json".toMediaType())
+
+                android.util.Log.d("OpenAICompat", "Request: POST ${baseUrl}${chatPath} model=$model tools=${tools.size}")
                 
                 val httpRequest = Request.Builder()
                     .url("${baseUrl}${chatPath}")
@@ -233,7 +235,22 @@ abstract class OpenAICompatibleClient(
                             override fun onResponse(call: Call, response: Response) {
                                 try {
                                     if (!response.isSuccessful) {
-                                        val body = response.body?.string()
+                                        val body = response.body?.string() ?: ""
+                                        android.util.Log.e("OpenAICompat", "API error: code=${response.code}, body=$body")
+                                        val logMsg = buildString {
+                                            appendLine("=== API Error Response ===")
+                                            appendLine("URL: ${baseUrl}${chatPath}")
+                                            appendLine("Status: ${response.code}")
+                                            appendLine("Request model: $model")
+                                            appendLine("Stream: true")
+                                            if (tools.isNotEmpty()) {
+                                                appendLine("Tools: ${tools.map { it.name }}")
+                                            }
+                                            appendLine("Response Body:")
+                                            appendLine(body)
+                                            appendLine("=== End API Error Response ===")
+                                        }
+                                        android.util.Log.e("API_Error_Log", logMsg)
                                         continuation.resumeWithException(
                                             ChatClientException.fromStatusCode(provider.name, response.code, body)
                                         )

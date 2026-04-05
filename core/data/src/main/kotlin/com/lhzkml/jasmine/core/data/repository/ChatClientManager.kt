@@ -20,6 +20,7 @@ import com.lhzkml.jasmine.core.prompt.model.SamplingParams
 import com.lhzkml.jasmine.core.prompt.model.ToolCall
 import com.lhzkml.jasmine.core.prompt.model.ToolDescriptor
 import com.lhzkml.jasmine.core.prompt.model.ToolResult
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -332,6 +334,12 @@ class ChatClientManager @Inject constructor(
                 onToolCallResult = onToolCallResult,
             )
 
+            mutableMessages.add(
+                ChatMessage.assistantWithToolCalls(
+                    toolCalls = result.toolCalls,
+                    content = result.content,
+                )
+            )
             for (toolResult in toolResults) {
                 mutableMessages.add(ChatMessage.toolResult(toolResult))
             }
@@ -382,8 +390,10 @@ class ChatClientManager @Inject constructor(
         toolCalls.map { call ->
             async {
                 onToolCallStart(call.name, call.arguments)
-                val result = withTimeout(120.seconds) {
-                    toolManager.execute(call)
+                val result = withContext(Dispatchers.IO) {
+                    withTimeout(120.seconds) {
+                        toolManager.execute(call)
+                    }
                 }
                 onToolCallResult(call.name, result.content)
                 result

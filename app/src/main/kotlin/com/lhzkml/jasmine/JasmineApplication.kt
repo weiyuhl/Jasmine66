@@ -6,6 +6,7 @@ import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy.Builder
 import coil.ImageLoader
 import coil.ImageLoaderFactory
+import com.lhzkml.jasmine.core.data.log.FileLogger
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -21,6 +22,7 @@ class JasmineApplication : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
 
+        FileLogger.init(this)
         setStrictModePolicy()
 
     }

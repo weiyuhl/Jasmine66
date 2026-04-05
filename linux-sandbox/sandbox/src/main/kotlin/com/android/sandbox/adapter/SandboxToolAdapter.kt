@@ -12,6 +12,12 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
+private val ansiEscapeRegex = Regex("\u001B\\[[;\\d]*[A-Za-z]")
+private val oscEscapeRegex = Regex("\u001B\\].*?(?:\u0007|\u001B\\\\)")
+
+private fun stripAnsi(text: String): String =
+    ansiEscapeRegex.replace(oscEscapeRegex.replace(text, ""), "")
+
 private fun ToolSchema.toDescriptor(): ToolDescriptor {
     val required = parameters.filterValues { it.required }
     val optional = parameters.filterValues { !it.required }
@@ -72,7 +78,7 @@ class ExecuteShellCommandTool(
 
     private fun formatResult(result: Any): String {
         @Suppress("UNCHECKED_CAST")
-        val map = result as? Map<String, Any> ?: return result.toString()
+        val map = result as? Map<String, Any> ?: return stripAnsi(result.toString())
         val success = map["success"] as? Boolean ?: false
         val error = map["error"] as? String
         val stdout = map["stdout"] as? String ?: ""
@@ -98,11 +104,11 @@ class ExecuteShellCommandTool(
             }
             if (stdout.isNotEmpty()) {
                 appendLine("--- stdout ---")
-                appendLine(stdout)
+                appendLine(stripAnsi(stdout))
             }
             if (stderr.isNotEmpty()) {
                 appendLine("--- stderr ---")
-                appendLine(stderr)
+                appendLine(stripAnsi(stderr))
             }
             if (exitCode != null) {
                 appendLine("Exit code: $exitCode")
@@ -131,7 +137,7 @@ class ManageProcessTool(
 
     private fun formatResult(result: Any): String {
         @Suppress("UNCHECKED_CAST")
-        val map = result as? Map<String, Any> ?: return result.toString()
+        val map = result as? Map<String, Any> ?: return stripAnsi(result.toString())
         val success = map["success"] as? Boolean ?: false
         val error = map["error"] as? String
         val message = map["message"] as? String
@@ -184,11 +190,11 @@ class ManageProcessTool(
                 }
                 if (!stdout.isNullOrEmpty()) {
                     appendLine("--- stdout ---")
-                    appendLine(stdout)
+                    appendLine(stripAnsi(stdout))
                 }
                 if (!stderr.isNullOrEmpty()) {
                     appendLine("--- stderr ---")
-                    appendLine(stderr)
+                    appendLine(stripAnsi(stderr))
                 }
             }
         }.trimEnd()
