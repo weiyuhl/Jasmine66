@@ -214,6 +214,7 @@ class ChatClientManager @Inject constructor(
         onResumeAttempt: suspend (Int) -> Unit = {},
         onToolCallStart: suspend (String, String) -> Unit = { _, _ -> },
         onToolCallResult: suspend (String, String) -> Unit = { _, _ -> },
+        kaiUiEnabled: Boolean = true,
     ): StreamChatResult {
         val client = chatClient
             ?: throw IllegalStateException("发送失败: ${_setupState.value}")
@@ -222,7 +223,7 @@ class ChatClientManager @Inject constructor(
         val hasTools = tools.isNotEmpty()
 
         // 1. 转换消息并注入 System Prompt
-        val apiMessages = buildApiMessagesWithSystemPrompt(messages)
+        val apiMessages = buildApiMessagesWithSystemPrompt(messages, kaiUiEnabled)
 
         // 2. 上下文窗口裁剪
         val trimmedMessages = contextManager.trimMessages(apiMessages)
@@ -509,14 +510,15 @@ class ChatClientManager @Inject constructor(
     /**
      * 构建包含 System Prompt 的 API 消息列表
      */
-    private fun buildApiMessagesWithSystemPrompt(messages: List<SimpleChatMessage>): List<ChatMessage> {
+    private fun buildApiMessagesWithSystemPrompt(messages: List<SimpleChatMessage>, kaiUiEnabled: Boolean = true): List<ChatMessage> {
         val result = mutableListOf<ChatMessage>()
 
         // 注入 System Prompt
         val id = providerRepo.getActiveProviderId() ?: ""
         val customPrompt = providerRepo.getSystemPrompt(id)
         val systemMsg = systemPromptManager.createSystemMessage(
-            if (customPrompt.isNotBlank()) customPrompt else null
+            if (customPrompt.isNotBlank()) customPrompt else null,
+            kaiUiEnabled = kaiUiEnabled,
         )
         result.add(systemMsg)
 

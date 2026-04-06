@@ -9,7 +9,7 @@ import com.lhzkml.jasmine.core.prompt.model.ChatMessage
  */
 class SystemPromptManager(
     /** 默认系统提示词 */
-    var defaultPrompt: String = DEFAULT_PROMPT
+    var defaultPrompt: String = DEFAULT_PROMPT,
 ) {
 
     companion object {
@@ -19,7 +19,9 @@ class SystemPromptManager(
 You have a Linux sandbox (Alpine Linux via proot) with the execute_shell_command tool. It provides: apk package manager, networking, persistent /root directory.
 - Check readiness first: run `uname -a` or `echo test`
 - If not installed, tell user: go to Settings > Linux Sandbox to install
-- Install packages: `apk add <package>` (python3, py3-pip, nodejs, git, curl, wget, jq, bash, gcc, make)
+- Install packages: `apk add <package>` (python3, py3-pip, nodejs, git, curl, wget, jq, bash, gcc, make)"""
+
+        const val KAI_UI_INSTRUCTIONS = """
 
 ## Dynamic UI
 You can enhance your chat responses with interactive UI elements using kai-ui blocks. Proactively use them whenever you need input from the user — don't just ask in plain text if a form, selector, or buttons would be more natural. Use kai-ui whenever collecting data, offering choices, presenting structured information, or guiding multi-step workflows. You can mix kai-ui blocks with regular markdown text naturally — use markdown for explanations and kai-ui for interactive elements.
@@ -83,23 +85,26 @@ Example:
     data class Preset(
         val id: String,
         val name: String,
-        val prompt: String
+        val prompt: String,
     )
 
     /**
      * 创建 system 消息
      * @param customPrompt 自定义提示词，为 null 时使用默认值
+     * @param kaiUiEnabled 是否启用 kai-ui 动态交互 UI
      */
-    fun createSystemMessage(customPrompt: String? = null): ChatMessage {
-        val prompt = if (customPrompt.isNullOrBlank()) defaultPrompt else customPrompt
+    fun createSystemMessage(customPrompt: String? = null, kaiUiEnabled: Boolean = true): ChatMessage {
+        val prompt = resolvePrompt(customPrompt, kaiUiEnabled)
         return ChatMessage.system(prompt)
     }
 
     /**
      * 获取有效的 system prompt 文本
      * @param customPrompt 自定义提示词，为 null 或空时返回默认值
+     * @param kaiUiEnabled 是否启用 kai-ui 动态交互 UI
      */
-    fun resolvePrompt(customPrompt: String? = null): String {
-        return if (customPrompt.isNullOrBlank()) defaultPrompt else customPrompt
+    fun resolvePrompt(customPrompt: String? = null, kaiUiEnabled: Boolean = true): String {
+        val base = if (customPrompt.isNullOrBlank()) defaultPrompt else customPrompt
+        return if (kaiUiEnabled) base + KAI_UI_INSTRUCTIONS else base
     }
 }

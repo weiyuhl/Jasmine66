@@ -25,6 +25,7 @@ class JasminePreferencesDataSource @Inject constructor(
                     DarkThemeConfigProto.DARK_THEME_CONFIG_DARK -> DarkThemeConfig.DARK
                 },
                 shouldHideOnboarding = it.shouldHideOnboarding,
+                kaiUiEnabled = it.kaiUiEnabled,
             )
         }
 
@@ -44,6 +45,12 @@ class JasminePreferencesDataSource @Inject constructor(
     suspend fun setShouldHideOnboarding(shouldHideOnboarding: Boolean) {
         userPreferences.updateData {
             it.copy { this.shouldHideOnboarding = shouldHideOnboarding }
+        }
+    }
+
+    suspend fun setKaiUiEnabled(kaiUiEnabled: Boolean) {
+        userPreferences.updateData {
+            it.copy { this.kaiUiEnabled = kaiUiEnabled }
         }
     }
 }

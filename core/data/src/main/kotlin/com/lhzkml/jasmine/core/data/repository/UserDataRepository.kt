@@ -21,4 +21,9 @@ interface UserDataRepository {
      * Sets whether the user has completed the onboarding process.
      */
     suspend fun setShouldHideOnboarding(shouldHideOnboarding: Boolean)
+
+    /**
+     * Sets whether the kai-ui dynamic UI feature is enabled.
+     */
+    suspend fun setKaiUiEnabled(kaiUiEnabled: Boolean)
 }

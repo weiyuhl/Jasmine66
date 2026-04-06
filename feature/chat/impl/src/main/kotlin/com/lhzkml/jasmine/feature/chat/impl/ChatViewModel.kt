@@ -5,11 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.lhzkml.jasmine.core.data.model.SimpleChatMessage
 import com.lhzkml.jasmine.core.data.model.ToolCallInfo
 import com.lhzkml.jasmine.core.data.repository.ChatClientManager
+import com.lhzkml.jasmine.core.data.repository.UserDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,6 +33,7 @@ data class ToolCallEvent(
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val clientManager: ChatClientManager,
+    private val userDataRepository: UserDataRepository,
 ) : ViewModel() {
 
     private val _chatPrompt = MutableStateFlow("")
@@ -98,6 +101,7 @@ class ChatViewModel @Inject constructor(
 
         streamJob = viewModelScope.launch {
             try {
+                val kaiUiEnabled = userDataRepository.userData.first().kaiUiEnabled
                 val result = clientManager.streamChat(
                     messages = history,
                     model = model,
@@ -109,6 +113,7 @@ class ChatViewModel @Inject constructor(
                             it.copy(thinking = (it.thinking ?: "") + thinkChunk)
                         }
                     },
+                    kaiUiEnabled = kaiUiEnabled,
                 )
                 updateLastAssistant {
                     it.copy(
@@ -157,6 +162,7 @@ class ChatViewModel @Inject constructor(
 
         streamJob = viewModelScope.launch {
             try {
+                val kaiUiEnabled = userDataRepository.userData.first().kaiUiEnabled
                 val result = clientManager.streamChat(
                     messages = history,
                     model = model,
@@ -168,13 +174,10 @@ class ChatViewModel @Inject constructor(
                             it.copy(thinking = (it.thinking ?: "") + thinkChunk)
                         }
                     },
-                    onResumeAttempt = { attempt ->
-                        _errorMessage.value = "网络中断，正在续传 (第 $attempt 次)..."
-                    },
-                    onToolCallStart = { toolName, args ->
+                    onToolCallStart = { toolName, toolArgs ->
                         _toolCallEvents.value = _toolCallEvents.value + ToolCallEvent(
                             toolName = toolName,
-                            arguments = args,
+                            arguments = toolArgs,
                             isRunning = true,
                         )
                     },
@@ -196,6 +199,7 @@ class ChatViewModel @Inject constructor(
                             )
                         }
                     },
+                    kaiUiEnabled = kaiUiEnabled,
                 )
                 updateLastAssistant {
                     it.copy(

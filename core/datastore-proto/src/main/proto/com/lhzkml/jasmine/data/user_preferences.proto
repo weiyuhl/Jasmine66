@@ -16,5 +16,7 @@ message UserPreferences {
 
     bool use_dynamic_color = 19;
 
-    // NEXT AVAILABLE ID: 21
+    bool kai_ui_enabled = 21;
+
+    // NEXT AVAILABLE ID: 22
 }

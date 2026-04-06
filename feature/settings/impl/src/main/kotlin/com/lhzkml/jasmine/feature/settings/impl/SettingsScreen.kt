@@ -82,12 +82,18 @@ internal fun SettingsScreen(
 
     when (currentSubPage) {
         SettingsSubPage.NONE -> {
+            val kaiUiEnabled = when (val state = settingsUiState) {
+                is SettingsUiState.Success -> state.settings.kaiUiEnabled
+                else -> true
+            }
             SettingsMenuScreen(
                 onBackClick = onBackClick,
                 navigator = navigator,
                 onBasicSettingsClick = { currentSubPage = SettingsSubPage.BASIC_SETTINGS },
                 onProviderConfigClick = { currentSubPage = SettingsSubPage.PROVIDER_CONFIG },
                 onSandboxClick = { navigator.navigate(SandboxNavKey) },
+                kaiUiEnabled = kaiUiEnabled,
+                onKaiUiToggle = { viewModel.updateKaiUiEnabled(it) },
             )
         }
 
@@ -118,6 +124,8 @@ private fun SettingsMenuScreen(
     onBasicSettingsClick: () -> Unit,
     onProviderConfigClick: () -> Unit,
     onSandboxClick: () -> Unit,
+    kaiUiEnabled: Boolean,
+    onKaiUiToggle: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -170,6 +178,15 @@ private fun SettingsMenuScreen(
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
+            SettingsToggleItem(
+                title = "动态交互 UI",
+                subtitle = "允许 AI 渲染按钮、表单等交互组件",
+                checked = kaiUiEnabled,
+                onCheckedChange = onKaiUiToggle,
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
             SettingsMenuItem(
                 title = stringResource(string.feature_settings_impl_licenses),
                 subtitle = "查看第三方开源许可证",
@@ -211,6 +228,40 @@ private fun SettingsMenuItem(
             text = "›",
             fontSize = 22.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun SettingsToggleItem(
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        androidx.compose.material3.Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
         )
     }
 }
