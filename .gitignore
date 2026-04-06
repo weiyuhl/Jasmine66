@@ -16,6 +16,8 @@ build/
 generated/
 kai-main/
 LLM-Hub-main/
+.kilo/
+gallery-main/
 
 # Local configuration file (sdk path, etc)
 local.properties
