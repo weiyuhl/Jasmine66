@@ -54,6 +54,7 @@ include(":core:navigation")
 include(":core:network")
 include(":core:notifications")
 include(":core:ui")
+include(":websearch")
 
 include(":feature:search:api")
 include(":feature:search:impl")

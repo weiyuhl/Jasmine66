@@ -18,5 +18,7 @@ message UserPreferences {
 
     bool kai_ui_enabled = 21;
 
-    // NEXT AVAILABLE ID: 22
+    bool web_search_enabled = 22;
+
+    // NEXT AVAILABLE ID: 23
 }

@@ -29,6 +29,7 @@ data class ChatRequest(
 @Serializable
 data class OpenAIRequestMessage(
     val role: String,
+    @kotlinx.serialization.SerialName("content")
     val content: String? = null,
     @SerialName("tool_calls")
     val toolCalls: List<OpenAIToolCallDef>? = null,

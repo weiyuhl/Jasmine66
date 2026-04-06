@@ -86,6 +86,10 @@ internal fun SettingsScreen(
                 is SettingsUiState.Success -> state.settings.kaiUiEnabled
                 else -> true
             }
+            val webSearchEnabled = when (val state = settingsUiState) {
+                is SettingsUiState.Success -> state.settings.webSearchEnabled
+                else -> true
+            }
             SettingsMenuScreen(
                 onBackClick = onBackClick,
                 navigator = navigator,
@@ -94,6 +98,8 @@ internal fun SettingsScreen(
                 onSandboxClick = { navigator.navigate(SandboxNavKey) },
                 kaiUiEnabled = kaiUiEnabled,
                 onKaiUiToggle = { viewModel.updateKaiUiEnabled(it) },
+                webSearchEnabled = webSearchEnabled,
+                onWebSearchToggle = { viewModel.updateWebSearchEnabled(it) },
             )
         }
 
@@ -126,6 +132,8 @@ private fun SettingsMenuScreen(
     onSandboxClick: () -> Unit,
     kaiUiEnabled: Boolean,
     onKaiUiToggle: (Boolean) -> Unit,
+    webSearchEnabled: Boolean,
+    onWebSearchToggle: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -183,6 +191,19 @@ private fun SettingsMenuScreen(
                 subtitle = "允许 AI 渲染按钮、表单等交互组件",
                 checked = kaiUiEnabled,
                 onCheckedChange = onKaiUiToggle,
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+            SettingsToggleItem(
+                title = "联网搜索",
+                subtitle = if (webSearchEnabled) {
+                    "获取网络实时信息"
+                } else {
+                    "仅使用离线知识"
+                },
+                checked = webSearchEnabled,
+                onCheckedChange = onWebSearchToggle,
             )
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))

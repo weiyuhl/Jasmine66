@@ -86,22 +86,28 @@ abstract class OpenAICompatibleClient(
         return messages.map { msg ->
             val tc = msg.toolCalls
             when {
-                msg.role == "assistant" && !tc.isNullOrEmpty() -> OpenAIRequestMessage(
-                    role = "assistant",
-                    content = msg.content.ifEmpty { null },
-                    toolCalls = tc.map {
-                        OpenAIToolCallDef(
-                            id = it.id,
-                            function = OpenAIFunctionCallDef(name = it.name, arguments = it.arguments)
-                        )
-                    }
-                )
+                msg.role == "assistant" && !tc.isNullOrEmpty() -> {
+                    // 当有 tool_calls 时，content 可以为空字符串，避免发送 null
+                    OpenAIRequestMessage(
+                        role = "assistant",
+                        content = msg.content.ifEmpty { "" },
+                        toolCalls = tc.map {
+                            OpenAIToolCallDef(
+                                id = it.id,
+                                function = OpenAIFunctionCallDef(name = it.name, arguments = it.arguments)
+                            )
+                        }
+                    )
+                }
                 msg.role == "tool" -> OpenAIRequestMessage(
                     role = "tool",
                     content = msg.content.ifEmpty { "Tool returned empty result" },
                     toolCallId = msg.toolCallId
                 )
-                else -> OpenAIRequestMessage(role = msg.role, content = msg.content)
+                else -> OpenAIRequestMessage(
+                    role = msg.role, 
+                    content = msg.content.ifEmpty { null }
+                )
             }
         }
     }

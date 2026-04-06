@@ -29,4 +29,9 @@ internal class OfflineFirstUserDataRepository @Inject constructor(
     override suspend fun setKaiUiEnabled(kaiUiEnabled: Boolean) {
         JasminePreferencesDataSource.setKaiUiEnabled(kaiUiEnabled)
     }
+
+    override suspend fun setWebSearchEnabled(webSearchEnabled: Boolean) {
+        JasminePreferencesDataSource.setWebSearchEnabled(webSearchEnabled)
+        JasmineAnalyticsHelper.logWebSearchEnabledChanged(webSearchEnabled)
+    }
 }

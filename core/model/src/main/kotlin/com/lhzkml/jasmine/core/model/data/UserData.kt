@@ -6,4 +6,5 @@ package com.lhzkml.jasmine.core.model.data
     val darkThemeConfig: DarkThemeConfig,
     val shouldHideOnboarding: Boolean,
     val kaiUiEnabled: Boolean = true,
+    val webSearchEnabled: Boolean = true,
 )

@@ -26,4 +26,9 @@ interface UserDataRepository {
      * Sets whether the kai-ui dynamic UI feature is enabled.
      */
     suspend fun setKaiUiEnabled(kaiUiEnabled: Boolean)
+
+    /**
+     * Sets whether web search is enabled.
+     */
+    suspend fun setWebSearchEnabled(webSearchEnabled: Boolean)
 }

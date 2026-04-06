@@ -30,3 +30,10 @@ internal fun JasmineAnalyticsHelper.logOnboardingStateChanged(shouldHideOnboardi
         AnalyticsEvent(type = eventType),
     )
 }
+
+internal fun JasmineAnalyticsHelper.logWebSearchEnabledChanged(webSearchEnabled: Boolean) {
+    val eventType = if (webSearchEnabled) "web_search_enabled" else "web_search_disabled"
+    logEvent(
+        AnalyticsEvent(type = eventType),
+    )
+}

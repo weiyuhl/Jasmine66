@@ -73,6 +73,7 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.model)
     implementation(projects.core.analytics)
+    implementation(projects.websearch)
 
     // Linux Sandbox module
     implementation(projects.linuxSandbox.sandbox)

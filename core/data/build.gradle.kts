@@ -13,7 +13,9 @@ dependencies {
     api(projects.core.database)
     api(projects.core.datastore)
     api(projects.core.network)
+    api(projects.websearch)
 
+    implementation(libs.kotlinx.serialization.json)
     implementation(projects.core.analytics)
     implementation(projects.core.notifications)
     implementation(projects.jasmineCore.prompt.promptExecutor)

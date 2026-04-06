@@ -30,6 +30,7 @@ class SettingsViewModel @Inject constructor(
                     settings = UserEditableSettings(
                         darkThemeConfig = userData.darkThemeConfig,
                         kaiUiEnabled = userData.kaiUiEnabled,
+                        webSearchEnabled = userData.webSearchEnabled,
                     ),
                 )
             }
@@ -50,6 +51,12 @@ class SettingsViewModel @Inject constructor(
             userDataRepository.setKaiUiEnabled(kaiUiEnabled)
         }
     }
+
+    fun updateWebSearchEnabled(webSearchEnabled: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setWebSearchEnabled(webSearchEnabled)
+        }
+    }
 }
 
 /**
@@ -58,6 +65,7 @@ class SettingsViewModel @Inject constructor(
 data class UserEditableSettings(
     val darkThemeConfig: DarkThemeConfig,
     val kaiUiEnabled: Boolean,
+    val webSearchEnabled: Boolean,
 )
 
 sealed interface SettingsUiState {

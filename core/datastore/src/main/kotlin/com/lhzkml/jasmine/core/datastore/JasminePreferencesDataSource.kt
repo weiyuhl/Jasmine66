@@ -26,6 +26,7 @@ class JasminePreferencesDataSource @Inject constructor(
                 },
                 shouldHideOnboarding = it.shouldHideOnboarding,
                 kaiUiEnabled = it.kaiUiEnabled,
+                webSearchEnabled = it.webSearchEnabled,
             )
         }
 
@@ -51,6 +52,12 @@ class JasminePreferencesDataSource @Inject constructor(
     suspend fun setKaiUiEnabled(kaiUiEnabled: Boolean) {
         userPreferences.updateData {
             it.copy { this.kaiUiEnabled = kaiUiEnabled }
+        }
+    }
+
+    suspend fun setWebSearchEnabled(webSearchEnabled: Boolean) {
+        userPreferences.updateData {
+            it.copy { this.webSearchEnabled = webSearchEnabled }
         }
     }
 }
