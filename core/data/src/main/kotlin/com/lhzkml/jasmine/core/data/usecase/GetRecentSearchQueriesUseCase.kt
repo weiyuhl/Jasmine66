@@ -1,5 +1,4 @@
-
-package com.lhzkml.jasmine.core.domain
+package com.lhzkml.jasmine.core.data.usecase
 
 import com.lhzkml.jasmine.core.data.model.RecentSearchQuery
 import com.lhzkml.jasmine.core.data.repository.RecentSearchRepository

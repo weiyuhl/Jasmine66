@@ -17,6 +17,7 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
     implementation(projects.core.analytics)
+    implementation(projects.core.domain)
     implementation(projects.core.notifications)
     implementation(projects.jasmineCore.prompt.promptExecutor)
     implementation(projects.jasmineCore.agent.agentTools)

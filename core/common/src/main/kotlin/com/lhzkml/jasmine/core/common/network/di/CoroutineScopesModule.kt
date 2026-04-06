@@ -27,4 +27,3 @@ internal object CoroutineScopesModule {
         @Dispatcher(Default) dispatcher: CoroutineDispatcher,
     ): CoroutineScope = CoroutineScope(SupervisorJob() + dispatcher)
 }
-

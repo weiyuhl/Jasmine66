@@ -10,6 +10,6 @@ android {
 
 dependencies {
     implementation(projects.core.domain)
-    implementation(projects.feature.search.api)
+    implementation(projects.core.data)
     implementation(projects.feature.search.api)
 }

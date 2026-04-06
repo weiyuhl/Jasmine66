@@ -66,6 +66,8 @@ dependencies {
 
     implementation(projects.feature.sandbox.api)
     implementation(projects.feature.sandbox.impl)
+    implementation(projects.feature.skills.api)
+    implementation(projects.feature.skills.impl)
 
     implementation(projects.core.common)
     implementation(projects.core.ui)

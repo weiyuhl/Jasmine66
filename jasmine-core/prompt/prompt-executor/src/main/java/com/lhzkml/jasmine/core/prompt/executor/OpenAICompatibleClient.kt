@@ -104,9 +104,17 @@ abstract class OpenAICompatibleClient(
                     content = msg.content.ifEmpty { "Tool returned empty result" },
                     toolCallId = msg.toolCallId
                 )
+                msg.role == "user" -> OpenAIRequestMessage(
+                    role = "user",
+                    content = msg.content.ifEmpty { "" }
+                )
+                msg.role == "assistant" -> OpenAIRequestMessage(
+                    role = "assistant",
+                    content = msg.content.ifEmpty { "" }
+                )
                 else -> OpenAIRequestMessage(
                     role = msg.role, 
-                    content = msg.content.ifEmpty { null }
+                    content = msg.content.ifEmpty { "" }
                 )
             }
         }

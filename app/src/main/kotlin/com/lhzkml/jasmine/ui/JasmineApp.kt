@@ -67,6 +67,8 @@ import com.lhzkml.jasmine.feature.search.api.navigation.SearchNavKey
 import com.lhzkml.jasmine.feature.search.impl.navigation.searchEntry
 import com.lhzkml.jasmine.feature.settings.impl.settingsEntry
 import com.lhzkml.jasmine.feature.sandbox.impl.navigation.sandboxEntry
+import com.lhzkml.jasmine.feature.skills.api.SkillsNavKey
+import com.lhzkml.jasmine.feature.skills.impl.navigation.skillsEntry
 import com.lhzkml.jasmine.feature.tools.impl.navigation.toolsEntry
 import com.lhzkml.jasmine.navigation.TOP_LEVEL_NAV_ITEMS
 import com.lhzkml.jasmine.ui.LocalSnackbarHostState
@@ -144,21 +146,36 @@ internal fun JasmineAppContent(
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                 )
                 Spacer(Modifier.weight(1f))
-                NavigationDrawerItem(
-                    label = { Text(stringResource(settingsR.string.feature_settings_impl_title)) },
-                    selected = appState.navigationState.currentKey == SettingsNavKey,
-                    onClick = {
-                        navigator.navigate(SettingsNavKey)
-                        coroutineScope.launch { drawerState.close() }
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = JasmineIcons.Settings,
-                            contentDescription = null,
-                        )
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-                )
+                 NavigationDrawerItem(
+                     label = { Text(stringResource(settingsR.string.feature_settings_impl_title)) },
+                     selected = appState.navigationState.currentKey == SettingsNavKey,
+                     onClick = {
+                         navigator.navigate(SettingsNavKey)
+                         coroutineScope.launch { drawerState.close() }
+                     },
+                     icon = {
+                         Icon(
+                             imageVector = JasmineIcons.Settings,
+                             contentDescription = null,
+                         )
+                     },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                 )
+                 NavigationDrawerItem(
+                     label = { Text("技能管理") },
+                     selected = appState.navigationState.currentKey == SkillsNavKey,
+                     onClick = {
+                         navigator.navigate(SkillsNavKey)
+                         coroutineScope.launch { drawerState.close() }
+                     },
+                     icon = {
+                         Icon(
+                             imageVector = JasmineIcons.Settings,
+                             contentDescription = null,
+                         )
+                     },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                 )
             }
         },
     ) {
@@ -267,9 +284,10 @@ internal fun JasmineAppContent(
                             chatEntry(navigator)
                             toolsEntry(navigator)
                             knowledgeBaseEntry(navigator)
-                            searchEntry(navigator)
-                            settingsEntry(navigator)
-                            sandboxEntry(navigator)
+                             searchEntry(navigator)
+                             settingsEntry(navigator)
+                             sandboxEntry(navigator)
+                             skillsEntry(navigator)
                         }
 
                         NavDisplay(

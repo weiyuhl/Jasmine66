@@ -5,3 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 object SettingsNavKey : NavKey
+
+@Serializable
+object SkillsNavKey : NavKey

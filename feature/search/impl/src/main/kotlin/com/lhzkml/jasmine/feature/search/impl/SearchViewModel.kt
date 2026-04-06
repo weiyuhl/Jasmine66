@@ -8,7 +8,7 @@ import com.lhzkml.jasmine.core.analytics.AnalyticsEvent
 import com.lhzkml.jasmine.core.analytics.AnalyticsEvent.Param
 import com.lhzkml.jasmine.core.data.repository.RecentSearchRepository
 import com.lhzkml.jasmine.core.data.repository.UserDataRepository
-import com.lhzkml.jasmine.core.domain.GetRecentSearchQueriesUseCase
+import com.lhzkml.jasmine.core.data.usecase.GetRecentSearchQueriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

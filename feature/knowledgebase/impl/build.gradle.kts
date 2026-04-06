@@ -9,4 +9,5 @@ android {
 
 dependencies {
     implementation(projects.feature.knowledgebase.api)
+    implementation(projects.core.navigation)
 }

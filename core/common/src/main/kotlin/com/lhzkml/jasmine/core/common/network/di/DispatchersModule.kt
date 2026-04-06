@@ -23,5 +23,3 @@ object JasmineDispatchersModule {
     @Dispatcher(Default)
     fun providesDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
 }
-
-

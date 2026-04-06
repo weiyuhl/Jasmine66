@@ -11,7 +11,9 @@ import com.lhzkml.jasmine.core.agent.tools.GetCurrentTimeTool
 import com.lhzkml.jasmine.core.agent.tools.Tool
 import com.lhzkml.jasmine.core.agent.tools.ToolRegistry
 import com.lhzkml.jasmine.core.data.model.ToolCallInfo
+import com.lhzkml.jasmine.core.data.tools.SkillsTool
 import com.lhzkml.jasmine.core.data.tools.WebSearchTool
+import com.lhzkml.jasmine.core.domain.repository.SkillManager
 import com.lhzkml.jasmine.core.prompt.model.ToolCall
 import com.lhzkml.jasmine.core.prompt.model.ToolDescriptor
 import com.lhzkml.jasmine.core.prompt.model.ToolResult
@@ -23,6 +25,8 @@ import javax.inject.Singleton
 class ChatToolManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val webSearchTool: WebSearchTool,
+    private val skillsTool: SkillsTool,
+    private val skillManager: SkillManager,
 ) {
 
     private val toolRegistry = ToolRegistry()
@@ -57,6 +61,7 @@ class ChatToolManager @Inject constructor(
         CalculatorTool.allTools().forEach { registerTool(it) }
         registerTool(GetCurrentTimeTool)
         registerTool(webSearchTool)
+        registerTool(skillsTool)
         registerSandboxTools()
     }
 

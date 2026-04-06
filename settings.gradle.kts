@@ -89,6 +89,8 @@ include(":linux-sandbox:sandbox")
 
 include(":feature:sandbox:api")
 include(":feature:sandbox:impl")
+include(":feature:skills:api")
+include(":feature:skills:impl")
 
 check(JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
     """
