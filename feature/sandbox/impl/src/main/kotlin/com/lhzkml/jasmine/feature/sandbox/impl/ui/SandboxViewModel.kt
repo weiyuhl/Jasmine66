@@ -23,6 +23,9 @@ data class SandboxUiState(
     val sandboxPackagesInstalled: Boolean = false,
     val isWorking: Boolean = false,
     val hasError: Boolean = false,
+    val osInfo: String? = null,
+    val kernelInfo: String? = null,
+    val archInfo: String? = null,
 )
 
 @HiltViewModel
@@ -49,6 +52,37 @@ class SandboxViewModel @Inject constructor(
                         hasError = sandboxStatus.error,
                     )
                 }
+                if (sandboxStatus.ready && _state.value.osInfo == null) {
+                    fetchSystemInfo()
+                }
+            }
+        }
+    }
+
+    private fun fetchSystemInfo() {
+        viewModelScope.launch {
+            try {
+                // Fetch OS info
+                val osOutput = sandboxController.executeCommand("cat /etc/os-release | grep PRETTY_NAME | cut -d '=' -f 2 | tr -d '\"'")
+                val osInfo = osOutput.trim().takeIf { it.isNotBlank() } ?: "Alpine Linux"
+                
+                // Fetch Kernel info
+                val kernelOutput = sandboxController.executeCommand("uname -r")
+                val kernelInfo = kernelOutput.trim().takeIf { it.isNotBlank() }
+                
+                // Fetch Architecture info
+                val archOutput = sandboxController.executeCommand("uname -m")
+                val archInfo = archOutput.trim().takeIf { it.isNotBlank() }
+
+                _state.update { 
+                    it.copy(
+                        osInfo = osInfo,
+                        kernelInfo = kernelInfo,
+                        archInfo = archInfo,
+                    )
+                }
+            } catch (e: Exception) {
+                // Ignore errors silently for system info
             }
         }
     }

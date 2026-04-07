@@ -10,7 +10,10 @@ import com.lhzkml.jasmine.feature.sandbox.impl.ui.TerminalScreen
 
 fun EntryProviderScope<NavKey>.sandboxEntry(navigator: Navigator) {
     entry<SandboxNavKey> {
-        SandboxScreen(onOpenTerminal = { navigator.navigate(TerminalNavKey) })
+        SandboxScreen(
+            onBackClick = { navigator.goBack() },
+            onOpenTerminal = { navigator.navigate(TerminalNavKey) }
+        )
     }
     entry<TerminalNavKey> {
         TerminalScreen(onBack = { navigator.goBack() })

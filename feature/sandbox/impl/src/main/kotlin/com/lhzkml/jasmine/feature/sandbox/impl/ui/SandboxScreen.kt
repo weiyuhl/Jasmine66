@@ -67,6 +67,7 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SandboxScreen(
+    onBackClick: () -> Unit = {},
     onOpenTerminal: () -> Unit = {},
 ) {
     val viewModel: SandboxViewModel = hiltViewModel()
@@ -77,8 +78,16 @@ internal fun SandboxScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Linux 沙盒") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons.ArrowBack,
+                            contentDescription = "返回"
+                        )
+                    }
+                }
             )
-        },
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -105,10 +114,24 @@ internal fun SandboxScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Alpine Linux",
+                                text = state.osInfo ?: "Linux Sandbox",
                                 style = MaterialTheme.typography.titleMedium,
                             )
                             if (state.sandboxReady) {
+                                state.kernelInfo?.let {
+                                    Text(
+                                        text = "内核: $it",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                state.archInfo?.let {
+                                    Text(
+                                        text = "架构: $it",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                                 Text(
                                     text = "磁盘占用: ${state.sandboxDiskUsageMB} MB",
                                     style = MaterialTheme.typography.bodySmall,
