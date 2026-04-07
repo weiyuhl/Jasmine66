@@ -66,26 +66,17 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SandboxScreen() {
+internal fun SandboxScreen(
+    onOpenTerminal: () -> Unit = {},
+) {
     val viewModel: SandboxViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var showTerminal by remember { mutableStateOf(false) }
     var showResetDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Linux 沙盒") },
-                actions = {
-                    if (state.sandboxReady) {
-                        IconButton(onClick = { showTerminal = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "打开终端",
-                            )
-                        }
-                    }
-                },
             )
         },
     ) { padding ->
@@ -167,6 +158,11 @@ internal fun SandboxScreen() {
                     }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (state.sandboxReady && !state.isWorking) {
+                            OutlinedButton(onClick = onOpenTerminal) {
+                                Text("打开终端")
+                            }
+                        }
                         if (state.sandboxReady && !state.sandboxPackagesInstalled && !state.isWorking) {
                             OutlinedButton(onClick = { viewModel.onInstallPackages() }) {
                                 Text("安装常用包")
@@ -186,14 +182,7 @@ internal fun SandboxScreen() {
                 }
             }
 
-            if (state.sandboxReady) {
-                TerminalContent(
-                    viewModel = viewModel,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(400.dp),
-                )
-            }
+
         }
     }
 
@@ -219,17 +208,10 @@ internal fun SandboxScreen() {
             },
         )
     }
-
-    if (showTerminal) {
-        TerminalSheet(
-            viewModel = viewModel,
-            onDismiss = { showTerminal = false },
-        )
-    }
 }
 
 @Composable
-private fun TerminalContent(
+internal fun TerminalContent(
     viewModel: SandboxViewModel,
     modifier: Modifier = Modifier,
 ) {
@@ -412,52 +394,8 @@ private fun TerminalContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TerminalSheet(
-    viewModel: SandboxViewModel,
-    onDismiss: () -> Unit,
-) {
-    androidx.compose.material3.ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFF252525),
-        dragHandle = null,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "终端",
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 16.sp,
-                        color = Color(0xFF6CB6FF),
-                    ),
-                )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    text = "Alpine Linux",
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 12.sp,
-                        color = Color(0xFFD4D4D4).copy(alpha = 0.5f),
-                    ),
-                )
-            }
-        }
-        TerminalContent(
-            viewModel = viewModel,
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
-}
+
+
 
 private const val MAX_OUTPUT_LINES = 500
 
