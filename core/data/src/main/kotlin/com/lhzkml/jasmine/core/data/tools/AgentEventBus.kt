@@ -3,15 +3,15 @@ package com.lhzkml.jasmine.core.data.tools
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.CancellableContinuation
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.Continuation
 
 data class CallJsEvent(
     val url: String,
     val data: String,
     val secret: String,
-    val continuation: Continuation<String>
+    val continuation: CancellableContinuation<String>
 )
 
 /**
