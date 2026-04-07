@@ -45,6 +45,7 @@ data class ToolCallEvent(
 class ChatViewModel @Inject constructor(
     private val clientManager: ChatClientManager,
     private val userDataRepository: UserDataRepository,
+    val agentEventBus: com.lhzkml.jasmine.core.data.tools.AgentEventBus,
 ) : ViewModel() {
 
     private val _chatPrompt = MutableStateFlow("")

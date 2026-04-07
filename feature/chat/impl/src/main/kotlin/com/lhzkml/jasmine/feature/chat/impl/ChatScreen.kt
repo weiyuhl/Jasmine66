@@ -111,6 +111,57 @@ internal fun ChatScreen(
     val extraPaddingPx = max(0, imeBottom - bottomBarHeightPx)
     val extraPaddingDp = with(density) { extraPaddingPx.toDp() }
 
+    // Jasmine Headless WebView JS Sandbox
+    var sandboxWebView by remember { mutableStateOf<android.webkit.WebView?>(null) }
+    Box(modifier = Modifier.size(0.dp)) {
+        androidx.compose.ui.viewinterop.AndroidView(
+            factory = { ctx ->
+                android.webkit.WebView(ctx).apply {
+                    settings.javaScriptEnabled = true
+                    sandboxWebView = this
+                }
+            }
+        )
+    }
+
+    LaunchedEffect(viewModel.agentEventBus) {
+        viewModel.agentEventBus.jsEvents.collect { event ->
+            // Update the JS interface per-event to capture the correct continuation
+            sandboxWebView?.addJavascriptInterface(object {
+                @android.webkit.JavascriptInterface
+                fun onResultReady(result: String) {
+                    if (event.continuation.isActive) {
+                        event.continuation.resumeWith(Result.success(result))
+                    }
+                }
+            }, "AiEdgeGallery")
+
+            sandboxWebView?.webViewClient = object : android.webkit.WebViewClient() {
+                override fun onPageFinished(view: android.webkit.WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    val script = """
+                        (async function() {
+                            var startTs = Date.now();
+                            while(true) {
+                                if (typeof ai_edge_gallery_get_result === 'function') {
+                                    break;
+                                }
+                                await new Promise(resolve=>{ setTimeout(resolve, 100) });
+                                if (Date.now() - startTs > 10000) {
+                                    break;
+                                }
+                            }
+                            var result = await ai_edge_gallery_get_result(`${event.data}`, `${event.secret}`);
+                            AiEdgeGallery.onResultReady(result);
+                        })()
+                    """.trimIndent()
+                    sandboxWebView?.evaluateJavascript(script, null)
+                }
+            }
+            sandboxWebView?.loadUrl(event.url)
+        }
+    }
+
     Column(modifier = modifier.fillMaxSize().padding(bottom = extraPaddingDp)) {
         // 消息区域
         Box(modifier = Modifier.weight(1f)) {
