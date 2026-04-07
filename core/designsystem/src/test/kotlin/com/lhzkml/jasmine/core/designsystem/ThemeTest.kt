@@ -1,26 +1,13 @@
 ﻿
 package com.lhzkml.jasmine.core.designsystem
 
-import android.os.Build.VERSION.SDK_INT
-import android.os.Build.VERSION_CODES
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.surfaceColorAtElevation
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
 import com.lhzkml.jasmine.core.designsystem.theme.BackgroundTheme
-import com.lhzkml.jasmine.core.designsystem.theme.DarkAndroidBackgroundTheme
-import com.lhzkml.jasmine.core.designsystem.theme.DarkAndroidColorScheme
-import com.lhzkml.jasmine.core.designsystem.theme.DarkAndroidGradientColors
 import com.lhzkml.jasmine.core.designsystem.theme.DarkDefaultColorScheme
 import com.lhzkml.jasmine.core.designsystem.theme.GradientColors
-import com.lhzkml.jasmine.core.designsystem.theme.LightAndroidBackgroundTheme
-import com.lhzkml.jasmine.core.designsystem.theme.LightAndroidColorScheme
-import com.lhzkml.jasmine.core.designsystem.theme.LightAndroidGradientColors
 import com.lhzkml.jasmine.core.designsystem.theme.LightDefaultColorScheme
 import com.lhzkml.jasmine.core.designsystem.theme.LocalBackgroundTheme
 import com.lhzkml.jasmine.core.designsystem.theme.LocalGradientColors
@@ -34,12 +21,7 @@ import org.robolectric.RobolectricTestRunner
 import kotlin.test.assertEquals
 
 /**
- * Tests [JasmineTheme] using different combinations of the theme mode parameters:
- * darkTheme, disableDynamicTheming, and androidTheme.
- *
- * It verifies that the various composition locals 锟?[MaterialTheme], [LocalGradientColors] and
- * [LocalBackgroundTheme] 锟?have the expected values for a given theme mode, as specified by the
- * design system.
+ * Tests [JasmineTheme] verifying color scheme, gradient, background, and tint composition locals.
  */
 @RunWith(RobolectricTestRunner::class)
 class ThemeTest {
@@ -48,179 +30,34 @@ class ThemeTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun darkThemeFalse_dynamicColorFalse_androidThemeFalse() {
+    fun lightTheme_hasCorrectColorScheme() {
         composeTestRule.setContent {
-            JasmineTheme(
-                darkTheme = false,
-                
-                androidTheme = false,
-            ) {
+            JasmineTheme(darkTheme = false) {
                 val colorScheme = LightDefaultColorScheme
                 assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
                 val gradientColors = defaultGradientColors(colorScheme)
                 assertEquals(gradientColors, LocalGradientColors.current)
                 val backgroundTheme = defaultBackgroundTheme(colorScheme)
                 assertEquals(backgroundTheme, LocalBackgroundTheme.current)
-                val tintTheme = defaultTintTheme()
-                assertEquals(tintTheme, LocalTintTheme.current)
+                assertEquals(TintTheme(), LocalTintTheme.current)
             }
         }
     }
 
     @Test
-    fun darkThemeTrue_dynamicColorFalse_androidThemeFalse() {
+    fun darkTheme_hasCorrectColorScheme() {
         composeTestRule.setContent {
-            JasmineTheme(
-                darkTheme = true,
-                
-                androidTheme = false,
-            ) {
+            JasmineTheme(darkTheme = true) {
                 val colorScheme = DarkDefaultColorScheme
                 assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
                 val gradientColors = defaultGradientColors(colorScheme)
                 assertEquals(gradientColors, LocalGradientColors.current)
                 val backgroundTheme = defaultBackgroundTheme(colorScheme)
                 assertEquals(backgroundTheme, LocalBackgroundTheme.current)
-                val tintTheme = defaultTintTheme()
-                assertEquals(tintTheme, LocalTintTheme.current)
+                assertEquals(TintTheme(), LocalTintTheme.current)
             }
         }
     }
-
-    @Test
-    fun darkThemeFalse_dynamicColorTrue_androidThemeFalse() {
-        composeTestRule.setContent {
-            JasmineTheme(
-                darkTheme = false,
-                
-                androidTheme = false,
-            ) {
-                val colorScheme = dynamicLightColorSchemeWithFallback()
-                assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
-                val gradientColors = dynamicGradientColorsWithFallback(colorScheme)
-                assertEquals(gradientColors, LocalGradientColors.current)
-                val backgroundTheme = defaultBackgroundTheme(colorScheme)
-                assertEquals(backgroundTheme, LocalBackgroundTheme.current)
-                val tintTheme = dynamicTintThemeWithFallback(colorScheme)
-                assertEquals(tintTheme, LocalTintTheme.current)
-            }
-        }
-    }
-
-    @Test
-    fun darkThemeTrue_dynamicColorTrue_androidThemeFalse() {
-        composeTestRule.setContent {
-            JasmineTheme(
-                darkTheme = true,
-                
-                androidTheme = false,
-            ) {
-                val colorScheme = dynamicDarkColorSchemeWithFallback()
-                assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
-                val gradientColors = dynamicGradientColorsWithFallback(colorScheme)
-                assertEquals(gradientColors, LocalGradientColors.current)
-                val backgroundTheme = defaultBackgroundTheme(colorScheme)
-                assertEquals(backgroundTheme, LocalBackgroundTheme.current)
-                val tintTheme = dynamicTintThemeWithFallback(colorScheme)
-                assertEquals(tintTheme, LocalTintTheme.current)
-            }
-        }
-    }
-
-    @Test
-    fun darkThemeFalse_dynamicColorFalse_androidThemeTrue() {
-        composeTestRule.setContent {
-            JasmineTheme(
-                darkTheme = false,
-                
-                androidTheme = true,
-            ) {
-                val colorScheme = LightAndroidColorScheme
-                assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
-                val gradientColors = LightAndroidGradientColors
-                assertEquals(gradientColors, LocalGradientColors.current)
-                val backgroundTheme = LightAndroidBackgroundTheme
-                assertEquals(backgroundTheme, LocalBackgroundTheme.current)
-                val tintTheme = defaultTintTheme()
-                assertEquals(tintTheme, LocalTintTheme.current)
-            }
-        }
-    }
-
-    @Test
-    fun darkThemeTrue_dynamicColorFalse_androidThemeTrue() {
-        composeTestRule.setContent {
-            JasmineTheme(
-                darkTheme = true,
-                
-                androidTheme = true,
-            ) {
-                val colorScheme = DarkAndroidColorScheme
-                assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
-                val gradientColors = DarkAndroidGradientColors
-                assertEquals(gradientColors, LocalGradientColors.current)
-                val backgroundTheme = DarkAndroidBackgroundTheme
-                assertEquals(backgroundTheme, LocalBackgroundTheme.current)
-                val tintTheme = defaultTintTheme()
-                assertEquals(tintTheme, LocalTintTheme.current)
-            }
-        }
-    }
-
-    @Test
-    fun darkThemeFalse_dynamicColorTrue_androidThemeTrue() {
-        composeTestRule.setContent {
-            JasmineTheme(
-                darkTheme = false,
-                
-                androidTheme = true,
-            ) {
-                val colorScheme = LightAndroidColorScheme
-                assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
-                val gradientColors = LightAndroidGradientColors
-                assertEquals(gradientColors, LocalGradientColors.current)
-                val backgroundTheme = LightAndroidBackgroundTheme
-                assertEquals(backgroundTheme, LocalBackgroundTheme.current)
-                val tintTheme = defaultTintTheme()
-                assertEquals(tintTheme, LocalTintTheme.current)
-            }
-        }
-    }
-
-    @Test
-    fun darkThemeTrue_dynamicColorTrue_androidThemeTrue() {
-        composeTestRule.setContent {
-            JasmineTheme(
-                darkTheme = true,
-                
-                androidTheme = true,
-            ) {
-                val colorScheme = DarkAndroidColorScheme
-                assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
-                val gradientColors = DarkAndroidGradientColors
-                assertEquals(gradientColors, LocalGradientColors.current)
-                val backgroundTheme = DarkAndroidBackgroundTheme
-                assertEquals(backgroundTheme, LocalBackgroundTheme.current)
-                val tintTheme = defaultTintTheme()
-                assertEquals(tintTheme, LocalTintTheme.current)
-            }
-        }
-    }
-
-    @Composable
-    private fun dynamicLightColorSchemeWithFallback(): ColorScheme = when {
-        SDK_INT >= VERSION_CODES.S -> dynamicLightColorScheme(LocalContext.current)
-        else -> LightDefaultColorScheme
-    }
-
-    @Composable
-    private fun dynamicDarkColorSchemeWithFallback(): ColorScheme = when {
-        SDK_INT >= VERSION_CODES.S -> dynamicDarkColorScheme(LocalContext.current)
-        else -> DarkDefaultColorScheme
-    }
-
-    private fun emptyGradientColors(colorScheme: ColorScheme): GradientColors =
-        GradientColors(container = colorScheme.surfaceColorAtElevation(2.dp))
 
     private fun defaultGradientColors(colorScheme: ColorScheme): GradientColors = GradientColors(
         top = colorScheme.inverseOnSurface,
@@ -228,26 +65,11 @@ class ThemeTest {
         container = colorScheme.surface,
     )
 
-    private fun dynamicGradientColorsWithFallback(colorScheme: ColorScheme): GradientColors = when {
-        SDK_INT >= VERSION_CODES.S -> emptyGradientColors(colorScheme)
-        else -> defaultGradientColors(colorScheme)
-    }
-
     private fun defaultBackgroundTheme(colorScheme: ColorScheme): BackgroundTheme = BackgroundTheme(
         color = colorScheme.surface,
         tonalElevation = 2.dp,
     )
 
-    private fun defaultTintTheme(): TintTheme = TintTheme()
-
-    private fun dynamicTintThemeWithFallback(colorScheme: ColorScheme): TintTheme = when {
-        SDK_INT >= VERSION_CODES.S -> TintTheme(colorScheme.primary)
-        else -> TintTheme()
-    }
-
-    /**
-     * Workaround for the fact that the Jasmine design system specify all color scheme values.
-     */
     private fun assertColorSchemesEqual(
         expectedColorScheme: ColorScheme,
         actualColorScheme: ColorScheme,
@@ -259,10 +81,7 @@ class ThemeTest {
         assertEquals(expectedColorScheme.secondary, actualColorScheme.secondary)
         assertEquals(expectedColorScheme.onSecondary, actualColorScheme.onSecondary)
         assertEquals(expectedColorScheme.secondaryContainer, actualColorScheme.secondaryContainer)
-        assertEquals(
-            expectedColorScheme.onSecondaryContainer,
-            actualColorScheme.onSecondaryContainer,
-        )
+        assertEquals(expectedColorScheme.onSecondaryContainer, actualColorScheme.onSecondaryContainer)
         assertEquals(expectedColorScheme.tertiary, actualColorScheme.tertiary)
         assertEquals(expectedColorScheme.onTertiary, actualColorScheme.onTertiary)
         assertEquals(expectedColorScheme.tertiaryContainer, actualColorScheme.tertiaryContainer)

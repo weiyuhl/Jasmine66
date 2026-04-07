@@ -3,6 +3,8 @@ package com.lhzkml.jasmine.core.designsystem.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.LineHeightStyle.Alignment
@@ -10,12 +12,26 @@ import androidx.compose.ui.text.style.LineHeightStyle.Trim
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.sp
+import com.lhzkml.jasmine.core.designsystem.R
 
 /**
- * Jasmine typography.
+ * Jasmine typography — Gallery-style with Nunito font family.
  */
+
+val appFontFamily = FontFamily(
+    Font(R.font.nunito_extralight, FontWeight.ExtraLight),
+    Font(R.font.nunito_light, FontWeight.Light),
+    Font(R.font.nunito_regular, FontWeight.Normal),
+    Font(R.font.nunito_medium, FontWeight.Medium),
+    Font(R.font.nunito_semibold, FontWeight.SemiBold),
+    Font(R.font.nunito_bold, FontWeight.Bold),
+    Font(R.font.nunito_extrabold, FontWeight.ExtraBold),
+    Font(R.font.nunito_black, FontWeight.Black),
+)
+
 internal val JasmineTypography = Typography(
     displayLarge = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 57.sp,
         lineHeight = 64.sp,
@@ -24,6 +40,7 @@ internal val JasmineTypography = Typography(
         textAlign = TextAlign.Left,
     ),
     displayMedium = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 45.sp,
         lineHeight = 52.sp,
@@ -32,6 +49,7 @@ internal val JasmineTypography = Typography(
         textAlign = TextAlign.Left,
     ),
     displaySmall = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 36.sp,
         lineHeight = 44.sp,
@@ -40,6 +58,7 @@ internal val JasmineTypography = Typography(
         textAlign = TextAlign.Left,
     ),
     headlineLarge = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 32.sp,
         lineHeight = 40.sp,
@@ -48,6 +67,7 @@ internal val JasmineTypography = Typography(
         textAlign = TextAlign.Left,
     ),
     headlineMedium = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 28.sp,
         lineHeight = 36.sp,
@@ -56,6 +76,7 @@ internal val JasmineTypography = Typography(
         textAlign = TextAlign.Left,
     ),
     headlineSmall = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 24.sp,
         lineHeight = 32.sp,
@@ -68,6 +89,7 @@ internal val JasmineTypography = Typography(
         textAlign = TextAlign.Left,
     ),
     titleLarge = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 22.sp,
         lineHeight = 28.sp,
@@ -80,6 +102,7 @@ internal val JasmineTypography = Typography(
         textAlign = TextAlign.Left,
     ),
     titleMedium = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 18.sp,
         lineHeight = 24.sp,
@@ -88,6 +111,7 @@ internal val JasmineTypography = Typography(
         textAlign = TextAlign.Left,
     ),
     titleSmall = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 20.sp,
@@ -95,8 +119,8 @@ internal val JasmineTypography = Typography(
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
     ),
-    // Default text style
     bodyLarge = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
@@ -109,6 +133,7 @@ internal val JasmineTypography = Typography(
         textAlign = TextAlign.Left,
     ),
     bodyMedium = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         lineHeight = 20.sp,
@@ -117,6 +142,7 @@ internal val JasmineTypography = Typography(
         textAlign = TextAlign.Left,
     ),
     bodySmall = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
         lineHeight = 16.sp,
@@ -124,8 +150,8 @@ internal val JasmineTypography = Typography(
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
     ),
-    // Used for Button
     labelLarge = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 20.sp,
@@ -137,8 +163,8 @@ internal val JasmineTypography = Typography(
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
     ),
-    // Used for Navigation items
     labelMedium = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
         lineHeight = 16.sp,
@@ -150,8 +176,8 @@ internal val JasmineTypography = Typography(
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
     ),
-    // Used for Tag
     labelSmall = TextStyle(
+        fontFamily = appFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 10.sp,
         lineHeight = 14.sp,
@@ -163,4 +189,65 @@ internal val JasmineTypography = Typography(
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
     ),
+)
+
+// ==================== Gallery-style Custom TextStyles ====================
+
+val homePageTitleStyle = TextStyle(
+    fontFamily = appFontFamily,
+    fontWeight = FontWeight.Medium,
+    fontSize = 48.sp,
+    lineHeight = 48.sp,
+    letterSpacing = (-1).sp,
+)
+
+val emptyStateTitle = TextStyle(
+    fontFamily = appFontFamily,
+    fontSize = 37.sp,
+    lineHeight = 50.sp,
+)
+
+val emptyStateContent = TextStyle(
+    fontFamily = appFontFamily,
+    fontSize = 16.sp,
+    lineHeight = 22.sp,
+)
+
+val titleSmaller = TextStyle(
+    fontFamily = appFontFamily,
+    fontWeight = FontWeight.Bold,
+    fontSize = 12.sp,
+)
+
+val titleMediumNarrow = TextStyle(
+    fontFamily = appFontFamily,
+    fontWeight = FontWeight.Bold,
+    fontSize = 16.sp,
+    letterSpacing = 0.sp,
+)
+
+val bodySmallMediumNarrow = TextStyle(
+    fontFamily = appFontFamily,
+    fontWeight = FontWeight.Normal,
+    fontSize = 14.sp,
+    letterSpacing = 0.sp,
+)
+
+val bodySmallMediumNarrowBold = TextStyle(
+    fontFamily = appFontFamily,
+    fontWeight = FontWeight.Bold,
+    fontSize = 14.sp,
+    letterSpacing = 0.sp,
+)
+
+val labelSmallNarrow = TextStyle(
+    fontFamily = appFontFamily,
+    fontWeight = FontWeight.Normal,
+    letterSpacing = 0.sp,
+)
+
+val labelSmallNarrowMedium = TextStyle(
+    fontFamily = appFontFamily,
+    fontWeight = FontWeight.Medium,
+    letterSpacing = 0.sp,
 )

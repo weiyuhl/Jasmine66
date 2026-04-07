@@ -1,5 +1,8 @@
 package com.lhzkml.jasmine.feature.chat.impl
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,7 +28,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.Image
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +50,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -53,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lhzkml.jasmine.core.designsystem.theme.customColors
 import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
@@ -195,9 +206,11 @@ private fun MessageList(messages: List<UiChatMessage>, toolCallEvents: List<Tool
 private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<String, String>) -> Unit)? = null) {
     val isUser = message.role == "user"
     val colorScheme = MaterialTheme.colorScheme
+    val custom = MaterialTheme.customColors
 
-    val bubbleColor = if (isUser) colorScheme.primary else colorScheme.surfaceVariant
-    val textColor = if (isUser) colorScheme.onPrimary else colorScheme.onSurfaceVariant
+    // Gallery-style colors
+    val bubbleColor = if (isUser) custom.userBubbleBgColor else custom.agentBubbleBgColor
+    val textColor = if (isUser) Color.White else colorScheme.onSurface
     val alignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
     val shape = RoundedCornerShape(
         topStart = 16.dp,
@@ -216,59 +229,66 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
                 .background(bubbleColor, shape)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
-            // 思考过程折叠区域（仅 assistant 且有 thinking 内容时显示）
+            // 思考过程折叠区域 — Gallery-style MessageBodyThinking
             if (!isUser && !message.thinking.isNullOrBlank()) {
                 var isThinkingExpanded by remember { mutableStateOf(false) }
 
+                // Auto-expand while thinking is in progress
+                if (message.isStreaming && message.content.isEmpty()) {
+                    isThinkingExpanded = true
+                }
+
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
                         .clickable { isThinkingExpanded = !isThinkingExpanded }
                         .padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
-                        text = if (isThinkingExpanded) "▼" else "▶",
-                        fontSize = 10.sp,
-                        color = textColor.copy(alpha = 0.6f),
-                    )
-                    Text(
                         text = "💭 思考过程",
-                        fontSize = 12.sp,
-                        color = textColor.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
+                        color = colorScheme.onSurfaceVariant,
                     )
-                    if (message.isStreaming && message.content.isEmpty()) {
+                    Icon(
+                        imageVector = if (isThinkingExpanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
+                        contentDescription = if (isThinkingExpanded) "收起" else "展开",
+                        tint = colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                // Gallery-style collapsible with left border line
+                AnimatedVisibility(
+                    visible = isThinkingExpanded,
+                    enter = expandVertically(),
+                    exit = shrinkVertically(),
+                ) {
+                    val lineColor = colorScheme.outlineVariant
+                    Column(
+                        modifier = Modifier
+                            .padding(top = 8.dp, bottom = 4.dp, start = 8.dp)
+                            .drawBehind {
+                                drawLine(
+                                    color = lineColor,
+                                    start = Offset(0f, 0f),
+                                    end = Offset(0f, size.height),
+                                    strokeWidth = 2.dp.toPx(),
+                                )
+                            }
+                            .padding(start = 12.dp)
+                    ) {
                         Text(
-                            text = "思考中...",
-                            fontSize = 11.sp,
-                            color = textColor.copy(alpha = 0.5f),
+                            text = message.thinking ?: "",
+                            color = colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                            lineHeight = 18.sp,
                         )
                     }
                 }
 
-                androidx.compose.animation.AnimatedVisibility(visible = isThinkingExpanded) {
-                    Text(
-                        text = message.thinking ?: "",
-                        color = textColor.copy(alpha = 0.65f),
-                        fontSize = 13.sp,
-                        lineHeight = 18.sp,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                    )
-                }
-
                 // 分隔线
                 if (message.content.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .background(textColor.copy(alpha = 0.15f))
-                    )
                     Spacer(modifier = Modifier.height(6.dp))
                 }
             }
@@ -289,7 +309,7 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
                                     Text(
                                         text = segment.content,
                                         color = textColor,
-                                        fontSize = 15.sp,
+                                        style = MaterialTheme.typography.bodyMedium,
                                         lineHeight = 22.sp,
                                     )
                                 }
@@ -306,10 +326,10 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
                                         text = segment.rawJson,
                                         fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
                                         fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.error,
+                                        color = colorScheme.error,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                                            .background(colorScheme.errorContainer.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
                                             .padding(8.dp),
                                     )
                                 }
@@ -320,7 +340,7 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
                     Text(
                         text = displayText,
                         color = textColor,
-                        fontSize = 15.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         lineHeight = 22.sp,
                     )
                 }
@@ -420,10 +440,11 @@ private fun ChatComposer(
     onAddClick: () -> Unit,
     isRunning: Boolean,
 ) {
-    val composerShape = RoundedCornerShape(22.dp)
+    val composerShape = RoundedCornerShape(24.dp)
     val sendEnabled = enabled && value.isNotBlank()
 
     val colorScheme = MaterialTheme.colorScheme
+    val custom = MaterialTheme.customColors
 
     Column(
         modifier = Modifier
@@ -530,8 +551,8 @@ private fun ChatComposer(
                     modifier = Modifier
                         .size(34.dp),
                     colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = if (sendEnabled) colorScheme.primary else colorScheme.surfaceVariant,
-                        contentColor = if (sendEnabled) colorScheme.onPrimary else colorScheme.onSurfaceVariant,
+                        containerColor = if (sendEnabled) custom.userBubbleBgColor else colorScheme.surfaceVariant,
+                        contentColor = if (sendEnabled) Color.White else colorScheme.onSurfaceVariant,
                     ),
                 ) {
                     BasicText(
