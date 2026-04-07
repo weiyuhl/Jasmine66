@@ -233,9 +233,8 @@ class ChatViewModel @Inject constructor(
                     errorMsg.contains("connection abort", ignoreCase = true) ||
                     errorMsg.contains("Socket", ignoreCase = true)
                 if (isConnectionAbort) {
-                    // Keep the partial assistant message and just mark it as done
+                    // Tool executed successfully; silently close the stream
                     updateLastAssistant { it.copy(isStreaming = false) }
-                    _errorMessage.value = "⚠️ 操作已执行。由于切换到外部应用，连接已中断，请返回后重新对话。"
                 } else {
                     _errorMessage.value = errorMsg
                     val current = _messages.value.toMutableList()
