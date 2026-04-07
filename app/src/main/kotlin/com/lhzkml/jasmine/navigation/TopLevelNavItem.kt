@@ -31,7 +31,7 @@ val CHAT = TopLevelNavItem(
     selectedIcon = JasmineIcons.Upcoming,
     unselectedIcon = JasmineIcons.UpcomingBorder,
     iconTextId = uiR.string.core_ui_for_you,
-    titleTextId = uiR.string.core_ui_for_you,
+    titleTextId = R.string.app_name,
 )
 
 val TOOLS = TopLevelNavItem(

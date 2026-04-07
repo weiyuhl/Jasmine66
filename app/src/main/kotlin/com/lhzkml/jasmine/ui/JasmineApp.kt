@@ -211,15 +211,43 @@ internal fun JasmineAppContent(
                 }
             },
             windowAdaptiveInfo = windowAdaptiveInfo,
-        ) {
-            Scaffold(
-                modifier = modifier.semantics {
-                    testTagsAsResourceId = true
-                },
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.onBackground,
-                contentWindowInsets = WindowInsets(0, 0, 0, 0),
-                snackbarHost = {
+        ) { padding ->
+            val currentKey = appState.navigationState.currentKey
+            val shouldShowTopAppBar = currentKey in appState.navigationState.topLevelKeys
+
+                Scaffold(
+                    modifier = modifier.semantics {
+                        testTagsAsResourceId = true
+                    },
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                    topBar = {
+                        if (shouldShowTopAppBar) {
+                            val destination = TOP_LEVEL_NAV_ITEMS[appState.navigationState.currentTopLevelKey]
+                                ?: error("Top level nav item not found for ${appState.navigationState.currentTopLevelKey}")
+
+                            TopAppBar(
+                                titleRes = destination.titleTextId,
+                                navigationIcon = JasmineIcons.Menu,
+                                navigationIconContentDescription = stringResource(
+                                    id = settingsR.string.feature_settings_impl_top_app_bar_navigation_icon_description,
+                                ),
+                                actionIcon = null,
+                                actionIconContentDescription = null,
+                                colors = TopAppBarDefaults.topAppBarColors(
+                                    containerColor = Color.Transparent,
+                                ),
+                                onActionClick = { },
+                                onNavigationClick = {
+                                    coroutineScope.launch {
+                                        if (drawerState.isOpen) drawerState.close() else drawerState.open()
+                                    }
+                                },
+                            )
+                        }
+                    },
+                    snackbarHost = {
                     SnackbarHost(
                         snackbarHostState,
                         modifier = Modifier.windowInsetsPadding(
@@ -227,56 +255,20 @@ internal fun JasmineAppContent(
                         ),
                     )
                 },
-            ) { padding ->
+            ) { innerPadding ->
                 Column(
                     Modifier
                         .fillMaxSize()
-                        .padding(padding)
-                        .consumeWindowInsets(padding)
+                        .padding(innerPadding)
+                        .consumeWindowInsets(innerPadding)
                         .windowInsetsPadding(
                             WindowInsets.safeDrawing
                                 .exclude(WindowInsets.ime)
                                 .only(WindowInsetsSides.Horizontal),
                         ),
                 ) {
-                    var shouldShowTopAppBar = false
-
-                    if (appState.navigationState.currentKey in appState.navigationState.topLevelKeys) {
-                        shouldShowTopAppBar = true
-
-                        val destination = TOP_LEVEL_NAV_ITEMS[appState.navigationState.currentTopLevelKey]
-                            ?: error("Top level nav item not found for ${appState.navigationState.currentTopLevelKey}")
-
-                        TopAppBar(
-                            titleRes = destination.titleTextId,
-                            navigationIcon = JasmineIcons.Menu,
-                            navigationIconContentDescription = stringResource(
-                                id = settingsR.string.feature_settings_impl_top_app_bar_navigation_icon_description,
-                            ),
-                            actionIcon = null,
-                            actionIconContentDescription = null,
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = Color.Transparent,
-                            ),
-                            onActionClick = { },
-                            onNavigationClick = {
-                                coroutineScope.launch {
-                                    if (drawerState.isOpen) drawerState.close() else drawerState.open()
-                                }
-                            },
-                        )
-                    }
-
                     Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .consumeWindowInsets(
-                                if (shouldShowTopAppBar) {
-                                    WindowInsets.safeDrawing.only(WindowInsetsSides.Top)
-                                } else {
-                                    WindowInsets(0, 0, 0, 0)
-                                },
-                            ),
+                        modifier = Modifier.weight(1f)
                     ) {
                         val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
 
