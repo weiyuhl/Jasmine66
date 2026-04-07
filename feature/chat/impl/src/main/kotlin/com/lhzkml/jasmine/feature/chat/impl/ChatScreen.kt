@@ -67,6 +67,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lhzkml.jasmine.feature.chat.impl.ui.MarkdownText
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhzkml.jasmine.core.designsystem.theme.customColors
@@ -225,15 +226,23 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
         bottomEnd = if (isUser) 4.dp else 16.dp,
     )
 
+    val baseModifier = if (isUser) {
+        Modifier
+            .widthIn(max = 300.dp)
+            .background(bubbleColor, shape)
+            .padding(horizontal = 14.dp, vertical = 10.dp)
+    } else {
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp)
+    }
+
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = alignment,
     ) {
         Column(
-            modifier = Modifier
-                .widthIn(max = 300.dp)
-                .background(bubbleColor, shape)
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+            modifier = baseModifier,
         ) {
             // 思考过程折叠区域
             if (!isUser && !message.thinking.isNullOrBlank()) {
@@ -312,11 +321,9 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
                         for (segment in segments) {
                             when (segment) {
                                 is com.lhzkml.jasmine.core.prompt.ui.KaiUiParser.MarkdownSegment -> {
-                                    Text(
+                                    MarkdownText(
                                         text = segment.content,
-                                        color = textColor,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        lineHeight = 22.sp,
+                                        textColor = textColor,
                                     )
                                 }
                                 is com.lhzkml.jasmine.core.prompt.ui.KaiUiParser.UiSegment -> {
@@ -343,11 +350,9 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
                         }
                     }
                 } else {
-                    Text(
+                    MarkdownText(
                         text = displayText,
-                        color = textColor,
-                        style = MaterialTheme.typography.bodyMedium,
-                        lineHeight = 22.sp,
+                        textColor = textColor,
                     )
                 }
             }
