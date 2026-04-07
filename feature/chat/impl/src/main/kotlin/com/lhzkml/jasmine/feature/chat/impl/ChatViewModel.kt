@@ -21,7 +21,18 @@ data class UiChatMessage(
     val isStreaming: Boolean = false,
     val thinking: String? = null,
     val toolCalls: List<ToolCallInfo> = emptyList(),
-)
+    // Image and Media attributes migrated natively from Gallery (IMAGE / IMAGE_WITH_HISTORY)
+    val bitmaps: List<android.graphics.Bitmap> = emptyList(),
+    val imageBitMaps: List<androidx.compose.ui.graphics.ImageBitmap> = emptyList(),
+    val maxSize: Int = 200,
+    val isImageWithHistory: Boolean = false,
+    val curIteration: Int = 0,
+    val totalIterations: Int = 0,
+) {
+    fun isHistoryRunning(): Boolean {
+        return isImageWithHistory && curIteration < totalIterations - 1
+    }
+}
 
 data class ToolCallEvent(
     val toolName: String,
