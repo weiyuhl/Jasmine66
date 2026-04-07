@@ -225,13 +225,26 @@ class ChatViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 val errorMsg = e.message ?: "请求失败"
-                _errorMessage.value = errorMsg
-                com.lhzkml.jasmine.core.data.log.FileLogger.logError("ChatViewModel", "Chat request failed: $errorMsg\nFull exception: ${e}\nCause: ${e.cause}", e)
-                val current = _messages.value.toMutableList()
-                if (current.isNotEmpty() && current.last().role == "assistant" && current.last().content.isEmpty()) {
-                    current.removeAt(current.lastIndex)
-                    _messages.value = current
+                val cause = e.cause
+                // When DeviceControlTool launches an external Activity (e.g. Maps),
+                // Android may background the app and kill the streaming socket.
+                // In this case we gracefully keep whatever partial response we got.
+                val isConnectionAbort = cause is java.net.SocketException ||
+                    errorMsg.contains("connection abort", ignoreCase = true) ||
+                    errorMsg.contains("Socket", ignoreCase = true)
+                if (isConnectionAbort) {
+                    // Keep the partial assistant message and just mark it as done
+                    updateLastAssistant { it.copy(isStreaming = false) }
+                    _errorMessage.value = "⚠️ 操作已执行。由于切换到外部应用，连接已中断，请返回后重新对话。"
+                } else {
+                    _errorMessage.value = errorMsg
+                    val current = _messages.value.toMutableList()
+                    if (current.isNotEmpty() && current.last().role == "assistant" && current.last().content.isEmpty()) {
+                        current.removeAt(current.lastIndex)
+                        _messages.value = current
+                    }
                 }
+                com.lhzkml.jasmine.core.data.log.FileLogger.logError("ChatViewModel", "Chat request failed: $errorMsg\nFull exception: ${e}\nCause: ${e.cause}", e)
             } finally {
                 _isChatRunning.value = false
             }
