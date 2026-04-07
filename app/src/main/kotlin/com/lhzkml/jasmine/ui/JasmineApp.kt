@@ -211,7 +211,7 @@ internal fun JasmineAppContent(
                 }
             },
             windowAdaptiveInfo = windowAdaptiveInfo,
-        ) { padding ->
+        ) {
             val currentKey = appState.navigationState.currentKey
             val shouldShowTopAppBar = currentKey in appState.navigationState.topLevelKeys
 
