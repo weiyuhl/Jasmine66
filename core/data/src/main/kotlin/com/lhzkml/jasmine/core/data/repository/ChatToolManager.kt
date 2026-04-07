@@ -14,6 +14,7 @@ import com.lhzkml.jasmine.core.data.model.ToolCallInfo
 import com.lhzkml.jasmine.core.data.tools.SkillsTool
 import com.lhzkml.jasmine.core.data.tools.RunJsTool
 import com.lhzkml.jasmine.core.data.tools.RunIntentTool
+import com.lhzkml.jasmine.core.data.tools.DeviceControlTool
 import com.lhzkml.jasmine.core.data.tools.WebSearchTool
 import com.lhzkml.jasmine.core.domain.repository.SkillManager
 import com.lhzkml.jasmine.core.prompt.model.ToolCall
@@ -30,6 +31,7 @@ class ChatToolManager @Inject constructor(
     private val skillsTool: SkillsTool,
     private val runJsTool: RunJsTool,
     private val runIntentTool: RunIntentTool,
+    private val deviceControlTool: DeviceControlTool,
     private val skillManager: SkillManager,
 ) {
 
@@ -68,6 +70,7 @@ class ChatToolManager @Inject constructor(
         registerTool(skillsTool)
         registerTool(runJsTool)
         registerTool(runIntentTool)
+        registerTool(deviceControlTool)
         registerSandboxTools()
     }
 
