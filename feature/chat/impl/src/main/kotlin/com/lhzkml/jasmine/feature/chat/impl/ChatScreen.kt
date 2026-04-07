@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -31,6 +32,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.automirrored.rounded.Send
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -383,14 +389,24 @@ private fun ToolCallEventItem(event: ToolCallEvent) {
             .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                text = if (event.isRunning) "⏳" else "✅",
-                fontSize = 12.sp,
-            )
+            if (event.isRunning) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    color = colorScheme.primary,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Rounded.CheckCircle,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
             Text(
                 text = event.toolName,
                 fontSize = 13.sp,
@@ -399,10 +415,11 @@ private fun ToolCallEventItem(event: ToolCallEvent) {
                 modifier = Modifier.weight(1f),
             )
             if (event.result != null) {
-                Text(
-                    text = if (isExpanded) "▼" else "▶",
-                    fontSize = 10.sp,
-                    color = colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                Icon(
+                    imageVector = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }
@@ -459,12 +476,10 @@ private fun ChatComposer(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                BasicText(
-                    text = "⏳",
-                    style = TextStyle(
-                        color = colorScheme.primary,
-                        fontSize = 12.sp,
-                    ),
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    color = colorScheme.primary,
+                    strokeWidth = 2.dp
                 )
                 BasicText(
                     text = "正在生成回复...",
@@ -552,15 +567,14 @@ private fun ChatComposer(
                         .size(34.dp),
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = if (sendEnabled) custom.userBubbleBgColor else colorScheme.surfaceVariant,
-                        contentColor = if (sendEnabled) Color.White else colorScheme.onSurfaceVariant,
+                        disabledContainerColor = colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     ),
                 ) {
-                    BasicText(
-                        text = "↑",
-                        style = TextStyle(
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                        ),
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.Send,
+                        contentDescription = "发送",
+                        modifier = Modifier.size(16.dp).offset(x = 2.dp),
+                        tint = if (sendEnabled) Color.White else colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     )
                 }
             }

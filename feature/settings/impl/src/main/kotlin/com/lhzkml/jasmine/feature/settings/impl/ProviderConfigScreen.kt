@@ -30,7 +30,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -138,40 +140,46 @@ private fun ProviderListScreen(
 
             items(presets) { preset ->
                 val isActive = preset.id == activeProviderId
-                Row(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onProviderClick(preset.id) }
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clickable { onProviderClick(preset.id) },
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = preset.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = if (providerRepo.getApiKey(preset.id).isNotBlank()) "已配置 API Key" else "未配置 API Key",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (providerRepo.getApiKey(preset.id).isNotBlank())
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.error,
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = preset.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = if (providerRepo.getApiKey(preset.id).isNotBlank()) "已配置 API Key" else "未配置 API Key",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (providerRepo.getApiKey(preset.id).isNotBlank())
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.error,
+                            )
+                        }
+
+                        Switch(
+                            checked = isActive,
+                            onCheckedChange = { checked ->
+                                if (checked) {
+                                    onToggleActive(preset.id)
+                                }
+                            }
                         )
                     }
-
-                    Switch(
-                        checked = isActive,
-                        onCheckedChange = { checked ->
-                            if (checked) {
-                                onToggleActive(preset.id)
-                            }
-                        }
-                    )
                 }
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp))
             }
         }
     }
@@ -241,6 +249,7 @@ private fun ProviderDetailScreen(
                 label = { Text("API Key") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
+                shape = androidx.compose.foundation.shape.CircleShape,
             )
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -251,6 +260,7 @@ private fun ProviderDetailScreen(
                 label = { Text("Base URL") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
+                shape = androidx.compose.foundation.shape.CircleShape,
             )
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -269,6 +279,7 @@ private fun ProviderDetailScreen(
                         label = { Text("模型名称") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
+                        shape = androidx.compose.foundation.shape.CircleShape,
                     )
 
                     // 模型下拉列表
@@ -291,8 +302,7 @@ private fun ProviderDetailScreen(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 // 获取模型列表按钮
-                SmallActionButton(
-                    text = if (isLoadingModels) "加载中..." else "获取列表",
+                OutlinedButton(
                     enabled = !isLoadingModels && apiKey.isNotBlank(),
                     onClick = {
                         isLoadingModels = true
@@ -305,7 +315,9 @@ private fun ProviderDetailScreen(
                             }
                         }
                     },
-                )
+                ) {
+                    Text(if (isLoadingModels) "加载中..." else "获取列表")
+                }
             }
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -385,6 +397,7 @@ private fun ProviderDetailScreen(
                 label = { Text("Max Tokens (留空使用默认值)") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
+                shape = androidx.compose.foundation.shape.CircleShape,
             )
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -395,8 +408,7 @@ private fun ProviderDetailScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 SectionHeader("API 余额")
-                SmallActionButton(
-                    text = if (isLoadingBalance) "查询中..." else "查询余额",
+                OutlinedButton(
                     enabled = !isLoadingBalance && apiKey.isNotBlank(),
                     onClick = {
                         isLoadingBalance = true
@@ -405,7 +417,9 @@ private fun ProviderDetailScreen(
                             isLoadingBalance = false
                         }
                     },
-                )
+                ) {
+                    Text(if (isLoadingBalance) "查询中..." else "查询余额")
+                }
             }
             balanceText?.let { balance ->
                 Spacer(modifier = Modifier.height(8.dp))
@@ -419,28 +433,25 @@ private fun ProviderDetailScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // ==================== 保存按钮 ====================
-            Box(
+            Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable {
-                        providerRepo.saveProviderConfig(preset.id, apiKey, baseUrl, model)
-                        providerRepo.setSystemPrompt(preset.id, systemPrompt)
-                        providerRepo.setTemperature(preset.id, temperature.toDouble())
-                        providerRepo.setTopP(preset.id, topP.toDouble())
-                        val maxTokens = maxTokensText.toIntOrNull()
-                        providerRepo.setMaxTokens(preset.id, maxTokens)
-                        onBackClick()
-                    }
-                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
-                    .padding(vertical = 14.dp),
-                contentAlignment = Alignment.Center,
+                    .height(56.dp),
+                shape = androidx.compose.foundation.shape.CircleShape,
+                onClick = {
+                    providerRepo.saveProviderConfig(preset.id, apiKey, baseUrl, model)
+                    providerRepo.setSystemPrompt(preset.id, systemPrompt)
+                    providerRepo.setTemperature(preset.id, temperature.toDouble())
+                    providerRepo.setTopP(preset.id, topP.toDouble())
+                    val maxTokens = maxTokensText.toIntOrNull()
+                    providerRepo.setMaxTokens(preset.id, maxTokens)
+                    onBackClick()
+                }
             ) {
                 Text(
                     text = "保存配置",
-                    color = MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                 )
             }
 
@@ -459,35 +470,4 @@ private fun SectionHeader(title: String) {
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.primary,
     )
-}
-
-@Composable
-private fun SmallActionButton(
-    text: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .then(
-                if (enabled) Modifier.clickable(onClick = onClick)
-                else Modifier
-            )
-            .background(
-                if (enabled) MaterialTheme.colorScheme.primaryContainer
-                else MaterialTheme.colorScheme.surfaceVariant,
-                RoundedCornerShape(8.dp),
-            )
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-            color = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
 }

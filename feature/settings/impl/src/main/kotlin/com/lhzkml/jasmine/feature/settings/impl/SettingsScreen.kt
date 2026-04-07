@@ -21,10 +21,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.MultiChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -154,67 +157,64 @@ private fun SettingsMenuScreen(
         ) {
             TrackScreenViewEvent(screenName = "Settings")
 
-            SettingsMenuItem(
-                title = "基本设置",
-                subtitle = "主题、动态色彩、深色模式",
-                onClick = onBasicSettingsClick,
-            )
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+            ) {
+                Column {
+                    SettingsMenuItem(
+                        title = "基本设置",
+                        subtitle = "主题、动态色彩、深色模式",
+                        onClick = onBasicSettingsClick,
+                    )
 
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingsMenuItem(
+                        title = stringResource(string.feature_settings_impl_provider_config),
+                        subtitle = "API Key 与供应商选择",
+                        onClick = onProviderConfigClick,
+                    )
 
-            SettingsMenuItem(
-                title = stringResource(string.feature_settings_impl_provider_config),
-                subtitle = "API Key 与供应商选择",
-                onClick = onProviderConfigClick,
-            )
+                    SettingsMenuItem(
+                        title = "Linux Sandbox",
+                        subtitle = "Alpine Linux 终端环境",
+                        onClick = onSandboxClick,
+                    )
 
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingsMenuItem(
+                        title = "导出日志",
+                        subtitle = "导出应用日志用于问题排查",
+                        onClick = { exportLogs(context) },
+                    )
 
-            SettingsMenuItem(
-                title = "Linux Sandbox",
-                subtitle = "Alpine Linux 终端环境",
-                onClick = onSandboxClick,
-            )
+                    SettingsToggleItem(
+                        title = "动态交互 UI",
+                        subtitle = "允许 AI 渲染按钮、表单等交互组件",
+                        checked = kaiUiEnabled,
+                        onCheckedChange = onKaiUiToggle,
+                    )
 
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingsToggleItem(
+                        title = "联网搜索",
+                        subtitle = if (webSearchEnabled) {
+                            "获取网络实时信息"
+                        } else {
+                            "仅使用离线知识"
+                        },
+                        checked = webSearchEnabled,
+                        onCheckedChange = onWebSearchToggle,
+                    )
 
-            SettingsMenuItem(
-                title = "导出日志",
-                subtitle = "导出应用日志用于问题排查",
-                onClick = { exportLogs(context) },
-            )
-
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-
-            SettingsToggleItem(
-                title = "动态交互 UI",
-                subtitle = "允许 AI 渲染按钮、表单等交互组件",
-                checked = kaiUiEnabled,
-                onCheckedChange = onKaiUiToggle,
-            )
-
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-
-            SettingsToggleItem(
-                title = "联网搜索",
-                subtitle = if (webSearchEnabled) {
-                    "获取网络实时信息"
-                } else {
-                    "仅使用离线知识"
-                },
-                checked = webSearchEnabled,
-                onCheckedChange = onWebSearchToggle,
-            )
-
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-
-            SettingsMenuItem(
-                title = stringResource(string.feature_settings_impl_licenses),
-                subtitle = "查看第三方开源许可证",
-                onClick = {
-                    context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
-                },
-            )
+                    SettingsMenuItem(
+                        title = stringResource(string.feature_settings_impl_licenses),
+                        subtitle = "查看第三方开源许可证",
+                        onClick = {
+                            context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
+                        },
+                    )
+                }
+            }
         }
     }
 }
@@ -333,63 +333,47 @@ private fun BasicSettingsScreen(
 
 // ==================== 设置面板（保留原有逻辑） ====================
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ColumnScope.BasicSettingsPanel(
     settings: UserEditableSettings,
     onChangeDarkThemeConfig: (darkThemeConfig: DarkThemeConfig) -> Unit,
 ) {
-    SettingsDialogSectionTitle(text = stringResource(string.feature_settings_impl_dark_mode_preference))
-    Column(Modifier.selectableGroup()) {
-        SettingsDialogThemeChooserRow(
-            text = stringResource(string.feature_settings_impl_dark_mode_config_system_default),
-            selected = settings.darkThemeConfig == FOLLOW_SYSTEM,
-            onClick = { onChangeDarkThemeConfig(FOLLOW_SYSTEM) },
-        )
-        SettingsDialogThemeChooserRow(
-            text = stringResource(string.feature_settings_impl_dark_mode_config_light),
-            selected = settings.darkThemeConfig == LIGHT,
-            onClick = { onChangeDarkThemeConfig(LIGHT) },
-        )
-        SettingsDialogThemeChooserRow(
-            text = stringResource(string.feature_settings_impl_dark_mode_config_dark),
-            selected = settings.darkThemeConfig == DARK,
-            onClick = { onChangeDarkThemeConfig(DARK) },
-        )
-    }
-}
-
-@Composable
-internal fun SettingsDialogSectionTitle(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-    )
-}
-
-@Composable
-fun SettingsDialogThemeChooserRow(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    Row(
-        Modifier
+    Card(
+        modifier = Modifier
             .fillMaxWidth()
-            .selectable(
-                selected = selected,
-                role = Role.RadioButton,
-                onClick = onClick,
-            )
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(vertical = 16.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
     ) {
-        RadioButton(
-            selected = selected,
-            onClick = null,
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(text)
+        Column(
+            modifier = Modifier.padding(20.dp),
+        ) {
+            Text(
+                text = stringResource(string.feature_settings_impl_dark_mode_preference),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
+                modifier = Modifier.padding(bottom = 16.dp),
+            )
+            
+            val options = listOf(FOLLOW_SYSTEM, LIGHT, DARK)
+            MultiChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                options.forEachIndexed { index, theme ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                        onCheckedChange = { onChangeDarkThemeConfig(theme) },
+                        checked = settings.darkThemeConfig == theme,
+                        label = { 
+                            Text(
+                                when(theme) {
+                                    FOLLOW_SYSTEM -> stringResource(string.feature_settings_impl_dark_mode_config_system_default)
+                                    LIGHT -> stringResource(string.feature_settings_impl_dark_mode_config_light)
+                                    DARK -> stringResource(string.feature_settings_impl_dark_mode_config_dark)
+                                }
+                            )
+                        },
+                    )
+                }
+            }
+        }
     }
 }
 
