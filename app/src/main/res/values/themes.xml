@@ -1,23 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Allows us to override night specific attributes in the
-         values-night folder. -->
-    <style name="NightAdjusted.Theme.Jasmine" parent="android:Theme.Material.Light.NoActionBar" />
+  <style name="Theme.Jasmine" parent="android:Theme.Material.Light.NoActionBar" />
 
-    <!-- The final theme we use -->
-    <style name="Theme.Jasmine" parent="NightAdjusted.Theme.Jasmine">
-        <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
-    </style>
-
-    <style name="NightAdjusted.Theme.Splash" parent="Theme.SplashScreen">
-        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
-    </style>
-
-    <style name="Theme.Jasmine.Splash" parent="NightAdjusted.Theme.Splash">
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_text</item>
-        <item name="postSplashScreenTheme">@style/Theme.Jasmine</item>
-    </style>
+  <style name="Theme.Jasmine.Splash" parent="Theme.SplashScreen">
+      <!-- Need to match surfaceLight in Colors.kt -->
+      <item name="windowSplashScreenBackground">#FFFFFFFF</item>
+      <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_text</item>
+      <item name="postSplashScreenTheme">@style/Theme.Jasmine</item>
+  </style>
 
 </resources>

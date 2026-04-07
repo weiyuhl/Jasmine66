@@ -208,7 +208,7 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
     val colorScheme = MaterialTheme.colorScheme
     val custom = MaterialTheme.customColors
 
-    // Gallery-style colors
+    // Bubble colors
     val bubbleColor = if (isUser) custom.userBubbleBgColor else custom.agentBubbleBgColor
     val textColor = if (isUser) Color.White else colorScheme.onSurface
     val alignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
@@ -229,7 +229,7 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
                 .background(bubbleColor, shape)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
-            // 思考过程折叠区域 — Gallery-style MessageBodyThinking
+            // 思考过程折叠区域
             if (!isUser && !message.thinking.isNullOrBlank()) {
                 var isThinkingExpanded by remember { mutableStateOf(false) }
 
@@ -258,7 +258,7 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
                     )
                 }
 
-                // Gallery-style collapsible with left border line
+                // Collapsible with left border line
                 AnimatedVisibility(
                     visible = isThinkingExpanded,
                     enter = expandVertically(),

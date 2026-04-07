@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.sp
 import com.lhzkml.jasmine.core.designsystem.R
 
 /**
- * Jasmine typography — Gallery-style with Nunito font family.
+ * Jasmine typography with Nunito font family.
  */
 
 val appFontFamily = FontFamily(
@@ -191,7 +191,7 @@ internal val JasmineTypography = Typography(
     ),
 )
 
-// ==================== Gallery-style Custom TextStyles ====================
+// ==================== Custom TextStyles ====================
 
 val homePageTitleStyle = TextStyle(
     fontFamily = appFontFamily,

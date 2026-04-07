@@ -4,7 +4,7 @@ package com.lhzkml.jasmine.core.designsystem.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Gallery-style color palette (Google Blue).
+ * Jasmine color palette (Google Blue).
  */
 
 // ==================== Light Colors ====================

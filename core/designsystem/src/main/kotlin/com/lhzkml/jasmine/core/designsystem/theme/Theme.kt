@@ -21,7 +21,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
+import android.view.View
+import android.view.WindowInsetsController
 
 /**
  * Light default theme color scheme
@@ -260,19 +261,37 @@ val MaterialTheme.customColors: CustomColors
 @Composable
 fun StatusBarColorController(useDarkTheme: Boolean) {
     val view = LocalView.current
-    val currentWindow = (view.context as? Activity)?.window
-
-    if (currentWindow != null) {
+    if (!view.isInEditMode) {
         SideEffect {
-            WindowCompat.setDecorFitsSystemWindows(currentWindow, false)
-            val controller = WindowCompat.getInsetsController(currentWindow, view)
-            controller.isAppearanceLightStatusBars = !useDarkTheme
+            val window = (view.context as? Activity)?.window ?: return@SideEffect
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val controller = window.insetsController
+                if (useDarkTheme) {
+                    controller?.setSystemBarsAppearance(
+                        0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    )
+                } else {
+                    controller?.setSystemBarsAppearance(
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    )
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                if (!useDarkTheme) {
+                    view.systemUiVisibility = view.systemUiVisibility or
+                        View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                } else {
+                    view.systemUiVisibility = view.systemUiVisibility and
+                        View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+                }
+            }
         }
     }
 }
 
 /**
- * Jasmine theme — Gallery style.
+ * Jasmine theme.
  *
  * @param darkTheme Whether the theme should use a dark color scheme (follows system by default).
  */
