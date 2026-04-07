@@ -1,4 +1,4 @@
-package com.lhzkml.jasmine.feature.chat.impl.ui
+package com.lhzkml.jasmine.core.designsystem.component
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle

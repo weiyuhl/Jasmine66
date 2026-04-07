@@ -44,6 +44,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,6 +61,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.aspectRatio
+import com.lhzkml.jasmine.core.designsystem.component.MarkdownText
+import com.lhzkml.jasmine.feature.skills.api.Skill
 import com.lhzkml.jasmine.feature.skills.api.SkillState
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -70,166 +74,216 @@ fun SkillsRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
     var isBuiltInExpanded by remember { mutableStateOf(true) }
+    var skillToShowDetails by remember { mutableStateOf<Skill?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(Unit) {
         viewModel.loadSkills()
     }
 
     Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(text = "技能管理") },
-                    navigationIcon = {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = Icons.Rounded.ArrowBack,
-                                contentDescription = "返回",
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                    ),
-                )
-            },
-        ) { padding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-            ) {
-                if (uiState.loading) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator()
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "技能管理") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowBack,
+                            contentDescription = "返回",
+                        )
                     }
-                } else {
-                    Column(
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
+            )
+        },
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
+            if (uiState.loading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                ) {
+                    // 搜索栏
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
+                            .padding(vertical = 8.dp)
+                            .height(IntrinsicSize.Min),
                     ) {
-                        // 搜索栏
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        TextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            modifier = Modifier.weight(1f),
+                            shape = CircleShape,
+                            placeholder = { Text("搜索技能") },
+                            leadingIcon = {
+                                Icon(Icons.Rounded.Search, contentDescription = null)
+                            },
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors(
+                                focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                                unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                            ),
+                        )
+
+                        // 添加技能按钮
+                        Box(
                             modifier = Modifier
-                                .padding(vertical = 8.dp)
-                                .height(IntrinsicSize.Min),
+                                .height(48.dp)
+                                .aspectRatio(1f)
+                                .clip(CircleShape)
+                                .clickable { }
+                                .background(MaterialTheme.colorScheme.primary),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            TextField(
-                                value = searchQuery,
-                                onValueChange = { searchQuery = it },
-                                modifier = Modifier.weight(1f),
-                                shape = CircleShape,
-                                placeholder = { Text("搜索技能") },
-                                leadingIcon = {
-                                    Icon(Icons.Rounded.Search, contentDescription = null)
-                                },
-                                singleLine = true,
-                                colors = TextFieldDefaults.colors(
-                                    focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-                                    unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-                                ),
+                            Icon(
+                                Icons.Rounded.Add,
+                                contentDescription = "添加技能",
+                                tint = MaterialTheme.colorScheme.onPrimary,
                             )
-
-            // 添加技能按钮
-            Box(
-                modifier = Modifier
-                    .height(48.dp)
-                    .aspectRatio(1f)
-                    .clip(CircleShape)
-                    .clickable { }
-                    .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Rounded.Add,
-                    contentDescription = "添加技能",
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                )
-            }
                         }
+                    }
 
-                        // 全选/取消全选
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp),
-                        ) {
-                            Text(
-                                text = "共 ${uiState.skills.size} 个技能",
-                                style = MaterialTheme.typography.labelLarge,
-                            )
+                    // 全选/取消全选
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                    ) {
+                        Text(
+                            text = "共 ${uiState.skills.size} 个技能",
+                            style = MaterialTheme.typography.labelLarge,
+                        )
 
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                TextButton(
-                                    onClick = { viewModel.setAllSkillsSelected(selected = true) }
-                                ) {
-                                    Text("全部启用")
-                                }
-                                TextButton(
-                                    onClick = { viewModel.setAllSkillsSelected(selected = false) }
-                                ) {
-                                    Text("全部禁用")
-                                }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            TextButton(
+                                onClick = { viewModel.setAllSkillsSelected(selected = true) }
+                            ) {
+                                Text("全部启用")
+                            }
+                            TextButton(
+                                onClick = { viewModel.setAllSkillsSelected(selected = false) }
+                            ) {
+                                Text("全部禁用")
+                            }
+                        }
+                    }
+
+                    // 技能列表
+                    val filteredSkills = if (searchQuery.isBlank()) {
+                        uiState.skills
+                    } else {
+                        uiState.skills.filter {
+                            it.skill.name.contains(searchQuery, ignoreCase = true) ||
+                                    it.skill.description.contains(searchQuery, ignoreCase = true)
+                        }
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        item(key = "built_in_header") {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(shape = RoundedCornerShape(20.dp))
+                                    .clickable { isBuiltInExpanded = !isBuiltInExpanded }
+                                    .padding(vertical = 12.dp, horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = "内置技能",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                Icon(
+                                    imageVector = if (isBuiltInExpanded) {
+                                        Icons.Rounded.ExpandLess
+                                    } else {
+                                        Icons.Rounded.ExpandMore
+                                    },
+                                    contentDescription = if (isBuiltInExpanded) "收起" else "展开",
+                                )
                             }
                         }
 
-                        // 技能列表
-                        val filteredSkills = if (searchQuery.isBlank()) {
-                            uiState.skills
-                        } else {
-                            uiState.skills.filter {
-                                it.skill.name.contains(searchQuery, ignoreCase = true) ||
-                                        it.skill.description.contains(searchQuery, ignoreCase = true)
+                        if (isBuiltInExpanded) {
+                            items(filteredSkills, key = { it.skill.name }) { skillState ->
+                                SkillItemRow(
+                                    skillState = skillState,
+                                    onSkillEnabledChange = { newCheckedState ->
+                                        viewModel.setSkillSelected(skillState, newCheckedState)
+                                    },
+                                    onViewClick = {
+                                        skillToShowDetails = skillState.skill
+                                    }
+                                )
                             }
                         }
-
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            item(key = "built_in_header") {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(shape = RoundedCornerShape(20.dp))
-                                        .clickable { isBuiltInExpanded = !isBuiltInExpanded }
-                                        .padding(vertical = 12.dp, horizontal = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(
-                                        text = "内置技能",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.weight(1f),
-                                    )
-                                    Icon(
-                                        imageVector = if (isBuiltInExpanded) {
-                                            Icons.Rounded.ExpandLess
-                                        } else {
-                                            Icons.Rounded.ExpandMore
-                                        },
-                                        contentDescription = if (isBuiltInExpanded) "收起" else "展开",
-                                    )
-                                }
-                            }
-
-                            if (isBuiltInExpanded) {
-                                items(filteredSkills, key = { it.skill.name }) { skillState ->
-                                    SkillItemRow(
-                                        skillState = skillState,
-                                        onSkillEnabledChange = { newCheckedState ->
-                                            viewModel.setSkillSelected(skillState, newCheckedState)
-                                        },
-                                    )
-                                }
+                    }
+                }
             }
         }
+        
+        // Render BottomSheet logically tied to the Scaffold screen container level natively!
+        if (skillToShowDetails != null) {
+            ModalBottomSheet(
+                onDismissRequest = { skillToShowDetails = null },
+                sheetState = sheetState,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp)
+                ) {
+                    Text(
+                        text = "技能：${skillToShowDetails?.name}",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = skillToShowDetails?.description ?: "",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                            .padding(16.dp)
+                    ) {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            item {
+                                MarkdownText(
+                                    text = skillToShowDetails?.instructions ?: "",
+                                    textColor = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
         }
@@ -241,6 +295,7 @@ fun SkillsRoute(
 private fun SkillItemRow(
     skillState: SkillState,
     onSkillEnabledChange: (Boolean) -> Unit,
+    onViewClick: () -> Unit,
 ) {
     val skill = skillState.skill
     val uriHandler = LocalUriHandler.current
@@ -293,7 +348,7 @@ private fun SkillItemRow(
             ) {
                 // 查看详情
                 FilledTonalButton(
-                    onClick = { if (skill.homepage.isNotBlank()) uriHandler.openUri(skill.homepage) },
+                    onClick = onViewClick,
                     modifier = Modifier
                         .height(32.dp)
                         .padding(end = 8.dp),

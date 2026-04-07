@@ -18,5 +18,8 @@ dependencies {
     api(libs.androidx.compose.runtime)
     api(libs.androidx.compose.ui.util)
 
+    api(libs.richtext.commonmark)
+    api(libs.richtext.ui.material3)
+
     implementation(libs.coil.kt.compose)
 }
