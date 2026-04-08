@@ -134,13 +134,21 @@ class LinuxSandboxManager(private val context: Context) {
         }
     }
 
-    fun createProotExecutor(): ProotExecutor = ProotExecutor(
-        prootPath = prootPath,
-        libDir = sandboxDir.absolutePath,
-        rootfsPath = rootfsPath,
-        homePath = homePath,
-        tmpPath = tmpPath,
-    )
+    fun createProotExecutor(): ProotExecutor {
+        val hasStorage = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            android.os.Environment.isExternalStorageManager()
+        } else {
+            true // Prior to R, permissions are handled by manifest on install
+        }
+        return ProotExecutor(
+            prootPath = prootPath,
+            libDir = sandboxDir.absolutePath,
+            rootfsPath = rootfsPath,
+            homePath = homePath,
+            tmpPath = tmpPath,
+            hasExternalStorageAccess = hasStorage
+        )
+    }
 
     fun installPackages() {
         if (currentJob?.isActive == true) return

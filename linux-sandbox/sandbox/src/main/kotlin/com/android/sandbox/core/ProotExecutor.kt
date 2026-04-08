@@ -15,6 +15,7 @@ class ProotExecutor(
     private val rootfsPath: String,
     private val homePath: String,
     private val tmpPath: String,
+    private val hasExternalStorageAccess: Boolean = false,
 ) {
 
     fun execute(
@@ -25,7 +26,7 @@ class ProotExecutor(
     ): Map<String, Any> {
         val effectiveTimeout = timeoutSeconds.coerceIn(1, MAX_TIMEOUT_SECONDS)
 
-        val processArgs = arrayOf(
+        val baseArgs = mutableListOf(
             prootPath,
             "--link2symlink",
             "--rootfs=$rootfsPath",
@@ -33,11 +34,13 @@ class ProotExecutor(
             "--bind=/proc",
             "--bind=/sys",
             "--bind=$homePath:/root",
-            "--bind=$tmpPath:/tmp",
-            "-0",
-            "-w", workingDir,
-            "/bin/sh", "-c", command,
+            "--bind=$tmpPath:/tmp"
         )
+        if (hasExternalStorageAccess) {
+            baseArgs.add("--bind=/storage/emulated/0")
+            baseArgs.add("--bind=/sdcard")
+        }
+        val processArgs = (baseArgs + listOf("-0", "-w", workingDir, "/bin/sh", "-c", command)).toTypedArray()
 
         val loaderPath = File(prootPath).parent.orEmpty() + "/libproot-loader.so"
         val baseEnv = arrayOf(

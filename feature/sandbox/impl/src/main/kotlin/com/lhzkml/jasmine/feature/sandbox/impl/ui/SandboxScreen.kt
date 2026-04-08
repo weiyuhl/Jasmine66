@@ -63,6 +63,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.os.Build
+import android.os.Environment
+import android.content.Intent
+import android.provider.Settings
+import android.net.Uri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.runtime.DisposableEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +82,32 @@ internal fun SandboxScreen(
     val viewModel: SandboxViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showResetDialog by remember { mutableStateOf(false) }
+    
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var hasStoragePermission by remember { 
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Environment.isExternalStorageManager()
+            } else {
+                true
+            }
+        ) 
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    hasStoragePermission = Environment.isExternalStorageManager()
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -145,6 +180,19 @@ internal fun SandboxScreen(
                                     color = MaterialTheme.colorScheme.primary,
                                 )
                             }
+                            if (state.sandboxReady && hasStoragePermission) {
+                                Text(
+                                    text = "✓ 已挂载外置存储 (可访问 /sdcard)",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF388E3C),
+                                )
+                            } else if (state.sandboxReady && !hasStoragePermission) {
+                                Text(
+                                    text = "! 未挂载外置存储",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            }
                         }
                     }
 
@@ -184,6 +232,18 @@ internal fun SandboxScreen(
                         if (state.sandboxReady && !state.isWorking) {
                             OutlinedButton(onClick = onOpenTerminal) {
                                 Text("打开终端")
+                            }
+                        }
+                        if (state.sandboxReady && !hasStoragePermission && !state.isWorking) {
+                            OutlinedButton(onClick = {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                    val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                                        data = Uri.parse("package:${context.packageName}")
+                                    }
+                                    context.startActivity(intent)
+                                }
+                            }) {
+                                Text("授权存储访问")
                             }
                         }
                         if (state.sandboxReady && !state.sandboxPackagesInstalled && !state.isWorking) {
