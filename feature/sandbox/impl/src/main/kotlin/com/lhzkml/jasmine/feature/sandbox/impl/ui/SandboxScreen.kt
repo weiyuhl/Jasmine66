@@ -134,20 +134,20 @@ internal fun SandboxScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // 1. System Info Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+            if (state.sandboxReady) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    val osText = "系统信息 ${state.osInfo ?: "Linux Sandbox"} ${state.archInfo ?: ""}".trim()
-                    Text(
-                        text = osText,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    if (state.sandboxReady) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        val osText = "系统信息 ${state.osInfo ?: "Linux Sandbox"} ${state.archInfo ?: ""}".trim()
+                        Text(
+                            text = osText,
+                            style = MaterialTheme.typography.titleMedium,
+                        )
                         val kernelText = "内核版本: ${state.kernelInfo ?: "未知"} ${state.kernelCompileTime ?: ""}".trim()
                         Text(
                             text = kernelText,
@@ -265,7 +265,7 @@ internal fun SandboxScreen(
                                 Text("刷新信息")
                             }
                         }
-                        if (state.sandboxReady && !hasStoragePermission && !state.isWorking) {
+                        if (state.sandboxReady && !state.isWorking) {
                             OutlinedButton(onClick = {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                                     val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
@@ -274,7 +274,7 @@ internal fun SandboxScreen(
                                     context.startActivity(intent)
                                 }
                             }) {
-                                Text("授权存储访问")
+                                Text(if (hasStoragePermission) "管理存储权限" else "授权存储访问")
                             }
                         }
                         if (state.sandboxReady && !state.sandboxPackagesInstalled && !state.isWorking) {
