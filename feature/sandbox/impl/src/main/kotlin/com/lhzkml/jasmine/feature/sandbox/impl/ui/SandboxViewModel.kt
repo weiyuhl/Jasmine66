@@ -25,7 +25,9 @@ data class SandboxUiState(
     val hasError: Boolean = false,
     val osInfo: String? = null,
     val kernelInfo: String? = null,
+    val kernelCompileTime: String? = null,
     val archInfo: String? = null,
+    val packageVersions: List<String> = emptyList(),
 )
 
 @HiltViewModel
@@ -70,15 +72,32 @@ class SandboxViewModel @Inject constructor(
                 val kernelOutput = sandboxController.executeCommand("uname -r")
                 val kernelInfo = kernelOutput.trim().takeIf { it.isNotBlank() }
                 
+                val kernelTimeOutput = sandboxController.executeCommand("uname -v")
+                val kernelCompileTime = kernelTimeOutput.trim().takeIf { it.isNotBlank() }
+                
                 // Fetch Architecture info
                 val archOutput = sandboxController.executeCommand("uname -m")
                 val archInfo = archOutput.trim().takeIf { it.isNotBlank() }
+                
+                // Fetch Package Versions
+                val versionsScript = """
+                    bash --version 2>/dev/null | head -n 1
+                    python3 --version 2>/dev/null
+                    git --version 2>/dev/null
+                    curl --version 2>/dev/null | head -n 1
+                    wget --version 2>/dev/null | head -n 1
+                    node --version 2>/dev/null | sed 's/^/Node.js /'
+                """.trimIndent()
+                val versionsOutput = sandboxController.executeCommand(versionsScript)
+                val packageVersions = versionsOutput.lines().map { it.trim() }.filter { it.isNotBlank() }
 
                 _state.update { 
                     it.copy(
                         osInfo = osInfo,
                         kernelInfo = kernelInfo,
+                        kernelCompileTime = kernelCompileTime,
                         archInfo = archInfo,
+                        packageVersions = packageVersions,
                     )
                 }
             } catch (e: Exception) {

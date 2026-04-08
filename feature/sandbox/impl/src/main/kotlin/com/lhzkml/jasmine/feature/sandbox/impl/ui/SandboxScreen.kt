@@ -132,70 +132,94 @@ internal fun SandboxScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            // 1. System Info Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
+                    val osText = "系统信息 ${state.osInfo ?: "Linux Sandbox"} ${state.archInfo ?: ""}".trim()
+                    Text(
+                        text = osText,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    if (state.sandboxReady) {
+                        val kernelText = "内核版本: ${state.kernelInfo ?: "未知"} ${state.kernelCompileTime ?: ""}".trim()
+                        Text(
+                            text = kernelText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = "磁盘占用: ${state.sandboxDiskUsageMB} MB",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        
+                        Spacer(modifier = Modifier.height(4.dp))
+                        if (hasStoragePermission) {
                             Text(
-                                text = state.osInfo ?: "Linux Sandbox",
-                                style = MaterialTheme.typography.titleMedium,
+                                text = "✓ 已挂载外置存储 (可访问 /sdcard)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF388E3C),
                             )
-                            if (state.sandboxReady) {
-                                state.kernelInfo?.let {
-                                    Text(
-                                        text = "内核: $it",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                                state.archInfo?.let {
-                                    Text(
-                                        text = "架构: $it",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
+                        } else {
+                            Text(
+                                text = "! 未挂载外置存储",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 2. Packages Card
+            if (state.sandboxPackagesInstalled) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = "可用软件包",
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        if (state.packageVersions.isNotEmpty()) {
+                            state.packageVersions.forEach { pkgInfo ->
                                 Text(
-                                    text = "磁盘占用: ${state.sandboxDiskUsageMB} MB",
+                                    text = "• $pkgInfo",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            if (state.sandboxPackagesInstalled) {
-                                Text(
-                                    text = "已安装额外包 (bash, curl, git, python3, nodejs 等)",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                            if (state.sandboxReady && hasStoragePermission) {
-                                Text(
-                                    text = "✓ 已挂载外置存储 (可访问 /sdcard)",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF388E3C),
-                                )
-                            } else if (state.sandboxReady && !hasStoragePermission) {
-                                Text(
-                                    text = "! 未挂载外置存储",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.error,
-                                )
-                            }
+                        } else {
+                            Text(
+                                text = "• 获取中或版本过低...",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
+                }
+            }
 
+            // 3. Actions & Status Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
                     if (state.isWorking) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
