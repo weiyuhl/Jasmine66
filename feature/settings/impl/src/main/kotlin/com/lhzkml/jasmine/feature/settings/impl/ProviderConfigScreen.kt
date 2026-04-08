@@ -175,6 +175,8 @@ private fun ProviderListScreen(
                             onCheckedChange = { checked ->
                                 if (checked) {
                                     onToggleActive(preset.id)
+                                } else {
+                                    onToggleActive("")
                                 }
                             }
                         )
