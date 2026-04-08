@@ -30,13 +30,27 @@ data class SandboxUiState(
     val packageVersions: List<String> = emptyList(),
 )
 
+object SandboxCache {
+    var osInfo: String? = null
+    var kernelInfo: String? = null
+    var kernelCompileTime: String? = null
+    var archInfo: String? = null
+    var packageVersions: List<String>? = null
+}
+
 @HiltViewModel
 class SandboxViewModel @Inject constructor(
     private val sandboxController: SandboxController,
     private val sandboxManager: LinuxSandboxManager,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(SandboxUiState())
+    private val _state = MutableStateFlow(SandboxUiState(
+        osInfo = SandboxCache.osInfo,
+        kernelInfo = SandboxCache.kernelInfo,
+        kernelCompileTime = SandboxCache.kernelCompileTime,
+        archInfo = SandboxCache.archInfo,
+        packageVersions = SandboxCache.packageVersions ?: emptyList()
+    ))
     val state = _state.asStateFlow()
 
     init {
@@ -54,6 +68,11 @@ class SandboxViewModel @Inject constructor(
                         hasError = sandboxStatus.error,
                     )
                     if (!sandboxStatus.ready) {
+                        SandboxCache.osInfo = null
+                        SandboxCache.kernelInfo = null
+                        SandboxCache.kernelCompileTime = null
+                        SandboxCache.archInfo = null
+                        SandboxCache.packageVersions = null
                         updated.copy(
                             osInfo = null,
                             kernelInfo = null,
@@ -98,6 +117,12 @@ class SandboxViewModel @Inject constructor(
                 """.trimIndent()
                 val versionsOutput = sandboxController.executeCommand(versionsScript)
                 val packageVersions = versionsOutput.lines().map { it.trim() }.filter { it.isNotBlank() }
+
+                SandboxCache.osInfo = osInfo
+                SandboxCache.kernelInfo = kernelInfo
+                SandboxCache.kernelCompileTime = kernelCompileTime
+                SandboxCache.archInfo = archInfo
+                SandboxCache.packageVersions = packageVersions
 
                 _state.update { 
                     it.copy(
