@@ -101,9 +101,6 @@ internal fun SandboxScreen(
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     hasStoragePermission = Environment.isExternalStorageManager()
                 }
-                if (state.sandboxReady) {
-                    viewModel.fetchSystemInfo()
-                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -259,6 +256,9 @@ internal fun SandboxScreen(
                         if (state.sandboxReady && !state.isWorking) {
                             OutlinedButton(onClick = onOpenTerminal) {
                                 Text("打开终端")
+                            }
+                            OutlinedButton(onClick = { viewModel.fetchSystemInfo() }) {
+                                Text("刷新信息")
                             }
                         }
                         if (state.sandboxReady && !hasStoragePermission && !state.isWorking) {
