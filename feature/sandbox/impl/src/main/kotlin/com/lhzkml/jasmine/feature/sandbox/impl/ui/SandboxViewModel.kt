@@ -54,9 +54,6 @@ class SandboxViewModel @Inject constructor(
                         hasError = sandboxStatus.error,
                     )
                 }
-                if (sandboxStatus.ready && _state.value.osInfo == null) {
-                    fetchSystemInfo()
-                }
             }
         }
     }
