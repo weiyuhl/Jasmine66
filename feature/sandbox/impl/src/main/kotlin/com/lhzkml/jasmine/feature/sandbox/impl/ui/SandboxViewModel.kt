@@ -43,7 +43,7 @@ class SandboxViewModel @Inject constructor(
         viewModelScope.launch {
             sandboxController.status.collect { sandboxStatus ->
                 _state.update {
-                    it.copy(
+                    val updated = it.copy(
                         sandboxInstalled = sandboxStatus.installed,
                         sandboxReady = sandboxStatus.ready,
                         sandboxProgress = sandboxStatus.progress,
@@ -53,6 +53,17 @@ class SandboxViewModel @Inject constructor(
                         isWorking = sandboxStatus.working,
                         hasError = sandboxStatus.error,
                     )
+                    if (!sandboxStatus.ready) {
+                        updated.copy(
+                            osInfo = null,
+                            kernelInfo = null,
+                            kernelCompileTime = null,
+                            archInfo = null,
+                            packageVersions = emptyList(),
+                        )
+                    } else {
+                        updated
+                    }
                 }
             }
         }
