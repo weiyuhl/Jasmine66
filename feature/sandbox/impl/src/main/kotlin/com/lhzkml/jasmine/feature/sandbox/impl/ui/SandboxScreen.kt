@@ -101,6 +101,9 @@ internal fun SandboxScreen(
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     hasStoragePermission = Environment.isExternalStorageManager()
                 }
+                if (state.sandboxReady) {
+                    viewModel.fetchSystemInfo()
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -178,7 +181,7 @@ internal fun SandboxScreen(
             }
 
             // 2. Packages Card
-            if (state.sandboxPackagesInstalled) {
+            if (state.sandboxReady) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
@@ -201,7 +204,7 @@ internal fun SandboxScreen(
                             }
                         } else {
                             Text(
-                                text = "• 获取中或版本过低...",
+                                text = "• 暂无额外包或获取中...",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )

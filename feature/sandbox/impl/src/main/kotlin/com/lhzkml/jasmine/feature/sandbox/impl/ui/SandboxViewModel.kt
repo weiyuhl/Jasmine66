@@ -61,7 +61,7 @@ class SandboxViewModel @Inject constructor(
         }
     }
 
-    private fun fetchSystemInfo() {
+    fun fetchSystemInfo() {
         viewModelScope.launch {
             try {
                 // Fetch OS info
