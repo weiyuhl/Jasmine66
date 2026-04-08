@@ -27,6 +27,7 @@ class ProotExecutor(
 
         val processArgs = arrayOf(
             prootPath,
+            "--link2symlink",
             "--rootfs=$rootfsPath",
             "--bind=/dev",
             "--bind=/proc",

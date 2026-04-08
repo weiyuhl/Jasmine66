@@ -11,8 +11,8 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.GZIPInputStream
 
-private const val ALPINE_VERSION = "3.21.3"
-private const val ALPINE_BRANCH = "v3.21"
+private const val ALPINE_VERSION = "3.23.3"
+private const val ALPINE_BRANCH = "v3.23"
 private const val BUFFER_SIZE = 8192
 private const val TAR_BLOCK_SIZE = 512
 private const val TAR_NAME_OFFSET = 0
