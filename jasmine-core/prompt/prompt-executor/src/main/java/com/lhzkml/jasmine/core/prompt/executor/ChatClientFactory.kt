@@ -76,6 +76,7 @@ object ChatClientFactory {
             "openai" -> OpenAIClient(apiKey = config.apiKey, baseUrl = config.baseUrl, retryConfig = retryConfig, chatPath = chatPath)
             "deepseek" -> DeepSeekClient(apiKey = config.apiKey, baseUrl = config.baseUrl, retryConfig = retryConfig, chatPath = chatPath)
             "siliconflow" -> SiliconFlowClient(apiKey = config.apiKey, baseUrl = config.baseUrl, retryConfig = retryConfig, chatPath = chatPath)
+            "openrouter" -> OpenRouterClient(apiKey = config.apiKey, baseUrl = config.baseUrl, retryConfig = retryConfig)
             else -> GenericOpenAIClient(
                 providerName = config.providerName,
                 apiKey = config.apiKey,

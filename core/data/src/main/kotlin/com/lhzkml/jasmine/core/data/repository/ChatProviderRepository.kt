@@ -46,6 +46,7 @@ class ChatProviderRepository @Inject constructor(
             ProviderPreset("claude", "Claude", "https://api.anthropic.com", "CLAUDE", "claude-sonnet-4-20250514"),
             ProviderPreset("gemini", "Gemini", "https://generativelanguage.googleapis.com", "GEMINI", "gemini-2.5-flash"),
             ProviderPreset("siliconflow", "硅基流动", "https://api.siliconflow.cn", "OPENAI", "deepseek-ai/DeepSeek-V3"),
+            ProviderPreset("openrouter", "OpenRouter", "https://openrouter.ai/api", "OPENAI", "anthropic/claude-3-haiku"),
         )
     }
 
