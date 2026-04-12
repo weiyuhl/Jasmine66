@@ -19,6 +19,8 @@ LLM-Hub-main/
 .kilo/
 gallery-main/
 claude-code6/
+.run/
+.qwen/
 
 # Local configuration file (sdk path, etc)
 local.properties
