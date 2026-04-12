@@ -1,1 +1,0 @@
-D:\nowinandroid-main\jasmine-core\prompt\prompt-mnn\src\main\cpp\CMakeLists.txt

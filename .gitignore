@@ -55,3 +55,35 @@ captures/
 
 # Native build artifacts (C/C++/Ninja)
 **/.cxx/
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# Gradle (根目录的 .gradle 已被忽略，但子目录的也需要忽略)
+linux-sandbox/.gradle/
+
+# ObjectBox backup files
+objectbox-models/*.json.bak
+**/objectbox-models/*.json.bak
+
+# Release keystore
+release.jks
+*.jks
+*.keystore
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Profiling
+*.hprof
+*.prof
