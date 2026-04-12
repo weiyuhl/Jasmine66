@@ -87,10 +87,13 @@ abstract class OpenAICompatibleClient(
             val tc = msg.toolCalls
             when {
                 msg.role == "assistant" && !tc.isNullOrEmpty() -> {
-                    // 当有 tool_calls 时，content 可以为空字符串，避免发送 null
+                    // 当有 tool_calls 时，根据 API 要求设置 content
+                    // SiliconFlow/OpenAI 兼容 API 通常要求：
+                    // - 有 tool_calls 时，content 可以为 null 或空字符串
+                    // - 为确保兼容性，使用空字符串
                     OpenAIRequestMessage(
                         role = "assistant",
-                        content = msg.content.ifEmpty { "" },
+                        content = msg.content.ifEmpty { null },  // 使用 null 更符合 OpenAI 标准
                         toolCalls = tc.map {
                             OpenAIToolCallDef(
                                 id = it.id,
@@ -99,11 +102,17 @@ abstract class OpenAICompatibleClient(
                         }
                     )
                 }
-                msg.role == "tool" -> OpenAIRequestMessage(
-                    role = "tool",
-                    content = msg.content.ifEmpty { "Tool returned empty result" },
-                    toolCallId = msg.toolCallId
-                )
+                msg.role == "tool" -> {
+                    // tool 消息必须有 tool_call_id 和 content
+                    require(msg.toolCallId != null) {
+                        "Tool 消息必须包含 toolCallId"
+                    }
+                    OpenAIRequestMessage(
+                        role = "tool",
+                        content = msg.content.ifEmpty { "Tool returned empty result" },
+                        toolCallId = msg.toolCallId
+                    )
+                }
                 msg.role == "user" -> OpenAIRequestMessage(
                     role = "user",
                     content = msg.content.ifEmpty { "" }
@@ -112,8 +121,12 @@ abstract class OpenAICompatibleClient(
                     role = "assistant",
                     content = msg.content.ifEmpty { "" }
                 )
+                msg.role == "system" -> OpenAIRequestMessage(
+                    role = "system",
+                    content = msg.content.ifEmpty { "" }
+                )
                 else -> OpenAIRequestMessage(
-                    role = msg.role, 
+                    role = msg.role,
                     content = msg.content.ifEmpty { "" }
                 )
             }
@@ -219,6 +232,11 @@ abstract class OpenAICompatibleClient(
                     .toRequestBody("application/json".toMediaType())
 
                 android.util.Log.d("OpenAICompat", "Request: POST ${baseUrl}${chatPath} model=$model tools=${tools.size}")
+                android.util.Log.d("OpenAICompat", "Request Body: $requestBody")
+                android.util.Log.d("OpenAICompat", "Messages count: ${request.messages.size}")
+                request.messages.forEachIndexed { index, msg ->
+                    android.util.Log.d("OpenAICompat", "  Message[$index]: role=${msg.role}, content=${msg.content}, toolCalls=${msg.toolCalls?.size}, toolCallId=${msg.toolCallId}")
+                }
                 
                 val httpRequest = Request.Builder()
                     .url("${baseUrl}${chatPath}")
