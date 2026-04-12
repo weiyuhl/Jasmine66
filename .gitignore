@@ -52,3 +52,6 @@ captures/
 
 # Kotlin
 .kotlin
+
+# Native build artifacts (C/C++/Ninja)
+**/.cxx/
