@@ -368,7 +368,7 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
             if (displayText.isNotEmpty()) {
                 if (message.role == "assistant" && !message.isStreaming && com.lhzkml.jasmine.core.prompt.ui.UiParser.containsUiBlocks(displayText)) {
                     val segments = remember(displayText) { com.lhzkml.jasmine.core.prompt.ui.UiParser.parse(displayText) }
-                    Column {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         for (segment in segments) {
                             when (segment) {
                                 is com.lhzkml.jasmine.core.prompt.ui.UiParser.MarkdownSegment -> {
