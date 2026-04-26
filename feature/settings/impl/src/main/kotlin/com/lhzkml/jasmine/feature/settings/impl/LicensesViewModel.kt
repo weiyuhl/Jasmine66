@@ -11,15 +11,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import javax.inject.Inject
 
 data class LicenseInfo(
     val name: String,
-    val version: String = "",
-    val license: String = "",
-    val licenseContent: String = "",
-    val url: String = "",
+    val licenseName: String = "",
 )
 
 data class LicensesUiState(
@@ -55,55 +51,52 @@ class LicensesViewModel @Inject constructor(
     }
 
     private fun parseLicenses(): List<LicenseInfo> {
-        val results = mutableListOf<LicenseInfo>()
+        val licenseIds = context.resources.getIdentifier(
+            "third_party_licenses", "raw", context.packageName
+        )
+        val metadataIds = context.resources.getIdentifier(
+            "third_party_license_metadata", "raw", context.packageName
+        )
 
-        try {
-            val jsonText = context.resources.openRawResource(
-                context.resources.getIdentifier(
-                    "third_party_licenses", "raw", context.packageName
-                )
-            ).bufferedReader().use { it.readText() }
-
-            val array = JSONArray(jsonText)
-            for (i in 0 until array.length()) {
-                val obj = array.getJSONObject(i)
-                results.add(
-                    LicenseInfo(
-                        name = obj.optString("moduleName", obj.optString("libraryName", "Unknown")),
-                        version = obj.optString("moduleVersion", obj.optString("libraryVersion", "")),
-                        license = obj.optString("moduleLicense", obj.optString("libraryLicense", "")),
-                        licenseContent = obj.optString("moduleLicenseContent", ""),
-                        url = obj.optString("moduleLicenseUrl", ""),
-                    )
-                )
-            }
-        } catch (_: Exception) {
-            // Fallback: try reading the combined text
-            try {
-                val text = context.resources.openRawResource(
-                    context.resources.getIdentifier(
-                        "third_party_licenses", "raw", context.packageName
-                    )
-                ).bufferedReader().use { it.readText() }
-
-                // Split by license separator
-                val parts = text.split("================================================================")
-                    .filter { it.isNotBlank() }
-                for (part in parts) {
-                    val lines = part.trim().lines()
-                    val name = lines.firstOrNull()?.trim() ?: "Unknown"
-                    results.add(
-                        LicenseInfo(
-                            name = name,
-                            licenseContent = part.trim(),
-                        )
-                    )
-                }
-            } catch (_: Exception) {
-                throw IllegalStateException("无法加载开源许可证信息")
-            }
+        if (licenseIds == 0 || metadataIds == 0) {
+            throw IllegalStateException("许可证资源未生成，请重新构建")
         }
 
+        // Parse unique license names from the licenses file
+        val licenseNames = context.resources.openRawResource(licenseIds)
+            .bufferedReader().use { it.readLines() }
+            .map { line -> extractLicenseName(line) }
+
+        // Parse library entries from metadata file
+        // Format: "index:length library_name"
+        val results = mutableListOf<LicenseInfo>()
+        context.resources.openRawResource(metadataIds)
+            .bufferedReader().use { reader ->
+                reader.lineSequence().forEach { line ->
+                    val parts = line.split(" ", limit = 2)
+                    if (parts.size >= 2) {
+                        val headerParts = parts[0].split(":")
+                        val licenseIndex = headerParts.getOrNull(0)?.toIntOrNull() ?: 0
+                        val libName = parts[1].trim()
+                        val licenseName = licenseNames.getOrElse(licenseIndex) { "" }
+                        results.add(LicenseInfo(name = libName, licenseName = licenseName))
+                    }
+                }
+            }
+
         return results
+    }
+
+    private fun extractLicenseName(url: String): String {
+        return when {
+            "apache" in url.lowercase() -> "Apache License 2.0"
+            "mit" in url.lowercase() -> "MIT License"
+            "android.com/studio/terms" in url -> "Android SDK License"
+            "opensource.org/licenses/BSD" in url -> "BSD License"
+            "gnu.org" in url.lowercase() || "gpl" in url.lowercase() -> "GPL License"
+            "mozilla.org" in url.lowercase() -> "Mozilla Public License"
+            url.endsWith(".txt") -> url.substringAfterLast('/').removeSuffix(".txt")
+            else -> url.substringAfterLast('/')
+        }
     }
 }
