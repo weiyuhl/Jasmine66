@@ -1,68 +1,71 @@
 # Jasmine
 
-一个基于现代 Android 架构和最佳实践的生产级 Android 应用程序。
+AI 驱动的 Android 原生应用 —— 多模型 LLM 聊天、Agent 框架、Linux 沙盒、技能系统。
 
-## 功能特性
-- **现代 UI**: 使用 Jetpack Compose 构建。
-- **架构**: 遵循官方 Android 架构指南。
-- **依赖注入**: 使用 Hilt 进行依赖注入。
-- **数据层**: 使用 Room 进行本地存储，Retrofit 进行网络请求。
-- **导航**: 使用 Navigation 3 实现类型安全导航。
+## 功能
+
+- **多模型聊天** — OpenAI / Claude / Gemini / DeepSeek / 硅基流动 / OpenRouter / 本地 MNN 推理，支持流式响应、思考过程、工具调用
+- **Agent 框架** — 图策略引擎、GOAP/LLM 规划器、子 Agent、MCP 协议 (HTTP + SSE)、20+ 内置工具
+- **动态 UI** — LLM 可在聊天中生成交互式 Compose UI：表单、按钮、选择器、表格、卡片、倒计时等 30 种组件
+- **Linux 沙盒** — 通过 PRoot (ptrace) 在无 Root 设备上运行 Alpine Linux，支持终端、包管理 (apk)、文件系统访问
+- **联网搜索** — DuckDuckGo Instant Answer API，支持时间筛选和地区过滤
+- **技能系统** — 8 个内置技能 (JS/Native)，支持导入自定义技能、API 密钥管理，选中技能指令自动注入 LLM 上下文
+- **对话持久化** — Room 数据库存储对话历史与 token 用量
 
 ## 技术栈
-- **UI 框架**: Jetpack Compose 2025.09.01
-- **架构模式**: MVVM + Clean Architecture
-- **依赖注入**: Hilt 2.59
-- **数据层**: Room 2.8.3, Retrofit 2.11.0
-- **导航**: Navigation 3 1.0.0
-- **编程语言**: Kotlin 2.3.0
-- **构建系统**: Gradle with Kotlin DSL
 
-## 项目结构
+| 领域 | 技术 |
+|------|------|
+| UI | Jetpack Compose + Material 3 + Adaptive Layout |
+| 架构 | MVVM + Clean Architecture + 单向数据流 |
+| DI | Hilt (Dagger) |
+| 导航 | Navigation 3 (Compose, 类型安全) |
+| 存储 | Room 2.8 + Proto DataStore |
+| 网络 | Retrofit 2.11 + OkHttp 4.12 + Ktor 3.4 |
+| 构建 | Kotlin 2.3 + AGP 9.0 + Gradle Kotlin DSL |
+| 测试 | JUnit + Turbine + Truth + Mockito |
+
+## 模块
+
 ```
-app/                    # 主应用模块
-app-jasmine-catalog/    # UI组件目录应用
-core/                   # 核心功能模块
-  ├── analytics/        # 分析功能
-  ├── common/           # 通用工具
-  ├── data/             # 数据层
-  ├── database/         # 数据库
-  ├── datastore/        # 数据存储
-  ├── datastore-proto/  # DataStore协议定义
-  ├── designsystem/     # 设计系统
-  ├── domain/           # 领域层
-  ├── model/            # 数据模型
-  ├── navigation/       # 导航
-  ├── network/          # 网络层(待实现)
-  ├── notifications/    # 通知
-  └── ui/               # UI 组件
-feature/                # 功能模块
-  ├── search/           # 搜索功能(API/Impl分离)
-  └── settings/         # 设置功能
-build-logic/            # 构建逻辑
+app/                    # 主应用
+jasmine-core/           # AI 引擎 (18 个模块)
+core/                   # 核心基础设施 (13 个模块)
+feature/                # 功能模块 (chat/search/settings/sandbox/skills/tools/knowledgebase)
+linux-sandbox/          # Linux 沙盒
+websearch/              # DuckDuckGo 搜索
+build-logic/            # 自定义 Gradle 约定插件
+skills/                 # 技能定义 (SKILL.md)
 ```
 
-## 开始使用
-- 在 Android Studio (Ladybug 或更高版本) 中打开项目。
-- 运行 `debug` 或 `release` 构建。
+## 快速开始
 
-## 构建命令
+**环境**：Android Studio Ladybug+ · JDK 17+ · Android SDK 36
+
 ```bash
-# 构建 Debug 版本
-./gradlew assembleDebug
+# Debug
+./gradlew :app:assembleDebug
 
-# 构建 Release 版本
-./gradlew assembleRelease
+# Release（需配置签名）
+./gradlew :app:assembleRelease
 
-# 运行测试
-./gradlew test
-
-# 运行 UI 测试
-./gradlew connectedAndroidTest
+# 格式化
+./gradlew spotlessApply
 ```
 
-## 开发环境要求
-- **Android Studio**: Ladybug 或更高版本
-- **JDK**: 17 或更高版本
-- **Gradle**: 8.0 或更高版本
-- **Kotlin**: 2.3.0 或更高版本
+## 签名
+
+Release 签名配置在 `keystore.properties`：
+
+```properties
+storeFile=jasmine-release.jks
+storePassword=xxx
+keyAlias=jasmine-release
+keyPassword=xxx
+```
+
+## 开发
+
+架构遵循 **feature API/Impl 分离**：各功能模块拆分为 `api`（NavKey + 公共接口）和 `impl`（Screen + ViewModel），feature 层通过 `core:data` 访问 `jasmine-core`，禁止直接依赖。
+
+详细架构说明见 [AGENTS.md](AGENTS.md)。

@@ -2,13 +2,12 @@ package com.lhzkml.jasmine.core.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * 供应商预设
- */
 data class ProviderPreset(
     val id: String,
     val name: String,
@@ -17,17 +16,37 @@ data class ProviderPreset(
     val defaultModel: String,
 )
 
-/**
- * 轻量级供应商配置仓库（位于 core:data，被各个 feature 共享）
- * 使用 SharedPreferences 持久化供应商选择、API Key、Base URL 和模型名称。
- * 注意：此处不依赖任何 jasmine-core 的具体模型类型，只存储字符串配置。
- */
 @Singleton
 class ChatProviderRepository @Inject constructor(
     @ApplicationContext context: Context,
 ) {
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences("jasmine_provider", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = run {
+        val masterKey = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+        val encryptedPrefs = EncryptedSharedPreferences.create(
+            "jasmine_provider_encrypted",
+            masterKey,
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
+
+        // Migrate data from old plain SharedPreferences if present
+        val oldPrefs = context.getSharedPreferences("jasmine_provider", Context.MODE_PRIVATE)
+        if (oldPrefs.all.isNotEmpty() && encryptedPrefs.all.isEmpty()) {
+            val editor = encryptedPrefs.edit()
+            for ((key, value) in oldPrefs.all) {
+                when (value) {
+                    is String -> editor.putString(key, value)
+                    is Int -> editor.putInt(key, value as Int)
+                    is Long -> editor.putLong(key, value as Long)
+                    is Float -> editor.putFloat(key, value as Float)
+                    is Boolean -> editor.putBoolean(key, value as Boolean)
+                }
+            }
+            editor.apply()
+        }
+        encryptedPrefs
+    }
 
     companion object {
         private const val KEY_PROVIDER_ID = "active_provider_id"
@@ -39,7 +58,6 @@ class ChatProviderRepository @Inject constructor(
         private const val KEY_TOP_P_PREFIX = "top_p_"
         private const val KEY_MAX_TOKENS_PREFIX = "max_tokens_"
 
-        /** 内置供应商列表 */
         val PRESETS = listOf(
             ProviderPreset("deepseek", "DeepSeek", "https://api.deepseek.com", "OPENAI", "deepseek-chat"),
             ProviderPreset("openai", "OpenAI", "https://api.openai.com", "OPENAI", "gpt-4o"),
@@ -83,7 +101,6 @@ class ChatProviderRepository @Inject constructor(
         prefs.edit().putString(KEY_MODEL_PREFIX + providerId, model).apply()
     }
 
-    /** 保存完整供应商配置 */
     fun saveProviderConfig(providerId: String, apiKey: String, baseUrl: String, model: String) {
         prefs.edit()
             .putString(KEY_API_KEY_PREFIX + providerId, apiKey)
@@ -144,12 +161,10 @@ class ChatProviderRepository @Inject constructor(
 
     private val _configChangesFlow = kotlinx.coroutines.flow.MutableStateFlow(System.currentTimeMillis())
 
-    /** 提供 Flow 供 ViewModel 监听配置变更 */
     val configChangesFlow: kotlinx.coroutines.flow.Flow<Long> = _configChangesFlow
 
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         if (key == null) return@OnSharedPreferenceChangeListener
-        // 任何影响 Client 配置或活跃供应商的变更都触发刷新流
         if (key == KEY_PROVIDER_ID ||
             key.startsWith(KEY_API_KEY_PREFIX) ||
             key.startsWith(KEY_BASE_URL_PREFIX) ||

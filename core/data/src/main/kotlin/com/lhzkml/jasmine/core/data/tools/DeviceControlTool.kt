@@ -2,12 +2,15 @@ package com.lhzkml.jasmine.core.data.tools
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.os.Build
 import android.provider.CalendarContract
 import android.provider.ContactsContract
 import android.provider.Settings
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.lhzkml.jasmine.core.agent.tools.Tool
 import com.lhzkml.jasmine.core.prompt.model.ToolDescriptor
@@ -24,13 +27,6 @@ import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * DeviceControlTool — 统一设备操控工具
- *
- * 支持 7 种操作：
- *   flashlight_on, flashlight_off, create_contact, send_email,
- *   show_map, open_wifi_settings, create_calendar_event
- */
 @Singleton
 class DeviceControlTool @Inject constructor(
     @ApplicationContext private val context: Context
@@ -81,6 +77,9 @@ class DeviceControlTool @Inject constructor(
                 "flashlight_off" -> setFlashlight(false)
 
                 "create_contact" -> {
+                    if (!hasPermission(android.Manifest.permission.WRITE_CONTACTS)) {
+                        return permissionDeniedMessage("create_contact", "WRITE_CONTACTS")
+                    }
                     val firstName = params?.get("first_name")?.jsonPrimitive?.content ?: ""
                     val lastName = params?.get("last_name")?.jsonPrimitive?.content ?: ""
                     val phone = params?.get("phone_number")?.jsonPrimitive?.content ?: ""
@@ -103,6 +102,9 @@ class DeviceControlTool @Inject constructor(
                 "open_wifi_settings" -> openWifiSettings()
 
                 "create_calendar_event" -> {
+                    if (!hasPermission(android.Manifest.permission.WRITE_CALENDAR)) {
+                        return permissionDeniedMessage("create_calendar_event", "WRITE_CALENDAR")
+                    }
                     val datetime = params?.get("datetime")?.jsonPrimitive?.content ?: ""
                     val title = params?.get("title")?.jsonPrimitive?.content ?: ""
                     createCalendarEvent(datetime, title)
@@ -116,8 +118,20 @@ class DeviceControlTool @Inject constructor(
         }
     }
 
+    private fun hasPermission(permission: String): Boolean =
+        ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+
+    private fun permissionDeniedMessage(action: String, permission: String): String =
+        "⚠️ Cannot execute '$action': $permission permission is not granted. " +
+                "Please grant this permission in device Settings > Apps > Jasmine > Permissions."
+
     // ── Flashlight ──────────────────────────────────────────
     private fun setFlashlight(enabled: Boolean): String {
+        // Android 13+ (T+) doesn't require CAMERA permission for flashlight
+        val needsCameraPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+        if (needsCameraPermission && !hasPermission(android.Manifest.permission.CAMERA)) {
+            return permissionDeniedMessage("flashlight", "CAMERA")
+        }
         val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
             for (id in cameraManager.cameraIdList) {

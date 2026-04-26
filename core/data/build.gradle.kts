@@ -15,6 +15,7 @@ dependencies {
     api(projects.core.network)
     api(projects.websearch)
 
+    implementation(libs.security.crypto)
     implementation(libs.kotlinx.serialization.json)
     implementation(projects.core.analytics)
     implementation(projects.core.domain)
