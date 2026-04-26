@@ -3,7 +3,9 @@
     "allow": [
       "Bash(git *)",
       "Bash(./gradlew assembleDemoDebug *)",
-      "Bash(./gradlew tasks *)"
+      "Bash(./gradlew tasks *)",
+      "Bash(./gradlew :app:tasks --group build)",
+      "Bash(./gradlew :app:assembleDebug *)"
     ]
   }
 }
