@@ -233,20 +233,17 @@ class LinuxSandboxManager(private val context: Context) {
                 // flatten: move contents of that subdir up to rootfsDir.
                 unwrapSingleSubdir(rootfsDir)
 
-                // Verify rootfs integrity after fresh extraction.
-                // Some distros have /bin as a symlink to /usr/bin — check both paths.
-                val shell = distro.getDefaultShell()  // e.g. "/bin/sh" or "/bin/bash"
-                val shellRel = shell.removePrefix("/")
-                val hasShell = File(rootfsDir, shellRel).exists() ||
-                    File(rootfsDir, "usr/$shellRel").exists()
-                if (!hasShell) {
-                    val topEntries = rootfsDir.listFiles()?.map { f ->
-                        val suffix = if (f.isDirectory) "/" else ""
-                        f.name + suffix
-                    }?.sorted() ?: emptyList()
+                // Verify the rootfs works by running a smoke-test command in PRoot.
+                // Don't rely on java.io.File.exists() — freshly extracted symlinks
+                // (e.g. bin/sh -> busybox) may not resolve immediately on Android.
+                _state.value = SandboxState.Installing(activeDistro, "Verifying rootfs...")
+                val testResult = createProotExecutor().execute("echo jasmine-smoke-test", timeoutSeconds = 15)
+                val testPassed = (testResult["stdout"] as? String)?.contains("jasmine-smoke-test") == true
+                if (!testPassed) {
+                    val error = testResult["error"] as? String
+                    val stderr = testResult["stderr"] as? String ?: ""
                     throw IllegalStateException(
-                        "Rootfs extraction incomplete: $shell not found.\n" +
-                        "Entries (${topEntries.size}): ${topEntries.take(25).joinToString()}"
+                        "Rootfs smoke test failed: ${error ?: stderr.ifEmpty { "unknown" }.take(300)}"
                     )
                 }
             } finally {
