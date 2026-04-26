@@ -6,7 +6,9 @@
       "Bash(./gradlew tasks *)",
       "Bash(./gradlew :app:tasks --group build)",
       "Bash(./gradlew :app:assembleDebug *)",
-      "Bash(./gradlew :linux-sandbox:sandbox:compileDebugKotlin)"
+      "Bash(./gradlew :linux-sandbox:sandbox:compileDebugKotlin)",
+      "WebSearch",
+      "WebFetch(domain:cdimage.ubuntu.com)"
     ]
   }
 }

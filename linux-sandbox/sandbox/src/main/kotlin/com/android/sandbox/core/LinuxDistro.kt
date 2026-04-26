@@ -47,10 +47,14 @@ sealed class LinuxDistro(
     data object Ubuntu : LinuxDistro(
         id = "ubuntu",
         name = "Ubuntu",
-        description = "最流行的发行版，海量软件包 (~30MB)",
-        version = "24.04",
+        description = "最流行的发行版，海量软件包 (~28MB)",
+        version = "24.04.3",
         icon = "🟠",
     ) {
+        // Ubuntu cdimage URL pattern:
+        // dir:  releases/{point_release}/release/
+        // file: ubuntu-base-{patch_version}-base-{arch}.tar.gz
+        // Verified at: https://cdimage.ubuntu.com/ubuntu-base/releases/
         override fun getDownloadUrl(arch: String): String {
             val ubuntuArch = when (arch) {
                 "aarch64" -> "arm64"
@@ -59,7 +63,8 @@ sealed class LinuxDistro(
                 "x86" -> "i386"
                 else -> "arm64"
             }
-            return "https://cdimage.ubuntu.com/ubuntu-base/releases/$version/release/ubuntu-base-$version-base-$ubuntuArch.tar.gz"
+            // 24.04.1 point-release directory hosts the 24.04.3 patch tarball
+            return "https://cdimage.ubuntu.com/ubuntu-base/releases/24.04.1/release/ubuntu-base-$version-base-$ubuntuArch.tar.gz"
         }
 
         override fun getPackageManagerName() = "apt"
@@ -88,16 +93,21 @@ sealed class LinuxDistro(
         version = "12",
         icon = "🔴",
     ) {
+        // Proot-distro releases (Debian Bookworm = v12, codename "bookworm").
+        // v4.17.3 is the last release with Bookworm (v4.18+ moved to Trixie/13).
+        // Filename: debian-{codename}-{arch}-pd-v{version}.tar.xz
+        // Verified at: https://github.com/termux/proot-distro/releases/tag/v4.17.3
         override fun getDownloadUrl(arch: String): String {
             val debianArch = when (arch) {
-                "aarch64" -> "arm64"
-                "armhf" -> "armhf"
-                "x86_64" -> "amd64"
-                "x86" -> "i386"
-                else -> "arm64"
+                "aarch64" -> "aarch64"
+                "armhf" -> "arm"
+                "x86_64" -> "x86_64"
+                "x86" -> "i686"
+                else -> "aarch64"
             }
+            val pdistroVersion = "4.17.3"
             val codename = "bookworm"
-            return "https://github.com/termux/proot-distro/releases/download/v4.18.0/debian-$codename-$debianArch.tar.xz"
+            return "https://github.com/termux/proot-distro/releases/download/v$pdistroVersion/debian-$codename-$debianArch-pd-v$pdistroVersion.tar.xz"
         }
 
         override fun getPackageManagerName() = "apt"
