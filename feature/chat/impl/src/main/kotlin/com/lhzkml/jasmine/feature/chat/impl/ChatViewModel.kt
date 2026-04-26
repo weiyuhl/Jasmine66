@@ -143,11 +143,8 @@ class ChatViewModel @Inject constructor(
                 val errorMsg = e.message ?: "请求失败"
                 _errorMessage.value = errorMsg
                 com.lhzkml.jasmine.core.data.log.FileLogger.logError("ChatViewModel", "UI callback failed: $errorMsg", e)
-                val current = _messages.value.toMutableList()
-                if (current.isNotEmpty() && current.last().role == "assistant" && current.last().content.isEmpty()) {
-                    current.removeAt(current.lastIndex)
-                    _messages.value = current
-                }
+                // Ensure isStreaming = false so UI blocks render even on partial response
+                updateLastAssistant { it.copy(isStreaming = false) }
             } finally {
                 _isChatRunning.value = false
             }
@@ -242,11 +239,8 @@ class ChatViewModel @Inject constructor(
                     updateLastAssistant { it.copy(isStreaming = false) }
                 } else {
                     _errorMessage.value = errorMsg
-                    val current = _messages.value.toMutableList()
-                    if (current.isNotEmpty() && current.last().role == "assistant" && current.last().content.isEmpty()) {
-                        current.removeAt(current.lastIndex)
-                        _messages.value = current
-                    }
+                    // Always end streaming so UI blocks render even on error
+                    updateLastAssistant { it.copy(isStreaming = false) }
                 }
                 com.lhzkml.jasmine.core.data.log.FileLogger.logError("ChatViewModel", "Chat request failed: $errorMsg\nFull exception: ${e}\nCause: ${e.cause}", e)
             } finally {
