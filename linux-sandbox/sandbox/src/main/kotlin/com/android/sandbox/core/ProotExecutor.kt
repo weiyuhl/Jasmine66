@@ -46,7 +46,6 @@ class ProotExecutor(
         extraEnv: Map<String, String> = emptyMap(),
         loginShell: Boolean = false,
         killOnExit: Boolean = true,
-        fakeRoot: Boolean = true,
     ): Map<String, Any> {
         val effectiveTimeout = timeoutSeconds.coerceIn(1, MAX_TIMEOUT_SECONDS)
 
@@ -63,12 +62,8 @@ class ProotExecutor(
             baseArgs.add("--kill-on-exit")
         }
 
-        // root-id: fake UID 0 / GID 0 inside the chroot so tools like
-        // apk, apt, pip don't complain about permissions. The real Android
-        // uid is still used for actual file access on the host filesystem.
-        if (fakeRoot) {
-            baseArgs.add("--root-id")
-        }
+        // NOTE: fake root (UID 0) is handled by the `-0` flag in processArgs
+        // below. Don't also add --root-id here, they're the same option.
 
         // Core filesystem binds — these provide the Linux pseudo-filesystems
         // that most programs expect to find at runtime.
@@ -82,8 +77,10 @@ class ProotExecutor(
 
         // /dev/shm — shared memory, needed by Python multiprocessing,
         // some npm packages, and glibc pthreads.
-        val devShm = File(rootfsPath, "dev/shm")
-        if (devShm.isDirectory || devShm.mkdirs()) {
+        // Only bind if host Android has /dev/shm AND we can create it in rootfs.
+        if (File("/dev/shm").isDirectory) {
+            val devShm = File(rootfsPath, "dev/shm")
+            devShm.mkdirs()
             baseArgs.add("--bind=/dev/shm")
         }
 
