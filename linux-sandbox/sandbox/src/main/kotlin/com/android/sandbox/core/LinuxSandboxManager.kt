@@ -212,7 +212,8 @@ class LinuxSandboxManager(private val context: Context) {
         val rootfsDir = distroRootfsDir(distro)
         rootfsDir.parentFile?.mkdirs()
 
-        if (!rootfsDir.isDirectory) {
+        val isFreshExtract = !rootfsDir.isDirectory
+        if (isFreshExtract) {
             val archiveFile = distroArchiveFile(distro)
             try {
                 _state.value = SandboxState.Downloading(0f)
@@ -226,19 +227,31 @@ class LinuxSandboxManager(private val context: Context) {
 
                 _state.value = SandboxState.Extracting
                 downloader.extractTarArchive(archiveFile, rootfsDir)
+
+                // Some tarballs (e.g. proot-distro Debian) wrap rootfs inside a
+                // single subdirectory like "debian-bookworm-aarch64/". Detect and
+                // flatten: move contents of that subdir up to rootfsDir.
+                unwrapSingleSubdir(rootfsDir)
+
+                // Verify rootfs integrity after fresh extraction.
+                // Some distros have /bin as a symlink to /usr/bin — check both paths.
+                val shell = distro.getDefaultShell()  // e.g. "/bin/sh" or "/bin/bash"
+                val shellRel = shell.removePrefix("/")
+                val hasShell = File(rootfsDir, shellRel).exists() ||
+                    File(rootfsDir, "usr/$shellRel").exists()
+                if (!hasShell) {
+                    val topEntries = rootfsDir.listFiles()?.map { f ->
+                        val suffix = if (f.isDirectory) "/" else ""
+                        f.name + suffix
+                    }?.sorted() ?: emptyList()
+                    throw IllegalStateException(
+                        "Rootfs extraction incomplete: $shell not found.\n" +
+                        "Entries (${topEntries.size}): ${topEntries.take(25).joinToString()}"
+                    )
+                }
             } finally {
                 archiveFile.delete()
             }
-        }
-
-        // Verify rootfs integrity before configuring
-        val distroShell = distro.getDefaultShell()
-        val shellInRootfs = File(rootfsDir, distroShell.removePrefix("/"))
-        if (!shellInRootfs.exists()) {
-            throw IllegalStateException(
-                "Rootfs extraction incomplete: ${distroShell} not found in rootfs. " +
-                "Directory contents: ${rootfsDir.listFiles()?.take(10)?.map { it.name } ?: "empty"}"
-            )
         }
 
         _state.value = SandboxState.Installing(activeDistro, "Configuring...")
@@ -287,6 +300,53 @@ class LinuxSandboxManager(private val context: Context) {
             resolvConf.writeText("nameserver 8.8.8.8\nnameserver 8.8.4.4\n")
         } catch (_: Exception) {
             // Fallback: let post-extract commands handle it
+        }
+    }
+
+    /**
+     * Detect and flatten tarballs that wrap the rootfs inside a single subdirectory.
+     *
+     * Many proot-distro tarballs (Debian, Ubuntu) extract like this:
+     *   rootfs/
+     *     └── debian-bookworm-aarch64/
+     *         ├── bin/
+     *         ├── etc/
+     *         └── usr/
+     *
+     * rather than flat:
+     *   rootfs/
+     *     ├── bin/
+     *     ├── etc/
+     *     └── usr/
+     *
+     * When the extracted directory contains exactly ONE subdirectory and zero files,
+     * move that subdirectory's contents up to rootfsDir.
+     */
+    private fun unwrapSingleSubdir(rootfsDir: File) {
+        val children = rootfsDir.listFiles() ?: return
+        if (children.size != 1) return
+        val child = children.single()
+        if (!child.isDirectory) return
+
+        android.util.Log.i("LinuxSandbox", "Detected wrapper directory: ${child.name}; flattening into rootfs")
+
+        val tmpDir = File(rootfsDir.parentFile, "${rootfsDir.name}_tmp")
+        try {
+            // Move wrapper contents to tmp
+            tmpDir.deleteRecursively()
+            if (!child.renameTo(tmpDir)) {
+                child.copyRecursively(tmpDir, overwrite = true)
+                child.deleteRecursively()
+            }
+            // Replace rootfs with tmp contents
+            rootfsDir.deleteRecursively()
+            if (!tmpDir.renameTo(rootfsDir)) {
+                tmpDir.copyRecursively(rootfsDir, overwrite = true)
+                tmpDir.deleteRecursively()
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("LinuxSandbox", "Failed to flatten wrapper directory: ${e.message}")
+            tmpDir.deleteRecursively()
         }
     }
 
