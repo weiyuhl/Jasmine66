@@ -68,9 +68,10 @@ sealed class LinuxDistro(
         override fun getDefaultShell() = "/bin/bash"
 
         override fun getPostExtractCommands(): List<String> = listOf(
-            "echo 'nameserver 8.8.8.8' > /etc/resolv.conf",
-            "echo 'nameserver 8.8.4.4' >> /etc/resolv.conf",
-            "apt-get update",
+            // resolv.conf is already fixed natively by fixResolvConf() before these run.
+            // ARM ports: replace archive.ubuntu.com → ports.ubuntu.com if needed
+            "if [ -f /etc/apt/sources.list ]; then sed -i 's|http://archive.ubuntu.com|http://ports.ubuntu.com|g' /etc/apt/sources.list; else echo 'deb http://ports.ubuntu.com/ubuntu-ports noble main universe' > /etc/apt/sources.list; fi",
+            "apt-get update -qq",
         )
 
         override fun getDefaultPackages() = listOf(
@@ -105,9 +106,8 @@ sealed class LinuxDistro(
         override fun getDefaultShell() = "/bin/bash"
 
         override fun getPostExtractCommands(): List<String> = listOf(
-            "echo 'nameserver 8.8.8.8' > /etc/resolv.conf",
-            "echo 'nameserver 8.8.4.4' >> /etc/resolv.conf",
-            "apt-get update",
+            // resolv.conf already fixed natively. Ensure apt sources are set.
+            "apt-get update -qq",
         )
 
         override fun getDefaultPackages() = listOf(

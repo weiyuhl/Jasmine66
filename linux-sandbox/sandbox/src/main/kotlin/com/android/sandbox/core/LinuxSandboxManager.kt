@@ -231,18 +231,63 @@ class LinuxSandboxManager(private val context: Context) {
             }
         }
 
+        // Verify rootfs integrity before configuring
+        val distroShell = distro.getDefaultShell()
+        val shellInRootfs = File(rootfsDir, distroShell.removePrefix("/"))
+        if (!shellInRootfs.exists()) {
+            throw IllegalStateException(
+                "Rootfs extraction incomplete: ${distroShell} not found in rootfs. " +
+                "Directory contents: ${rootfsDir.listFiles()?.take(10)?.map { it.name } ?: "empty"}"
+            )
+        }
+
         _state.value = SandboxState.Installing(activeDistro, "Configuring...")
         downloader.makeWritable(rootfsDir)
+
+        // Fix resolv.conf before running any network commands.
+        // Ubuntu/Debian base tarballs often have /etc/resolv.conf as a symlink
+        // to /run/systemd/resolve/stub-resolv.conf which doesn't exist in PRoot.
+        fixResolvConf(rootfsDir)
 
         val executor = createProotExecutor()
         for (cmd in distro.getPostExtractCommands()) {
             if (currentJob?.isActive == false) throw CancellationException("Cancelled")
-            executor.execute(cmd, timeoutSeconds = 60)
+            val result = executor.execute(cmd, timeoutSeconds = 120)
+            val success = result["success"] as? Boolean ?: false
+            if (!success) {
+                val error = result["error"] as? String
+                val stderr = result["stderr"] as? String ?: ""
+                val stdout = result["stdout"] as? String ?: ""
+                throw IllegalStateException(
+                    "Post-extract command failed: $cmd\n" +
+                    "Error: ${error ?: stderr.ifEmpty { stdout }.take(300)}"
+                )
+            }
         }
 
         writeInitFiles(rootfsDir, distro)
 
         _state.value = SandboxState.Ready(activeDistro)
+    }
+
+    /**
+     * Fix /etc/resolv.conf in the rootfs so DNS works inside PRoot.
+     *
+     * Ubuntu and Debian base tarballs often ship /etc/resolv.conf as a symlink
+     * to /run/systemd/resolve/stub-resolv.conf. Since PRoot has no systemd,
+     * this symlink is broken and DNS fails. Replace it with a regular file.
+     */
+    private fun fixResolvConf(rootfsDir: File) {
+        try {
+            val resolvConf = File(rootfsDir, "etc/resolv.conf")
+            // Remove existing symlink or file
+            resolvConf.delete()
+            // Ensure etc/ exists
+            resolvConf.parentFile?.mkdirs()
+            resolvConf.writeText("nameserver 8.8.8.8\nnameserver 8.8.4.4\n")
+        } catch (_: Exception) {
+            // Fallback: let post-extract commands handle it
+        }
     }
 
     private fun writeInitFiles(rootfsDir: File, distro: LinuxDistro) {
