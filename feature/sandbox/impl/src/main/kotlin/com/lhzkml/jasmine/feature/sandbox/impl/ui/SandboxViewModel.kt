@@ -4,9 +4,6 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.sandbox.SandboxController
-import com.android.sandbox.SandboxStatus
-import com.android.sandbox.core.DistroStatus
-import com.android.sandbox.core.LinuxDistro
 import com.android.sandbox.core.LinuxSandboxManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,9 +27,6 @@ data class SandboxUiState(
     val kernelCompileTime: String? = null,
     val archInfo: String? = null,
     val packageVersions: List<String> = emptyList(),
-    val activeDistro: LinuxDistro = LinuxDistro.DEFAULT,
-    val availableDistros: List<LinuxDistro> = LinuxDistro.ALL,
-    val distroStatuses: Map<String, DistroStatus> = emptyMap(),
 )
 
 object SandboxCache {
@@ -59,7 +53,6 @@ class SandboxViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        refreshDistroStatuses()
         viewModelScope.launch {
             sandboxController.status.collect { sandboxStatus ->
                 _state.update {
@@ -72,7 +65,6 @@ class SandboxViewModel @Inject constructor(
                         sandboxPackagesInstalled = sandboxStatus.packagesInstalled,
                         isWorking = sandboxStatus.working,
                         hasError = sandboxStatus.error,
-                        activeDistro = sandboxStatus.activeDistro ?: LinuxDistro.DEFAULT,
                     )
                     if (!sandboxStatus.ready) {
                         SandboxCache.osInfo = null
@@ -80,15 +72,8 @@ class SandboxViewModel @Inject constructor(
                         SandboxCache.kernelCompileTime = null
                         SandboxCache.archInfo = null
                         SandboxCache.packageVersions = null
-                        updated.copy(
-                            osInfo = null,
-                            kernelInfo = null,
-                            kernelCompileTime = null,
-                            archInfo = null,
-                            packageVersions = emptyList(),
-                        )
+                        updated.copy(osInfo = null, kernelInfo = null, kernelCompileTime = null, archInfo = null, packageVersions = emptyList())
                     } else {
-                        refreshDistroStatuses()
                         updated
                     }
                 }
@@ -96,33 +81,11 @@ class SandboxViewModel @Inject constructor(
         }
     }
 
-    fun setActiveDistro(distro: LinuxDistro) {
-        sandboxController.setActiveDistro(distro)
-        refreshDistroStatuses()
-        _state.update {
-            it.copy(activeDistro = distro)
-        }
-    }
-
-    fun refreshDistroStatuses() {
-        val statuses = sandboxController.getAvailableDistros().associate { distro ->
-            distro.id to sandboxController.getDistroStatus(distro)
-        }
-        _state.update {
-            it.copy(
-                availableDistros = sandboxController.getAvailableDistros(),
-                distroStatuses = statuses,
-            )
-        }
-    }
-
     fun fetchSystemInfo() {
         viewModelScope.launch {
             try {
-                val distroName = sandboxController.getActiveDistro().name
-
                 val osOutput = sandboxController.executeCommand("cat /etc/os-release | grep PRETTY_NAME | cut -d '=' -f 2 | tr -d '\"'")
-                val osInfo = osOutput.trim().takeIf { it.isNotBlank() } ?: distroName
+                val osInfo = osOutput.trim().takeIf { it.isNotBlank() } ?: "Alpine Linux"
 
                 val kernelOutput = sandboxController.executeCommand("uname -r")
                 val kernelInfo = kernelOutput.trim().takeIf { it.isNotBlank() }
@@ -133,7 +96,14 @@ class SandboxViewModel @Inject constructor(
                 val archOutput = sandboxController.executeCommand("uname -m")
                 val archInfo = archOutput.trim().takeIf { it.isNotBlank() }
 
-                val versionsScript = buildVersionScript()
+                val versionsScript = """
+                    bash --version 2>/dev/null | head -n 1
+                    python3 --version 2>/dev/null
+                    git --version 2>/dev/null
+                    curl --version 2>/dev/null | head -n 1
+                    wget --version 2>/dev/null | head -n 1
+                    node --version 2>/dev/null | sed 's/^/Node.js /'
+                """.trimIndent()
                 val versionsOutput = sandboxController.executeCommand(versionsScript)
                 val packageVersions = versionsOutput.lines().map { it.trim() }.filter { it.isNotBlank() }
 
@@ -143,50 +113,16 @@ class SandboxViewModel @Inject constructor(
                 SandboxCache.archInfo = archInfo
                 SandboxCache.packageVersions = packageVersions
 
-                _state.update {
-                    it.copy(
-                        osInfo = osInfo,
-                        kernelInfo = kernelInfo,
-                        kernelCompileTime = kernelCompileTime,
-                        archInfo = archInfo,
-                        packageVersions = packageVersions,
-                    )
-                }
-            } catch (e: Exception) {
-            }
+                _state.update { it.copy(osInfo = osInfo, kernelInfo = kernelInfo, kernelCompileTime = kernelCompileTime, archInfo = archInfo, packageVersions = packageVersions) }
+            } catch (_: Exception) { }
         }
     }
 
-    private fun buildVersionScript(): String {
-        return """
-                    bash --version 2>/dev/null | head -n 1
-                    python3 --version 2>/dev/null
-                    git --version 2>/dev/null
-                    curl --version 2>/dev/null | head -n 1
-                    wget --version 2>/dev/null | head -n 1
-                    node --version 2>/dev/null | sed 's/^/Node.js /'
-                """.trimIndent()
-    }
-
-    fun onSetupSandbox() {
-        sandboxController.setup()
-    }
-
-    fun onCancelSandbox() {
-        sandboxController.cancel()
-    }
-
-    fun onResetSandbox() {
-        sandboxController.reset()
-    }
-
-    fun onInstallPackages() {
-        sandboxController.installPackages()
-    }
-
+    fun onSetupSandbox() = sandboxController.setup()
+    fun onCancelSandbox() = sandboxController.cancel()
+    fun onResetSandbox() = sandboxController.reset()
+    fun onInstallPackages() = sandboxController.installPackages()
     fun getExecutor() = sandboxManager.createProotExecutor()
 
-    suspend fun executeCommand(command: String): String {
-        return sandboxController.executeCommand(command)
-    }
+    suspend fun executeCommand(command: String): String = sandboxController.executeCommand(command)
 }

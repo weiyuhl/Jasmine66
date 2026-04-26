@@ -1,10 +1,7 @@
 package com.lhzkml.jasmine.feature.sandbox.impl.ui
 
-import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,11 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,11 +21,11 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,7 +47,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -59,7 +54,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,8 +61,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.android.sandbox.core.DistroStatus
-import com.android.sandbox.core.LinuxDistro
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -94,9 +86,7 @@ internal fun SandboxScreen(
         mutableStateOf(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 Environment.isExternalStorageManager()
-            } else {
-                true
-            }
+            } else true
         )
     }
 
@@ -109,9 +99,7 @@ internal fun SandboxScreen(
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Scaffold(
@@ -137,16 +125,7 @@ internal fun SandboxScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // 1. Distro Selection Card
-            DistroSelectionCard(
-                availableDistros = state.availableDistros,
-                activeDistro = state.activeDistro,
-                distroStatuses = state.distroStatuses,
-                isWorking = state.isWorking,
-                onSelectDistro = { viewModel.setActiveDistro(it) },
-            )
-
-            // 2. System Info Card
+            // System Info Card
             if (state.sandboxReady) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -156,14 +135,12 @@ internal fun SandboxScreen(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        val osText = "${state.activeDistro.icon} ${state.osInfo ?: state.activeDistro.name} ${state.archInfo ?: ""}".trim()
                         Text(
-                            text = osText,
+                            text = "🌄 ${state.osInfo ?: "Alpine Linux"} ${state.archInfo ?: ""}".trim(),
                             style = MaterialTheme.typography.titleMedium,
                         )
-                        val kernelText = "内核版本: ${state.kernelInfo ?: "未知"} ${state.kernelCompileTime ?: ""}".trim()
                         Text(
-                            text = kernelText,
+                            text = "内核版本: ${state.kernelInfo ?: "未知"} ${state.kernelCompileTime ?: ""}".trim(),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -172,26 +149,17 @@ internal fun SandboxScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-
                         Spacer(modifier = Modifier.height(4.dp))
                         if (hasStoragePermission) {
-                            Text(
-                                text = "✓ 已挂载外置存储 (可访问 /sdcard)",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF388E3C),
-                            )
+                            Text(text = "✓ 已挂载外置存储", style = MaterialTheme.typography.bodySmall, color = Color(0xFF388E3C))
                         } else {
-                            Text(
-                                text = "! 未挂载外置存储",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error,
-                            )
+                            Text(text = "! 未挂载外置存储", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
             }
 
-            // 3. Packages Card
+            // Packages Card
             if (state.sandboxReady) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -201,30 +169,19 @@ internal fun SandboxScreen(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Text(
-                            text = "可用软件包 (${state.activeDistro.getPackageManagerName()})",
-                            style = MaterialTheme.typography.titleMedium,
-                        )
+                        Text(text = "可用软件包 (apk)", style = MaterialTheme.typography.titleMedium)
                         if (state.packageVersions.isNotEmpty()) {
                             state.packageVersions.forEach { pkgInfo ->
-                                Text(
-                                    text = "• $pkgInfo",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
+                                Text(text = "• $pkgInfo", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         } else {
-                            Text(
-                                text = "• 暂无额外包或获取中...",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            Text(text = "• 暂无额外包或获取中...", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
             }
 
-            // 4. Actions & Status Card
+            // Actions Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -240,30 +197,15 @@ internal fun SandboxScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp,
-                            )
-                            Text(
-                                text = state.sandboxStatusText,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            Text(text = state.sandboxStatusText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(Modifier.weight(1f))
-                            OutlinedButton(
-                                onClick = { viewModel.onCancelSandbox() },
-                            ) {
-                                Text("取消")
-                            }
+                            OutlinedButton(onClick = { viewModel.onCancelSandbox() }) { Text("取消") }
                         }
                     }
 
                     if (state.hasError) {
-                        Text(
-                            text = state.sandboxStatusText,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.error,
-                        )
+                        Text(text = state.sandboxStatusText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                     }
 
                     Row(
@@ -271,12 +213,8 @@ internal fun SandboxScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         if (state.sandboxReady && !state.isWorking) {
-                            OutlinedButton(onClick = onOpenTerminal) {
-                                Text("打开终端")
-                            }
-                            OutlinedButton(onClick = { viewModel.fetchSystemInfo() }) {
-                                Text("刷新信息")
-                            }
+                            OutlinedButton(onClick = onOpenTerminal) { Text("打开终端") }
+                            OutlinedButton(onClick = { viewModel.fetchSystemInfo() }) { Text("刷新信息") }
                         }
                         if (state.sandboxReady && !state.isWorking) {
                             OutlinedButton(onClick = {
@@ -286,24 +224,16 @@ internal fun SandboxScreen(
                                     }
                                     context.startActivity(intent)
                                 }
-                            }) {
-                                Text(if (hasStoragePermission) "管理存储权限" else "授权存储访问")
-                            }
+                            }) { Text(if (hasStoragePermission) "管理存储权限" else "授权存储访问") }
                         }
                         if (state.sandboxReady && !state.sandboxPackagesInstalled && !state.isWorking) {
-                            OutlinedButton(onClick = { viewModel.onInstallPackages() }) {
-                                Text("安装常用包")
-                            }
+                            OutlinedButton(onClick = { viewModel.onInstallPackages() }) { Text("安装常用包") }
                         }
                         if (state.sandboxInstalled || state.isWorking) {
-                            OutlinedButton(onClick = { showResetDialog = true }) {
-                                Text("重置")
-                            }
+                            OutlinedButton(onClick = { showResetDialog = true }) { Text("重置") }
                         }
                         if (!state.sandboxInstalled && !state.isWorking) {
-                            OutlinedButton(onClick = { viewModel.onSetupSandbox() }) {
-                                Text("安装沙盒")
-                            }
+                            OutlinedButton(onClick = { viewModel.onSetupSandbox() }) { Text("安装沙盒") }
                         }
                     }
                 }
@@ -315,190 +245,14 @@ internal fun SandboxScreen(
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
             title = { Text("重置沙盒") },
-            text = { Text("这将删除 ${state.activeDistro.name} 的沙盒环境，确定继续？") },
+            text = { Text("这将删除 Alpine Linux 沙盒环境，确定继续？") },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showResetDialog = false
-                        viewModel.onResetSandbox()
-                    },
-                ) {
-                    Text("重置")
-                }
+                TextButton(onClick = { showResetDialog = false; viewModel.onResetSandbox() }) { Text("重置") }
             },
             dismissButton = {
-                TextButton(onClick = { showResetDialog = false }) {
-                    Text("取消")
-                }
+                TextButton(onClick = { showResetDialog = false }) { Text("取消") }
             },
         )
-    }
-}
-
-@Composable
-private fun DistroSelectionCard(
-    availableDistros: List<LinuxDistro>,
-    activeDistro: LinuxDistro,
-    distroStatuses: Map<String, DistroStatus>,
-    isWorking: Boolean,
-    onSelectDistro: (LinuxDistro) -> Unit,
-) {
-    var showDistroPicker by remember { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-        ),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "发行版",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                if (!isWorking) {
-                    TextButton(onClick = { showDistroPicker = !showDistroPicker }) {
-                        Text(if (showDistroPicker) "收起" else "切换")
-                    }
-                }
-            }
-
-            // Active distro chitp
-            DistroChip(
-                distro = activeDistro,
-                isActive = true,
-                status = distroStatuses[activeDistro.id],
-                onClick = { showDistroPicker = !showDistroPicker },
-            )
-
-            // Distro picker
-            if (showDistroPicker) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    ),
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text(
-                            text = "可用发行版",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        availableDistros.filter { it != activeDistro }.forEach { distro ->
-                            val status = distroStatuses[distro.id]
-                            DistroChip(
-                                distro = distro,
-                                isActive = false,
-                                status = status,
-                                onClick = { onSelectDistro(distro) },
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DistroChip(
-    distro: LinuxDistro,
-    isActive: Boolean,
-    status: DistroStatus?,
-    onClick: () -> Unit,
-) {
-    val installed = status?.installed == true
-    val ready = status?.ready == true
-    val diskUsageMB = status?.diskUsageMB ?: 0L
-
-    val borderColor = when {
-        isActive -> MaterialTheme.colorScheme.primary
-        ready -> MaterialTheme.colorScheme.outlineVariant
-        installed -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .border(1.5.dp, borderColor, RoundedCornerShape(12.dp))
-            .background(
-                if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                else Color.Transparent
-            )
-            .then(
-                if (!isActive && ready) Modifier else Modifier
-            )
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    text = distro.icon,
-                    style = TextStyle(fontSize = 20.sp),
-                )
-                Text(
-                    text = distro.name,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                )
-                if (isActive) {
-                    Text(
-                        text = "⚡当前",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-            Text(
-                text = distro.description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (installed) {
-                val statusText = if (ready) "✓ 已安装 · ${diskUsageMB}MB" else "⚠ 部分安装 · ${diskUsageMB}MB"
-                Text(
-                    text = statusText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (ready) Color(0xFF388E3C) else MaterialTheme.colorScheme.error,
-                )
-            } else {
-                Text(
-                    text = "点击安装",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline,
-                )
-            }
-        }
-
-        if (ready && !isActive) {
-            TextButton(onClick = onClick) {
-                Text("切换到${distro.name}")
-            }
-        } else if (!installed && !isActive) {
-            TextButton(onClick = onClick) {
-                Text("选择")
-            }
-        }
     }
 }
 
@@ -515,7 +269,6 @@ internal fun TerminalContent(
     val focusRequester = remember { FocusRequester() }
 
     val terminalBg = Color(0xFF1E1E1E)
-    val terminalInputBg = Color(0xFF252525)
     val terminalText = Color(0xFFD4D4D4)
     val terminalPrompt = Color(0xFF6CB6FF)
     val terminalError = Color(0xFFF48771)
@@ -523,119 +276,54 @@ internal fun TerminalContent(
 
     val canSubmit = inputText.isNotBlank() && !isRunning
 
-    Column(
-        modifier = modifier
-            .background(terminalBg)
-            .imePadding(),
-    ) {
-        SelectionContainer(
-            modifier = Modifier.weight(1f),
-        ) {
+    Column(modifier = modifier.background(terminalBg).imePadding()) {
+        SelectionContainer(modifier = Modifier.weight(1f)) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
                 if (outputLines.isEmpty()) {
                     Text(
                         text = "输入命令并按回车执行。\n输入 'clear' 清屏。",
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 13.sp,
-                            color = terminalDim,
-                        ),
+                        style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 13.sp, color = terminalDim),
                     )
                 }
                 outputLines.forEach { line ->
                     when (line) {
                         is TerminalLine.Command -> {
                             Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = "$ ${line.text}",
-                                style = TextStyle(
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 13.sp,
-                                    color = terminalPrompt,
-                                ),
-                            )
+                            Text(text = "$ ${line.text}", style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 13.sp, color = terminalPrompt))
                         }
-
                         is TerminalLine.Output -> {
-                            Text(
-                                text = parseAnsiToAnnotatedString(line.text, terminalText),
-                                style = TextStyle(
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 13.sp,
-                                ),
-                            )
+                            Text(text = parseAnsiToAnnotatedString(line.text, terminalText), style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 13.sp))
                         }
-
                         is TerminalLine.Error -> {
-                            Text(
-                                text = parseAnsiToAnnotatedString(line.text, terminalError),
-                                style = TextStyle(
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 13.sp,
-                                ),
-                            )
+                            Text(text = parseAnsiToAnnotatedString(line.text, terminalError), style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 13.sp))
                         }
                     }
                 }
                 if (isRunning) {
                     Spacer(Modifier.height(4.dp))
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(14.dp),
-                        strokeWidth = 2.dp,
-                        color = terminalPrompt,
-                    )
+                    CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = terminalPrompt)
                 }
             }
         }
 
-        LaunchedEffect(outputLines.size, isRunning) {
-            scrollState.animateScrollTo(scrollState.maxValue)
-        }
+        LaunchedEffect(outputLines.size, isRunning) { scrollState.animateScrollTo(scrollState.maxValue) }
 
-        androidx.compose.material3.HorizontalDivider(
-            color = terminalDim.copy(alpha = 0.2f),
-        )
+        androidx.compose.material3.HorizontalDivider(color = terminalDim.copy(alpha = 0.2f))
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = "$",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 14.sp,
-                    color = terminalPrompt,
-                ),
-                modifier = Modifier.padding(start = 8.dp),
-            )
+            Text(text = "$", style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp, color = terminalPrompt), modifier = Modifier.padding(start = 8.dp))
             Spacer(Modifier.width(8.dp))
             TextField(
                 value = inputText,
                 onValueChange = { inputText = it },
                 modifier = Modifier.weight(1f).focusRequester(focusRequester),
                 enabled = !isRunning,
-                textStyle = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 14.sp,
-                    color = terminalText,
-                ),
-                placeholder = {
-                    Text(
-                        text = "输入命令...",
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 14.sp,
-                            color = terminalDim,
-                        ),
-                    )
-                },
+                textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp, color = terminalText),
+                placeholder = { Text(text = "输入命令...", style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp, color = terminalDim)) },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
@@ -649,11 +337,8 @@ internal fun TerminalContent(
                 keyboardActions = KeyboardActions(
                     onGo = {
                         if (canSubmit) {
-                            val cmd = inputText.trim()
-                            inputText = ""
-                            scope.launch {
-                                runCommand(cmd, outputLines, viewModel) { isRunning = it }
-                            }
+                            val cmd = inputText.trim(); inputText = ""
+                            scope.launch { runCommand(cmd, outputLines, viewModel) { isRunning = it } }
                         }
                     },
                 ),
@@ -662,28 +347,18 @@ internal fun TerminalContent(
             IconButton(
                 onClick = {
                     if (canSubmit) {
-                        val cmd = inputText.trim()
-                        inputText = ""
-                        scope.launch {
-                            runCommand(cmd, outputLines, viewModel) { isRunning = it }
-                        }
+                        val cmd = inputText.trim(); inputText = ""
+                        scope.launch { runCommand(cmd, outputLines, viewModel) { isRunning = it } }
                     }
                 },
                 enabled = canSubmit,
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "Run command",
-                    tint = if (canSubmit) terminalPrompt else terminalDim,
-                    modifier = Modifier.size(20.dp),
-                )
+                Icon(imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = "Run command", tint = if (canSubmit) terminalPrompt else terminalDim, modifier = Modifier.size(20.dp))
             }
         }
     }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 }
 
 private const val MAX_OUTPUT_LINES = 500
@@ -694,26 +369,17 @@ private suspend fun runCommand(
     viewModel: SandboxViewModel,
     setRunning: (Boolean) -> Unit,
 ) {
-    if (command == "clear") {
-        outputLines.clear()
-        return
-    }
+    if (command == "clear") { outputLines.clear(); return }
     outputLines.add(TerminalLine.Command(command))
     setRunning(true)
     try {
-        val result = withContext(Dispatchers.Default) {
-            viewModel.executeCommand(command)
-        }
-        if (result.isNotEmpty()) {
-            outputLines.add(TerminalLine.Output(result))
-        }
+        val result = withContext(Dispatchers.Default) { viewModel.executeCommand(command) }
+        if (result.isNotEmpty()) outputLines.add(TerminalLine.Output(result))
     } catch (e: Exception) {
         outputLines.add(TerminalLine.Error(e.message ?: "Command failed"))
     }
     val excess = outputLines.size - MAX_OUTPUT_LINES
-    if (excess > 0) {
-        outputLines.subList(0, excess).clear()
-    }
+    if (excess > 0) outputLines.subList(0, excess).clear()
     setRunning(false)
 }
 
