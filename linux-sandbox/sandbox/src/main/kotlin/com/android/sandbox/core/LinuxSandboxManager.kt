@@ -302,10 +302,7 @@ class LinuxSandboxManager(private val context: Context) {
                 for (pkg in packages) {
                     ensureActive()
                     _state.value = SandboxState.Installing(distro, "Installing $pkg...")
-                    val installCmd = when (distro) {
-                        is LinuxDistro.Alpine -> "apk add --no-cache $pkg"
-                        is LinuxDistro.Ubuntu, is LinuxDistro.Debian -> "apt-get install -y $pkg"
-                    }
+                    val installCmd = distro.getInstallCommand(listOf(pkg))
                     val result = executor.execute(installCmd, timeoutSeconds = 120)
                     ensureActive()
                     val success = result["success"] as? Boolean ?: false
