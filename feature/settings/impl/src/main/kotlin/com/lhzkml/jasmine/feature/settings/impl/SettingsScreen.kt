@@ -47,7 +47,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.lhzkml.jasmine.core.data.log.FileLogger
 import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
@@ -68,6 +67,7 @@ private enum class SettingsSubPage {
     NONE,
     BASIC_SETTINGS,
     PROVIDER_CONFIG,
+    LICENSES,
 }
 
 @Composable
@@ -99,6 +99,7 @@ internal fun SettingsScreen(
                 onBasicSettingsClick = { currentSubPage = SettingsSubPage.BASIC_SETTINGS },
                 onProviderConfigClick = { currentSubPage = SettingsSubPage.PROVIDER_CONFIG },
                 onSandboxClick = { navigator.navigate(SandboxNavKey) },
+                onLicensesClick = { currentSubPage = SettingsSubPage.LICENSES },
                 uiEnabled = uiEnabled,
                 onUiToggle = { viewModel.updateUiEnabled(it) },
                 webSearchEnabled = webSearchEnabled,
@@ -121,6 +122,12 @@ internal fun SettingsScreen(
                 onBackClick = { currentSubPage = SettingsSubPage.NONE },
             )
         }
+
+        SettingsSubPage.LICENSES -> {
+            LicensesScreen(
+                onBackClick = { currentSubPage = SettingsSubPage.NONE },
+            )
+        }
     }
 }
 
@@ -133,6 +140,7 @@ private fun SettingsMenuScreen(
     onBasicSettingsClick: () -> Unit,
     onProviderConfigClick: () -> Unit,
     onSandboxClick: () -> Unit,
+    onLicensesClick: () -> Unit,
     uiEnabled: Boolean,
     onUiToggle: (Boolean) -> Unit,
     webSearchEnabled: Boolean,
@@ -209,9 +217,7 @@ private fun SettingsMenuScreen(
                     SettingsMenuItem(
                         title = stringResource(string.feature_settings_impl_licenses),
                         subtitle = "查看第三方开源许可证",
-                        onClick = {
-                            context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
-                        },
+                        onClick = onLicensesClick,
                     )
                 }
             }
