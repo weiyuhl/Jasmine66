@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.jasmine.android.application.compose)
     alias(libs.plugins.jasmine.hilt)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.osslicenses)
 }
 
 // Release signing config
