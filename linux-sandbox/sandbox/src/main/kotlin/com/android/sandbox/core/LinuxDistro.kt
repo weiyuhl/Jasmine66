@@ -40,6 +40,8 @@ sealed class LinuxDistro(
         override fun getDefaultPackages() = listOf(
             "bash", "curl", "wget", "git", "jq", "python3", "py3-pip", "nodejs"
         )
+
+        override fun getInitFiles() = defaultInitFiles()
     }
 
     data object Ubuntu : LinuxDistro(
@@ -74,6 +76,8 @@ sealed class LinuxDistro(
         override fun getDefaultPackages() = listOf(
             "curl", "wget", "git", "jq", "python3", "python3-pip", "nodejs", "npm", "ca-certificates"
         )
+
+        override fun getInitFiles() = defaultInitFiles()
     }
 
     data object Debian : LinuxDistro(
@@ -109,14 +113,42 @@ sealed class LinuxDistro(
         override fun getDefaultPackages() = listOf(
             "curl", "wget", "git", "jq", "python3", "python3-pip", "nodejs", "npm", "ca-certificates"
         )
+
+        override fun getInitFiles() = defaultInitFiles()
     }
 
-    companion object {
-        val ALL: List<LinuxDistro> = listOf(Alpine, Ubuntu, Debian)
+    abstract fun getInitFiles(): Map<String, String>
 
+    companion object {
+        private val BUILT_IN: List<LinuxDistro> = listOf(Alpine, Ubuntu, Debian)
+        private val pluginDistros = mutableListOf<LinuxDistro>()
+
+        val ALL: List<LinuxDistro> get() = BUILT_IN + pluginDistros
         val DEFAULT: LinuxDistro = Alpine
 
         fun fromId(id: String): LinuxDistro? = ALL.find { it.id == id }
+
+        fun registerPlugins(plugins: List<ProotDistroPlugin>) {
+            pluginDistros.clear()
+            pluginDistros.addAll(plugins.map { it.toLinuxDistro() })
+        }
+
+        fun defaultInitFiles(): Map<String, String> = mapOf(
+            "etc/hosts" to "127.0.0.1 localhost\n::1 localhost ip6-localhost ip6-loopback\n",
+            "etc/hostname" to "jasmine-sandbox\n",
+            "etc/profile.d/jasmine.sh" to """
+                |# Jasmine Linux Sandbox profile
+                |# Sources on login shells (-l flag)
+                |export LS_COLORS="di=1;34:ln=1;36:so=1;35:pi=1;33:ex=1;32:bd=1;33:cd=1;33:su=1;31:sg=1;31:tw=1;34:ow=1;31"
+                |alias ll='ls -alF --color=auto'
+                |alias la='ls -A --color=auto'
+                |alias l='ls -CF --color=auto'
+                |alias grep='grep --color=auto'
+                |export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+                |echo "Jasmine Linux Sandbox — $(cat /etc/os-release 2>/dev/null | grep PRETTY_NAME | cut -d= -f2 | tr -d '\"')"
+                |
+            """.trimMargin().trimStart(),
+        )
 
         fun getToolDescription(distro: LinuxDistro): String {
             val pkgManager = distro.getPackageManagerName()

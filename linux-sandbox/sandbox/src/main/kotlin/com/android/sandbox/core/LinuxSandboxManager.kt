@@ -58,7 +58,17 @@ class LinuxSandboxManager(private val context: Context) {
     init {
         migrateLegacyRootfs()
         loadActiveDistro()
+        loadPlugins()
         checkExistingInstallation()
+    }
+
+    private fun loadPlugins() {
+        val pluginsDir = File(sandboxDir, "plugins")
+        val plugins = ProotDistroPluginParser.parseAll(pluginsDir)
+        if (plugins.isNotEmpty()) {
+            LinuxDistro.registerPlugins(plugins)
+            android.util.Log.i("LinuxSandbox", "Loaded ${plugins.size} proot-distro plugin(s): ${plugins.map { it.name }}")
+        }
     }
 
     private fun migrateLegacyRootfs() {
@@ -226,11 +236,28 @@ class LinuxSandboxManager(private val context: Context) {
 
         val executor = createProotExecutor()
         for (cmd in distro.getPostExtractCommands()) {
-            if (currentJob?.isActive == false) throw kotlinx.coroutines.CancellationException()
+            if (currentJob?.isActive == false) throw CancellationException("Cancelled")
             executor.execute(cmd, timeoutSeconds = 60)
         }
 
+        writeInitFiles(rootfsDir, distro)
+
         _state.value = SandboxState.Ready(activeDistro)
+    }
+
+    private fun writeInitFiles(rootfsDir: File, distro: LinuxDistro) {
+        distro.getInitFiles().forEach { (relPath, content) ->
+            try {
+                val file = File(rootfsDir, relPath)
+                file.parentFile?.mkdirs()
+                // Only write if file doesn't exist yet (don't overwrite distro defaults)
+                if (!file.exists()) {
+                    file.writeText(content)
+                }
+            } catch (_: Exception) {
+                // Non-critical — skip if can't write
+            }
+        }
     }
 
     private fun copyLibtalloc() {

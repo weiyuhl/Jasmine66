@@ -9,6 +9,27 @@ private const val MAX_OUTPUT_LENGTH = 15_000
 private const val DEFAULT_TIMEOUT_SECONDS = 30L
 private const val MAX_TIMEOUT_SECONDS = 180L
 
+/**
+ * PRoot-based executor for Linux sandbox commands.
+ *
+ * ## How PRoot works (ptrace-based chroot simulation)
+ *
+ * PRoot uses `ptrace(PTRACE_SYSCALL)` to trace every system call of the
+ * guest process. When it detects a syscall that manipulates the filesystem
+ * (e.g. `chroot`, `execve`, `open`), it intercepts and rewrites path
+ * arguments to redirect them into the rootfs — all without real `chroot`
+ * or `mount` privileges. This is how it provides a full Linux userspace
+ * on unrooted Android.
+ *
+ * Key ptrace interception points:
+ * - `execve` / `execveat` — rewrites executable paths into rootfs
+ * - `open` / `openat` / `stat` — redirects file access into rootfs
+ * - `chdir` / `getcwd` — maintains the illusion of a real root
+ * - `link` / `symlink` / `unlink` — `--link2symlink` converts hardlinks to symlinks
+ *
+ * Performance: On kernels 5.10+, ptrace overhead is ~5-15% for most
+ * workloads. io-heavy commands see less impact, CPU-heavy see more.
+ */
 class ProotExecutor(
     private val prootPath: String,
     private val libDir: String,
@@ -23,36 +44,87 @@ class ProotExecutor(
         timeoutSeconds: Long = DEFAULT_TIMEOUT_SECONDS,
         workingDir: String = "/root",
         extraEnv: Map<String, String> = emptyMap(),
+        loginShell: Boolean = false,
+        killOnExit: Boolean = true,
+        fakeRoot: Boolean = true,
     ): Map<String, Any> {
         val effectiveTimeout = timeoutSeconds.coerceIn(1, MAX_TIMEOUT_SECONDS)
 
+        // --- Build PRoot arguments ---
         val baseArgs = mutableListOf(
             prootPath,
             "--link2symlink",
             "--rootfs=$rootfsPath",
-            "--bind=/dev",
-            "--bind=/proc",
-            "--bind=/sys",
-            "--bind=$homePath:/root",
-            "--bind=$tmpPath:/tmp"
         )
+
+        // kill-on-exit: when PRoot exits, kill all child processes in the
+        // traced process tree. Prevents orphan daemons and zombie shells.
+        if (killOnExit) {
+            baseArgs.add("--kill-on-exit")
+        }
+
+        // root-id: fake UID 0 / GID 0 inside the chroot so tools like
+        // apk, apt, pip don't complain about permissions. The real Android
+        // uid is still used for actual file access on the host filesystem.
+        if (fakeRoot) {
+            baseArgs.add("--root-id")
+        }
+
+        // Core filesystem binds — these provide the Linux pseudo-filesystems
+        // that most programs expect to find at runtime.
+        baseArgs.addAll(listOf(
+            "--bind=/dev",        // /dev, /dev/pts, /dev/urandom, etc.
+            "--bind=/proc",       // CPU info, meminfo, self/
+            "--bind=/sys",        // kernel params, devices
+            "--bind=$homePath:/root",   // persistent home across sessions
+            "--bind=$tmpPath:/tmp",     // writable tmp
+        ))
+
+        // /dev/shm — shared memory, needed by Python multiprocessing,
+        // some npm packages, and glibc pthreads.
+        val devShm = File(rootfsPath, "dev/shm")
+        if (devShm.isDirectory || devShm.mkdirs()) {
+            baseArgs.add("--bind=/dev/shm")
+        }
+
+        // Host filesystem access — bind the Android root as /host-rootfs
+        // so users can access /sdcard, /data, etc. from inside the chroot.
+        // e.g. `ls /host-rootfs/sdcard/` shows Android's shared storage.
+        baseArgs.add("--bind=/:/host-rootfs")
+
+        // External storage — full read/write access when permission granted.
         if (hasExternalStorageAccess) {
             baseArgs.add("--bind=/storage/emulated/0")
             baseArgs.add("--bind=/sdcard")
         }
-        val processArgs = (baseArgs + listOf("-0", "-w", workingDir, "/bin/sh", "-c", command)).toTypedArray()
 
+        // Shell and command: use login shell mode (-l) if requested,
+        // which sources /etc/profile and ~/.profile for proper env setup.
+        val shellCmd = if (loginShell) "/bin/sh -l -c" else "/bin/sh -c"
+        val processArgs = (baseArgs + listOf("-0", "-w", workingDir, *shellCmd.split(" ").toTypedArray(), command)).toTypedArray()
+
+        // --- Build environment ---
         val loaderPath = File(prootPath).parent.orEmpty() + "/libproot-loader.so"
-        val baseEnv = arrayOf(
+        val baseEnv = mutableListOf(
             "HOME=/root",
             "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
             "TERM=xterm-256color",
+            "COLORTERM=truecolor",
             "LANG=C.UTF-8",
             "LD_LIBRARY_PATH=$libDir",
             "PROOT_TMP_DIR=$tmpPath",
             "PROOT_LOADER=$loaderPath",
+            "ANDROID_ROOT=/",
+            "ANDROID_DATA=/data",
+            // Prevent some programs from trying to use systemd/logind
+            "container=jasmine",
         )
-        val envVars = baseEnv + extraEnv.map { (k, v) -> "$k=$v" }.toTypedArray()
+
+        // SHELL variable — detect bash if installed
+        val bashPath = File(rootfsPath, "usr/bin/bash")
+        baseEnv.add(if (bashPath.exists()) "SHELL=/bin/bash" else "SHELL=/bin/sh")
+
+        val envVars = (baseEnv + extraEnv.map { (k, v) -> "$k=$v" }).toTypedArray()
 
         return try {
             val process = Runtime.getRuntime().exec(processArgs, envVars, File(rootfsPath).parentFile)
