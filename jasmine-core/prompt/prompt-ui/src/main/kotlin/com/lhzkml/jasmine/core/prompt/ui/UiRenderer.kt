@@ -46,6 +46,8 @@ import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Bolt
@@ -156,6 +158,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -197,6 +200,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.delay
 import kotlin.math.round
 import kotlin.time.Clock
@@ -204,8 +208,8 @@ import kotlin.time.Clock
 private const val MAX_DEPTH = 10
 
 @Composable
-fun KaiUiRenderer(
-    node: KaiUiNode,
+fun UiRenderer(
+    node: UiNode,
     isInteractive: Boolean,
     onCallback: (event: String, data: Map<String, String>) -> Unit,
     modifier: Modifier = Modifier,
@@ -255,7 +259,7 @@ private fun collectFormData(action: CallbackAction, formState: Map<String, Strin
     return base
 }
 
-private fun initializeFormState(node: KaiUiNode, formState: MutableMap<String, String>) {
+private fun initializeFormState(node: UiNode, formState: MutableMap<String, String>) {
     when (node) {
         is TextInputNode -> node.value?.let { if (node.id !in formState) formState[node.id] = it }
         is CheckboxNode -> if (node.id !in formState) formState[node.id] = (node.checked ?: false).toString()
@@ -283,7 +287,7 @@ private fun initializeFormState(node: KaiUiNode, formState: MutableMap<String, S
 
 @Composable
 private fun RenderNode(
-    node: KaiUiNode,
+    node: UiNode,
     isInteractive: Boolean,
     formState: MutableMap<String, String>,
     toggleState: MutableMap<String, Boolean>,
@@ -329,7 +333,7 @@ private fun RenderNode(
 }
 
 @Composable
-private fun RenderChildren(children: List<KaiUiNode>, isInteractive: Boolean, formState: MutableMap<String, String>, toggleState: MutableMap<String, Boolean>, onCallback: (String, Map<String, String>) -> Unit, depth: Int) {
+private fun RenderChildren(children: List<UiNode>, isInteractive: Boolean, formState: MutableMap<String, String>, toggleState: MutableMap<String, Boolean>, onCallback: (String, Map<String, String>) -> Unit, depth: Int) {
     for (child in children) RenderNode(child, isInteractive, formState, toggleState, onCallback, depth + 1)
 }
 
@@ -373,11 +377,13 @@ private fun RenderText(node: TextNode) {
         "error" -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.onSurface
     }
+    val isBold = node.bold == true || node.value.startsWith("**")
+    val displayText = node.value.removeSurrounding("**")
     Text(
-        text = node.value.replace("**", ""),
+        text = displayText,
         style = style,
         color = color,
-        fontWeight = if (node.bold == true || node.value.startsWith("**")) FontWeight.Bold else null,
+        fontWeight = if (isBold) FontWeight.Bold else null,
         fontStyle = if (node.italic == true) FontStyle.Italic else null,
     )
 }
@@ -413,9 +419,9 @@ private fun RenderTextInput(node: TextInputNode, isInteractive: Boolean, formSta
 @Composable
 private fun RenderCheckbox(node: CheckboxNode, isInteractive: Boolean, formState: MutableMap<String, String>) {
     val checked = formState[node.id]?.toBooleanStrictOrNull() ?: false
-    val toggle = { formState[node.id] = (!checked).toString() }
+    val toggle: () -> Unit = { formState[node.id] = (!(formState[node.id]?.toBooleanStrictOrNull() ?: false)).toString() }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand, overrideDescendants = true).then(if (isInteractive) Modifier.clickable(onClick = toggle) else Modifier)) {
-        Checkbox(checked = checked, onCheckedChange = null, enabled = isInteractive)
+        Checkbox(checked = checked, onCheckedChange = { if (isInteractive) toggle() }, enabled = isInteractive)
         Text(node.label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 8.dp))
     }
 }
@@ -438,7 +444,13 @@ private fun RenderSelect(node: SelectNode, isInteractive: Boolean, formState: Mu
 @Composable
 private fun RenderImage(node: ImageNode) {
     val modifier = Modifier.fillMaxWidth().then(if (node.height != null) Modifier.height(node.height.dp) else Modifier)
-    AsyncImage(model = node.url, contentDescription = node.alt, modifier = modifier.clip(RoundedCornerShape(6.dp)))
+    SubcomposeAsyncImage(
+        model = node.url,
+        contentDescription = node.alt,
+        modifier = modifier.clip(RoundedCornerShape(6.dp)),
+        loading = { Box(modifier = Modifier.fillMaxWidth().height(120.dp).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) { CircularProgressIndicator(modifier = Modifier.size(24.dp)) } },
+        error = { Box(modifier = Modifier.fillMaxWidth().height(80.dp).background(MaterialTheme.colorScheme.errorContainer), contentAlignment = Alignment.Center) { Icon(Icons.Default.BrokenImage, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer); Spacer(Modifier.width(4.dp)); Text("Failed to load", color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.bodySmall) } },
+    )
 }
 
 @Composable
@@ -472,10 +484,10 @@ private fun RenderList(node: ListNode, isInteractive: Boolean, formState: Mutabl
 @Composable
 private fun RenderSwitch(node: SwitchNode, isInteractive: Boolean, formState: MutableMap<String, String>) {
     val checked = formState[node.id]?.toBooleanStrictOrNull() ?: false
-    val toggle = { formState[node.id] = (!checked).toString() }
+    val toggle: () -> Unit = { formState[node.id] = (!(formState[node.id]?.toBooleanStrictOrNull() ?: false)).toString() }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().pointerHoverIcon(PointerIcon.Hand, overrideDescendants = true).then(if (isInteractive) Modifier.clickable(onClick = toggle) else Modifier)) {
         Text(node.label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = null, enabled = isInteractive)
+        Switch(checked = checked, onCheckedChange = { if (isInteractive) toggle() }, enabled = isInteractive)
     }
 }
 
@@ -528,6 +540,7 @@ private fun RenderCountdown(node: CountdownNode, isInteractive: Boolean, formSta
     var remainingSeconds by remember { mutableStateOf<Long>(node.seconds.toLong()) }
     var expired by remember { mutableStateOf(false) }
     val currentOnCallback by rememberUpdatedState(onCallback)
+    val uriHandler = LocalUriHandler.current
 
     LaunchedEffect(targetMs) {
         while (true) {
@@ -542,7 +555,7 @@ private fun RenderCountdown(node: CountdownNode, isInteractive: Boolean, formSta
                             when (action) {
                                 is CallbackAction -> currentOnCallback(action.event, collectFormData(action, formState))
                                 is ToggleAction -> toggleState[action.targetId] = !(toggleState[action.targetId] ?: true)
-                                is OpenUrlAction -> {}
+                                is OpenUrlAction -> uriHandler.openUri(action.url)
                                 null -> {}
                             }
                         } catch (_: Exception) {}
@@ -623,7 +636,14 @@ private fun RenderChipGroup(node: ChipGroupNode, isInteractive: Boolean, formSta
 
 @Composable
 private fun RenderChip(node: ChipNode) {
-    SuggestionChip(onClick = {}, label = { Text(node.label) })
+    var selected by remember { mutableStateOf(false) }
+    SuggestionChip(
+        onClick = { selected = !selected },
+        label = { Text(node.label) },
+        icon = if (selected) {
+            { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+        } else null,
+    )
 }
 
 @Composable

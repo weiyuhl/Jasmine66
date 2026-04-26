@@ -29,7 +29,7 @@ class SettingsViewModel @Inject constructor(
                 Success(
                     settings = UserEditableSettings(
                         darkThemeConfig = userData.darkThemeConfig,
-                        kaiUiEnabled = userData.kaiUiEnabled,
+                        uiEnabled = userData.uiEnabled,
                         webSearchEnabled = userData.webSearchEnabled,
                     ),
                 )
@@ -46,9 +46,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun updateKaiUiEnabled(kaiUiEnabled: Boolean) {
+    fun updateUiEnabled(uiEnabled: Boolean) {
         viewModelScope.launch {
-            userDataRepository.setKaiUiEnabled(kaiUiEnabled)
+            userDataRepository.setUiEnabled(uiEnabled)
         }
     }
 
@@ -64,7 +64,7 @@ class SettingsViewModel @Inject constructor(
  */
 data class UserEditableSettings(
     val darkThemeConfig: DarkThemeConfig,
-    val kaiUiEnabled: Boolean,
+    val uiEnabled: Boolean,
     val webSearchEnabled: Boolean,
 )
 

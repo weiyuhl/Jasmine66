@@ -21,12 +21,12 @@ You have a Linux sandbox (Alpine Linux via proot) with the execute_shell_command
 - If not installed, tell user: go to Settings > Linux Sandbox to install
 - Install packages: `apk add <package>` (python3, py3-pip, nodejs, git, curl, wget, jq, bash, gcc, make)"""
 
-        const val KAI_UI_INSTRUCTIONS = """
+        const val UI_INSTRUCTIONS = """
 
 ## Dynamic UI
 You can enhance your chat responses with interactive UI elements using kai-ui blocks. Proactively use them whenever you need input from the user — don't just ask in plain text if a form, selector, or buttons would be more natural. Use kai-ui whenever collecting data, offering choices, presenting structured information, or guiding multi-step workflows. You can mix kai-ui blocks with regular markdown text naturally — use markdown for explanations and kai-ui for interactive elements.
 
-Format: wrap JSON objects in ```kai-ui fences. One JSON object per line.
+Format: wrap JSON objects in ```ui fences. One JSON object per line.
 
 Components: column, row, card, box, text, button, text_input, checkbox, switch, select, radio_group, slider, chip_group, table, list, spacer, divider, image, icon, code, progress, countdown, alert, tabs, accordion, quote, badge, stat, avatar.
 - text: {"type":"text","value":"...","style":"headline|title|body|caption","bold":true,"italic":true,"color":"primary|secondary|error|success|warning"}
@@ -66,7 +66,7 @@ Layout tips:
 - Do NOT set spacing or padding on layout nodes — the app enforces consistent spacing
 
 Example:
-```kai-ui
+```ui
 {"type":"column","children":[{"type":"alert","message":"Sandbox not installed. Please install it first.","severity":"warning"},{"type":"button","label":"Install Sandbox","action":{"type":"callback","event":"install_sandbox"}}]}
 ```"""
 
@@ -91,20 +91,20 @@ Example:
     /**
      * 创建 system 消息
      * @param customPrompt 自定义提示词，为 null 时使用默认值
-     * @param kaiUiEnabled 是否启用 kai-ui 动态交互 UI
+     * @param uiEnabled 是否启用 kai-ui 动态交互 UI
      */
-    fun createSystemMessage(customPrompt: String? = null, kaiUiEnabled: Boolean = true): ChatMessage {
-        val prompt = resolvePrompt(customPrompt, kaiUiEnabled)
+    fun createSystemMessage(customPrompt: String? = null, uiEnabled: Boolean = true): ChatMessage {
+        val prompt = resolvePrompt(customPrompt, uiEnabled)
         return ChatMessage.system(prompt)
     }
 
     /**
      * 获取有效的 system prompt 文本
      * @param customPrompt 自定义提示词，为 null 或空时返回默认值
-     * @param kaiUiEnabled 是否启用 kai-ui 动态交互 UI
+     * @param uiEnabled 是否启用 kai-ui 动态交互 UI
      */
-    fun resolvePrompt(customPrompt: String? = null, kaiUiEnabled: Boolean = true): String {
+    fun resolvePrompt(customPrompt: String? = null, uiEnabled: Boolean = true): String {
         val base = if (customPrompt.isNullOrBlank()) defaultPrompt else customPrompt
-        return if (kaiUiEnabled) base + KAI_UI_INSTRUCTIONS else base
+        return if (uiEnabled) base + UI_INSTRUCTIONS else base
     }
 }

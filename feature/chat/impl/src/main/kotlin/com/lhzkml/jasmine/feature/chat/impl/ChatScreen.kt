@@ -366,26 +366,26 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
                 message.content
             }
             if (displayText.isNotEmpty()) {
-                if (message.role == "assistant" && !message.isStreaming && com.lhzkml.jasmine.core.prompt.ui.KaiUiParser.containsUiBlocks(displayText)) {
-                    val segments = remember(displayText) { com.lhzkml.jasmine.core.prompt.ui.KaiUiParser.parse(displayText) }
+                if (message.role == "assistant" && !message.isStreaming && com.lhzkml.jasmine.core.prompt.ui.UiParser.containsUiBlocks(displayText)) {
+                    val segments = remember(displayText) { com.lhzkml.jasmine.core.prompt.ui.UiParser.parse(displayText) }
                     Column {
                         for (segment in segments) {
                             when (segment) {
-                                is com.lhzkml.jasmine.core.prompt.ui.KaiUiParser.MarkdownSegment -> {
+                                is com.lhzkml.jasmine.core.prompt.ui.UiParser.MarkdownSegment -> {
                                     MarkdownText(
                                         text = segment.content,
                                         textColor = textColor,
                                     )
                                 }
-                                is com.lhzkml.jasmine.core.prompt.ui.KaiUiParser.UiSegment -> {
-                                    com.lhzkml.jasmine.core.prompt.ui.KaiUiRenderer(
+                                is com.lhzkml.jasmine.core.prompt.ui.UiParser.UiSegment -> {
+                                    com.lhzkml.jasmine.core.prompt.ui.UiRenderer(
                                         node = segment.node,
                                         isInteractive = true,
                                         onCallback = onUiCallback ?: { _, _ -> },
                                         wrapInCard = true,
                                     )
                                 }
-                                is com.lhzkml.jasmine.core.prompt.ui.KaiUiParser.ErrorSegment -> {
+                                is com.lhzkml.jasmine.core.prompt.ui.UiParser.ErrorSegment -> {
                                     Text(
                                         text = segment.rawJson,
                                         fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,

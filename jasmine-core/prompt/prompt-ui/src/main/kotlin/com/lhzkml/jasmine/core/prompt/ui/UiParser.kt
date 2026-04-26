@@ -1,5 +1,6 @@
 package com.lhzkml.jasmine.core.prompt.ui
 
+import android.util.Log
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -9,19 +10,19 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-object KaiUiParser {
+object UiParser {
 
-    private val kaiUiBlockRegex = Regex("```kai-ui\\s*\\n?([\\s\\S]*?)\\n?```")
+    private val uiBlockRegex = Regex("```ui\\s*\\n?([\\s\\S]*?)\\n?```")
 
     sealed interface MessageSegment
 
     data class MarkdownSegment(val content: String) : MessageSegment
 
-    data class UiSegment(val node: KaiUiNode, val rawJson: String) : MessageSegment
+    data class UiSegment(val node: UiNode, val rawJson: String) : MessageSegment
 
     data class ErrorSegment(val rawJson: String) : MessageSegment
 
-    fun containsUiBlocks(message: String): Boolean = kaiUiBlockRegex.containsMatchIn(message)
+    fun containsUiBlocks(message: String): Boolean = uiBlockRegex.containsMatchIn(message)
 
     private val brokenKeySyntax = Regex(""""(\w+)=([{\[])""")
     private fun fixJsonSyntax(raw: String): String = brokenKeySyntax.replace(raw) { "\"${it.groupValues[1]}\":${it.groupValues[2]}" }
@@ -111,9 +112,17 @@ object KaiUiParser {
         return s
     }
 
-    private fun tryParseLine(line: String): KaiUiNode? {
-        try { return parseSingleNode(line) } catch (_: Exception) {}
-        try { return parseSingleNode(sanitizeJson(line)) } catch (_: Exception) {}
+    private fun tryParseLine(line: String): UiNode? {
+        try {
+            return parseSingleNode(line)
+        } catch (e: Exception) {
+            android.util.Log.w("UiParser", "Parse failed (raw), trying sanitized: ${e.message}")
+        }
+        try {
+            return parseSingleNode(sanitizeJson(line))
+        } catch (e: Exception) {
+            android.util.Log.w("UiParser", "Parse failed (sanitized): ${e.message}; line: ${line.take(100)}")
+        }
         return null
     }
 
@@ -122,7 +131,7 @@ object KaiUiParser {
     private val nodeListFields = setOf("children", "items")
 
     private val knownNodeTypes: Set<String> by lazy {
-        KaiUiNode.serializer().descriptor.getElementDescriptor(1).let { desc ->
+        UiNode.serializer().descriptor.getElementDescriptor(1).let { desc ->
             (0 until desc.elementsCount).map { desc.getElementName(it) }.toSet()
         }
     }
@@ -183,25 +192,32 @@ object KaiUiParser {
 
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
-    private fun parseSingleNode(jsonStr: String): KaiUiNode? {
+    private fun parseSingleNode(jsonStr: String): UiNode? {
         val jsonElement = fixMissingTypes(json.parseToJsonElement(jsonStr))
         val filtered = stripUnknownNodes(jsonElement) ?: return null
         val jsonObject = filtered.jsonObject
         return if ("type" in jsonObject) {
-            json.decodeFromJsonElement(KaiUiNode.serializer(), jsonObject)
+            json.decodeFromJsonElement(UiNode.serializer(), jsonObject)
         } else {
             val wrapped = JsonObject(jsonObject + ("type" to JsonPrimitive("column")))
-            json.decodeFromJsonElement(KaiUiNode.serializer(), wrapped)
+            json.decodeFromJsonElement(UiNode.serializer(), wrapped)
         }
     }
 
-    fun stripUiBlocks(message: String): String = kaiUiBlockRegex.replace(message, "").trim()
+    fun stripUiBlocks(message: String): String = uiBlockRegex.replace(message, "").trim()
+
+    private const val MAX_UI_BLOCKS = 20
 
     fun parse(message: String): List<MessageSegment> {
         val segments = mutableListOf<MessageSegment>()
         var lastIndex = 0
+        var blockCount = 0
 
-        for (match in kaiUiBlockRegex.findAll(message)) {
+        for (match in uiBlockRegex.findAll(message)) {
+            if (++blockCount > MAX_UI_BLOCKS) {
+                segments.add(ErrorSegment("Too many kai-ui blocks (max $MAX_UI_BLOCKS)"))
+                break
+            }
             val before = message.substring(lastIndex, match.range.first)
             if (before.isNotBlank()) segments.add(MarkdownSegment(before))
 
@@ -209,7 +225,7 @@ object KaiUiParser {
             val lines = rawBlock.lines().map { it.trim() }.filter { it.isNotEmpty() }
 
             if (lines.size > 1 && lines.all { it.startsWith("{") }) {
-                val children = mutableListOf<KaiUiNode>()
+                val children = mutableListOf<UiNode>()
                 for (line in lines) {
                     val node = tryParseLine(line)
                     if (node != null) children.add(node)

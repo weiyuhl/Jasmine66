@@ -85,8 +85,8 @@ internal fun SettingsScreen(
 
     when (currentSubPage) {
         SettingsSubPage.NONE -> {
-            val kaiUiEnabled = when (val state = settingsUiState) {
-                is SettingsUiState.Success -> state.settings.kaiUiEnabled
+            val uiEnabled = when (val state = settingsUiState) {
+                is SettingsUiState.Success -> state.settings.uiEnabled
                 else -> true
             }
             val webSearchEnabled = when (val state = settingsUiState) {
@@ -99,8 +99,8 @@ internal fun SettingsScreen(
                 onBasicSettingsClick = { currentSubPage = SettingsSubPage.BASIC_SETTINGS },
                 onProviderConfigClick = { currentSubPage = SettingsSubPage.PROVIDER_CONFIG },
                 onSandboxClick = { navigator.navigate(SandboxNavKey) },
-                kaiUiEnabled = kaiUiEnabled,
-                onKaiUiToggle = { viewModel.updateKaiUiEnabled(it) },
+                uiEnabled = uiEnabled,
+                onUiToggle = { viewModel.updateUiEnabled(it) },
                 webSearchEnabled = webSearchEnabled,
                 onWebSearchToggle = { viewModel.updateWebSearchEnabled(it) },
             )
@@ -133,8 +133,8 @@ private fun SettingsMenuScreen(
     onBasicSettingsClick: () -> Unit,
     onProviderConfigClick: () -> Unit,
     onSandboxClick: () -> Unit,
-    kaiUiEnabled: Boolean,
-    onKaiUiToggle: (Boolean) -> Unit,
+    uiEnabled: Boolean,
+    onUiToggle: (Boolean) -> Unit,
     webSearchEnabled: Boolean,
     onWebSearchToggle: (Boolean) -> Unit,
 ) {
@@ -191,8 +191,8 @@ private fun SettingsMenuScreen(
                     SettingsToggleItem(
                         title = "动态交互 UI",
                         subtitle = "允许 AI 渲染按钮、表单等交互组件",
-                        checked = kaiUiEnabled,
-                        onCheckedChange = onKaiUiToggle,
+                        checked = uiEnabled,
+                        onCheckedChange = onUiToggle,
                     )
 
                     SettingsToggleItem(

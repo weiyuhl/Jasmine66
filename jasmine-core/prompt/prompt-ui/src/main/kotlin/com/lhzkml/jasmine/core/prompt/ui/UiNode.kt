@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Immutable
 @Serializable
-sealed interface KaiUiNode {
+sealed interface UiNode {
     val id: String?
 }
 
@@ -15,29 +15,29 @@ sealed interface KaiUiNode {
 @SerialName("column")
 data class ColumnNode(
     override val id: String? = null,
-    val children: List<KaiUiNode> = emptyList(),
+    val children: List<UiNode> = emptyList(),
     val spacing: Int? = null,
     val padding: Int? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
 @SerialName("row")
 data class RowNode(
     override val id: String? = null,
-    val children: List<KaiUiNode> = emptyList(),
+    val children: List<UiNode> = emptyList(),
     val spacing: Int? = null,
     val padding: Int? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
 @SerialName("card")
 data class CardNode(
     override val id: String? = null,
-    val children: List<KaiUiNode> = emptyList(),
+    val children: List<UiNode> = emptyList(),
     val padding: Int? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -45,14 +45,14 @@ data class CardNode(
 data class SpacerNode(
     override val id: String? = null,
     val height: Int? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
 @SerialName("divider")
 data class DividerNode(
     override val id: String? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -64,7 +64,7 @@ data class TextNode(
     val bold: Boolean? = null,
     val italic: Boolean? = null,
     val color: String? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -74,7 +74,7 @@ data class ImageNode(
     val url: String = "",
     val alt: String? = null,
     val height: Int? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -85,7 +85,7 @@ data class ButtonNode(
     val action: UiAction? = null,
     val variant: ButtonVariant? = null,
     val enabled: Boolean? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -96,7 +96,7 @@ data class TextInputNode(
     val placeholder: String? = null,
     val value: String? = null,
     val multiline: Boolean? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -105,7 +105,7 @@ data class CheckboxNode(
     override val id: String = "",
     val label: String = "",
     val checked: Boolean? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -115,7 +115,7 @@ data class SelectNode(
     val label: String? = null,
     val options: List<String> = emptyList(),
     val selected: String? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -124,7 +124,7 @@ data class SwitchNode(
     override val id: String = "",
     val label: String = "",
     val checked: Boolean? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -136,7 +136,7 @@ data class SliderNode(
     val min: Float? = null,
     val max: Float? = null,
     val step: Float? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -146,7 +146,7 @@ data class RadioGroupNode(
     val label: String? = null,
     val options: List<String> = emptyList(),
     val selected: String? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -155,7 +155,7 @@ data class ProgressNode(
     override val id: String? = null,
     val value: Float? = null,
     val label: String? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -165,7 +165,7 @@ data class AlertNode(
     val message: String = "",
     val title: String? = null,
     val severity: AlertSeverity? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -175,7 +175,7 @@ data class CountdownNode(
     val seconds: Int = 0,
     val label: String? = null,
     val action: UiAction? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -184,7 +184,7 @@ data class ChipGroupNode(
     override val id: String = "",
     val chips: List<ChipItem> = emptyList(),
     val multiSelect: Boolean? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -199,7 +199,7 @@ data class ChipItem(
 data class ChipNode(
     override val id: String? = null,
     val label: String = "",
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -209,7 +209,7 @@ data class IconNode(
     val name: String = "",
     val size: Int? = null,
     val color: String? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -218,16 +218,16 @@ data class CodeNode(
     override val id: String? = null,
     val code: String = "",
     val language: String? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
 @SerialName("box")
 data class BoxNode(
     override val id: String? = null,
-    val children: List<KaiUiNode> = emptyList(),
+    val children: List<UiNode> = emptyList(),
     val contentAlignment: String? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -236,13 +236,13 @@ data class TabsNode(
     override val id: String? = null,
     val tabs: List<TabItem> = emptyList(),
     val selectedIndex: Int? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
 data class TabItem(
     val label: String = "",
-    val children: List<KaiUiNode> = emptyList(),
+    val children: List<UiNode> = emptyList(),
 )
 
 @Immutable
@@ -251,9 +251,9 @@ data class TabItem(
 data class AccordionNode(
     override val id: String? = null,
     val title: String = "",
-    val children: List<KaiUiNode> = emptyList(),
+    val children: List<UiNode> = emptyList(),
     val expanded: Boolean? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -262,7 +262,7 @@ data class QuoteNode(
     override val id: String? = null,
     val text: String = "",
     val source: String? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -271,7 +271,7 @@ data class BadgeNode(
     override val id: String? = null,
     val value: String = "",
     val color: String? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -281,7 +281,7 @@ data class StatNode(
     val value: String = "",
     val label: String = "",
     val description: String? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -291,16 +291,16 @@ data class AvatarNode(
     val name: String? = null,
     val imageUrl: String? = null,
     val size: Int? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
 @SerialName("list")
 data class ListNode(
     override val id: String? = null,
-    val items: List<KaiUiNode> = emptyList(),
+    val items: List<UiNode> = emptyList(),
     val ordered: Boolean? = null,
-) : KaiUiNode
+) : UiNode
 
 @Immutable
 @Serializable
@@ -309,7 +309,7 @@ data class TableNode(
     override val id: String? = null,
     val headers: List<String> = emptyList(),
     val rows: List<List<String>> = emptyList(),
-) : KaiUiNode
+) : UiNode
 
 @Serializable
 enum class TextNodeStyle {

@@ -111,9 +111,14 @@ class ChatViewModel @Inject constructor(
         val model = clientManager.getActiveModel()
         val history = buildApiMessages()
 
+        // Match onSendClick behavior: clear stale state
+        _isChatRunning.value = true
+        _errorMessage.value = null
+        _toolCallEvents.value = emptyList()
+
         streamJob = viewModelScope.launch {
             try {
-                val kaiUiEnabled = userDataRepository.userData.first().kaiUiEnabled
+                val uiEnabled = userDataRepository.userData.first().uiEnabled
                 val result = clientManager.streamChat(
                     messages = history,
                     model = model,
@@ -125,7 +130,7 @@ class ChatViewModel @Inject constructor(
                             it.copy(thinking = (it.thinking ?: "") + thinkChunk)
                         }
                     },
-                    kaiUiEnabled = kaiUiEnabled,
+                    uiEnabled = uiEnabled,
                 )
                 updateLastAssistant {
                     it.copy(
@@ -174,7 +179,7 @@ class ChatViewModel @Inject constructor(
 
         streamJob = viewModelScope.launch {
             try {
-                val kaiUiEnabled = userDataRepository.userData.first().kaiUiEnabled
+                val uiEnabled = userDataRepository.userData.first().uiEnabled
                 val result = clientManager.streamChat(
                     messages = history,
                     model = model,
@@ -211,7 +216,7 @@ class ChatViewModel @Inject constructor(
                             )
                         }
                     },
-                    kaiUiEnabled = kaiUiEnabled,
+                    uiEnabled = uiEnabled,
                 )
                 updateLastAssistant {
                     it.copy(
