@@ -1,22 +1,10 @@
 package com.android.sandbox.tools
 
+import com.android.sandbox.core.LinuxDistro
 import com.android.sandbox.core.LinuxSandboxManager
 import com.android.sandbox.core.SandboxState
 import java.io.File
 import kotlin.time.Duration.Companion.seconds
-
-private const val TOOL_DESCRIPTION = """Execute a shell command in an Alpine Linux sandbox and return stdout, stderr, and exit code. The environment is a full Alpine Linux system running via proot with:
-- Shell: /bin/sh (busybox), bash available if installed
-- Package manager: apk (e.g. "apk add <package>")
-- Default working directory: /root
-- Network access available (curl, wget)
-- Persistent home directory at /root across commands
-Each command runs in a fresh shell — use "cd dir && command" for directory changes.
-Output is limited to 15000 characters per stream; for large output, pipe through head/tail.
-Default timeout: 30s, max: 60s.
-Set background=true to run long-lived processes. Use the manage_process tool to check on them.
-Install packages with: apk add <package>
-Common packages: python3, py3-pip, nodejs, git, curl, wget, jq, bash, gcc, make"""
 
 class ShellCommandTool(
     private val sandboxManager: LinuxSandboxManager,
@@ -25,17 +13,21 @@ class ShellCommandTool(
 
     override val timeout = 60.seconds
 
-    override val schema = ToolSchema(
-        name = "execute_shell_command",
-        description = TOOL_DESCRIPTION,
-        parameters = mapOf(
-            "command" to ParameterSchema("string", "The shell command to execute", true),
-            "timeout" to ParameterSchema("integer", "Timeout in seconds (default 30, max 60)", false),
-            "working_dir" to ParameterSchema("string", "Working directory for the command (default: /root)", false),
-            "env" to ParameterSchema("object", "Environment variables to set (key-value pairs)", false),
-            "background" to ParameterSchema("boolean", "Run in background and return immediately with a session_id. Use manage_process tool to check status.", false),
-        ),
-    )
+    override val schema: ToolSchema
+        get() {
+            val distro = sandboxManager.activeDistro
+            return ToolSchema(
+                name = "execute_shell_command",
+                description = LinuxDistro.getToolDescription(distro),
+                parameters = mapOf(
+                    "command" to ParameterSchema("string", "The shell command to execute", true),
+                    "timeout" to ParameterSchema("integer", "Timeout in seconds (default 30, max 60)", false),
+                    "working_dir" to ParameterSchema("string", "Working directory for the command (default: /root)", false),
+                    "env" to ParameterSchema("object", "Environment variables to set (key-value pairs)", false),
+                    "background" to ParameterSchema("boolean", "Run in background and return immediately with a session_id. Use manage_process tool to check status.", false),
+                ),
+            )
+        }
 
     private fun isSandboxReady(): Boolean {
         if (sandboxManager.state.value is SandboxState.Ready) return true

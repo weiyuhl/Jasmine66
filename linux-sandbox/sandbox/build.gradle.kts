@@ -46,6 +46,8 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
+    implementation("org.tukaani:xz:1.10")
+
     api(projects.jasmineCore.agent.agentTools)
     api(projects.jasmineCore.prompt.promptModel)
 

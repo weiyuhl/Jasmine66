@@ -48,6 +48,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +57,7 @@ internal fun TerminalScreen(
     onBack: () -> Unit,
 ) {
     val viewModel: SandboxViewModel = hiltViewModel()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     val terminalBg = Color(0xFF1E1E1E)
     val terminalPrompt = Color(0xFF6CB6FF)
@@ -90,7 +92,7 @@ internal fun TerminalScreen(
             },
             actions = {
                 Text(
-                    text = "Alpine Linux",
+                    text = "${state.activeDistro.icon} ${state.activeDistro.name}",
                     style = TextStyle(
                         fontFamily = FontFamily.Monospace,
                         fontSize = 12.sp,

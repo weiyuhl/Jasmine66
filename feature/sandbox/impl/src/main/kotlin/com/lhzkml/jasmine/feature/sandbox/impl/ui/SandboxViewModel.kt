@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.sandbox.SandboxController
 import com.android.sandbox.SandboxStatus
+import com.android.sandbox.core.DistroStatus
+import com.android.sandbox.core.LinuxDistro
 import com.android.sandbox.core.LinuxSandboxManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +30,9 @@ data class SandboxUiState(
     val kernelCompileTime: String? = null,
     val archInfo: String? = null,
     val packageVersions: List<String> = emptyList(),
+    val activeDistro: LinuxDistro = LinuxDistro.DEFAULT,
+    val availableDistros: List<LinuxDistro> = LinuxDistro.ALL,
+    val distroStatuses: Map<String, DistroStatus> = emptyMap(),
 )
 
 object SandboxCache {
@@ -54,6 +59,7 @@ class SandboxViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
+        refreshDistroStatuses()
         viewModelScope.launch {
             sandboxController.status.collect { sandboxStatus ->
                 _state.update {
@@ -66,6 +72,7 @@ class SandboxViewModel @Inject constructor(
                         sandboxPackagesInstalled = sandboxStatus.packagesInstalled,
                         isWorking = sandboxStatus.working,
                         hasError = sandboxStatus.error,
+                        activeDistro = sandboxStatus.activeDistro ?: LinuxDistro.DEFAULT,
                     )
                     if (!sandboxStatus.ready) {
                         SandboxCache.osInfo = null
@@ -81,6 +88,7 @@ class SandboxViewModel @Inject constructor(
                             packageVersions = emptyList(),
                         )
                     } else {
+                        refreshDistroStatuses()
                         updated
                     }
                 }
@@ -88,33 +96,44 @@ class SandboxViewModel @Inject constructor(
         }
     }
 
+    fun setActiveDistro(distro: LinuxDistro) {
+        sandboxController.setActiveDistro(distro)
+        refreshDistroStatuses()
+        _state.update {
+            it.copy(activeDistro = distro)
+        }
+    }
+
+    fun refreshDistroStatuses() {
+        val statuses = sandboxController.getAvailableDistros().associate { distro ->
+            distro.id to sandboxController.getDistroStatus(distro)
+        }
+        _state.update {
+            it.copy(
+                availableDistros = sandboxController.getAvailableDistros(),
+                distroStatuses = statuses,
+            )
+        }
+    }
+
     fun fetchSystemInfo() {
         viewModelScope.launch {
             try {
-                // Fetch OS info
+                val distroName = sandboxController.getActiveDistro().name
+
                 val osOutput = sandboxController.executeCommand("cat /etc/os-release | grep PRETTY_NAME | cut -d '=' -f 2 | tr -d '\"'")
-                val osInfo = osOutput.trim().takeIf { it.isNotBlank() } ?: "Alpine Linux"
-                
-                // Fetch Kernel info
+                val osInfo = osOutput.trim().takeIf { it.isNotBlank() } ?: distroName
+
                 val kernelOutput = sandboxController.executeCommand("uname -r")
                 val kernelInfo = kernelOutput.trim().takeIf { it.isNotBlank() }
-                
+
                 val kernelTimeOutput = sandboxController.executeCommand("uname -v")
                 val kernelCompileTime = kernelTimeOutput.trim().takeIf { it.isNotBlank() }
-                
-                // Fetch Architecture info
+
                 val archOutput = sandboxController.executeCommand("uname -m")
                 val archInfo = archOutput.trim().takeIf { it.isNotBlank() }
-                
-                // Fetch Package Versions
-                val versionsScript = """
-                    bash --version 2>/dev/null | head -n 1
-                    python3 --version 2>/dev/null
-                    git --version 2>/dev/null
-                    curl --version 2>/dev/null | head -n 1
-                    wget --version 2>/dev/null | head -n 1
-                    node --version 2>/dev/null | sed 's/^/Node.js /'
-                """.trimIndent()
+
+                val versionsScript = buildVersionScript()
                 val versionsOutput = sandboxController.executeCommand(versionsScript)
                 val packageVersions = versionsOutput.lines().map { it.trim() }.filter { it.isNotBlank() }
 
@@ -124,7 +143,7 @@ class SandboxViewModel @Inject constructor(
                 SandboxCache.archInfo = archInfo
                 SandboxCache.packageVersions = packageVersions
 
-                _state.update { 
+                _state.update {
                     it.copy(
                         osInfo = osInfo,
                         kernelInfo = kernelInfo,
@@ -134,9 +153,19 @@ class SandboxViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
-                // Ignore errors silently for system info
             }
         }
+    }
+
+    private fun buildVersionScript(): String {
+        return """
+                    bash --version 2>/dev/null | head -n 1
+                    python3 --version 2>/dev/null
+                    git --version 2>/dev/null
+                    curl --version 2>/dev/null | head -n 1
+                    wget --version 2>/dev/null | head -n 1
+                    node --version 2>/dev/null | sed 's/^/Node.js /'
+                """.trimIndent()
     }
 
     fun onSetupSandbox() {

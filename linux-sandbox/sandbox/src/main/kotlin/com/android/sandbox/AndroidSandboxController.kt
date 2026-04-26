@@ -1,6 +1,8 @@
 package com.android.sandbox
 
 import android.content.Context
+import com.android.sandbox.core.DistroStatus
+import com.android.sandbox.core.LinuxDistro
 import com.android.sandbox.core.LinuxSandboxManager
 import com.android.sandbox.core.SandboxState
 import kotlinx.coroutines.CoroutineScope
@@ -32,17 +34,20 @@ class AndroidSandboxController(context: Context) : SandboxController {
     private fun mapState(state: SandboxState): SandboxStatus = when (state) {
         is SandboxState.NotInstalled -> SandboxStatus(
             statusText = "Not installed",
+            activeDistro = sandboxManager.activeDistro,
         )
 
         is SandboxState.Downloading -> SandboxStatus(
             working = true,
             progress = state.progress,
             statusText = "Downloading rootfs...",
+            activeDistro = sandboxManager.activeDistro,
         )
 
         is SandboxState.Extracting -> SandboxStatus(
             working = true,
             statusText = "Extracting...",
+            activeDistro = sandboxManager.activeDistro,
         )
 
         is SandboxState.Installing -> {
@@ -52,6 +57,7 @@ class AndroidSandboxController(context: Context) : SandboxController {
                 working = true,
                 statusText = state.detail.ifEmpty { "Installing..." },
                 diskUsageMB = cachedDiskUsageMB,
+                activeDistro = state.distro,
             )
         }
 
@@ -65,6 +71,7 @@ class AndroidSandboxController(context: Context) : SandboxController {
                 statusText = "Ready",
                 diskUsageMB = cachedDiskUsageMB,
                 packagesInstalled = sandboxManager.arePackagesInstalled(),
+                activeDistro = state.distro,
             )
         }
 
@@ -77,6 +84,7 @@ class AndroidSandboxController(context: Context) : SandboxController {
                 statusText = "Error: ${state.message}",
                 diskUsageMB = cachedDiskUsageMB,
                 packagesInstalled = if (rootfsExists) sandboxManager.arePackagesInstalled() else false,
+                activeDistro = state.distro,
             )
         }
     }
@@ -91,6 +99,10 @@ class AndroidSandboxController(context: Context) : SandboxController {
 
     override fun reset() {
         sandboxManager.reset()
+    }
+
+    override fun resetAll() {
+        sandboxManager.resetAll()
     }
 
     override fun installPackages() {
@@ -124,4 +136,16 @@ class AndroidSandboxController(context: Context) : SandboxController {
             }
         }
     }
+
+    override fun setActiveDistro(distro: LinuxDistro) {
+        sandboxManager.setActiveDistro(distro)
+    }
+
+    override fun getActiveDistro(): LinuxDistro = sandboxManager.activeDistro
+
+    override fun getInstalledDistros(): List<LinuxDistro> = sandboxManager.getInstalledDistros()
+
+    override fun getDistroStatus(distro: LinuxDistro): DistroStatus = sandboxManager.getDistroStatus(distro)
+
+    override fun getAvailableDistros(): List<LinuxDistro> = LinuxDistro.ALL
 }

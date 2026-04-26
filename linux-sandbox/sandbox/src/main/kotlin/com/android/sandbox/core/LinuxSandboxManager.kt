@@ -24,7 +24,12 @@ class LinuxSandboxManager(private val context: Context) {
     private val sandboxDir: File
         get() = File(context.filesDir, "linux-sandbox")
 
-    val rootfsPath: String get() = File(sandboxDir, "rootfs").absolutePath
+    private val distrosDir: File
+        get() = File(sandboxDir, "distros")
+
+    private val activeDistroFile: File
+        get() = File(sandboxDir, ".active-distro")
+
     val homePath: String get() = File(sandboxDir, "home").absolutePath
     val tmpPath: String get() = File(sandboxDir, "tmp").absolutePath
 
@@ -33,15 +38,107 @@ class LinuxSandboxManager(private val context: Context) {
 
     private val downloader = RootfsDownloader(HttpClient(Android))
 
+    @Volatile
+    var activeDistro: LinuxDistro = LinuxDistro.DEFAULT
+        private set
+
+    val rootfsPath: String
+        get() = File(distrosDir, "${activeDistro.id}/rootfs").absolutePath
+
+    private fun distroRootfsDir(distro: LinuxDistro): File =
+        File(distrosDir, "${distro.id}/rootfs")
+
+    private fun distroArchiveFile(distro: LinuxDistro): File {
+        val url = distro.getDownloadUrl(getLinuxArch())
+        val ext = if (url.endsWith(".tar.xz")) "tar.xz" else "tar.gz"
+        return File(distrosDir, "${distro.id}/rootfs.$ext")
+    }
+
     init {
+        migrateLegacyRootfs()
+        loadActiveDistro()
         checkExistingInstallation()
     }
 
-    private fun checkExistingInstallation() {
-        val rootfs = File(sandboxDir, "rootfs")
+    private fun migrateLegacyRootfs() {
+        val legacyRootfs = File(sandboxDir, "rootfs")
+        if (legacyRootfs.isDirectory) {
+            val alpineDir = distroRootfsDir(LinuxDistro.Alpine)
+            if (!alpineDir.isDirectory) {
+                distrosDir.mkdirs()
+                try {
+                    legacyRootfs.renameTo(alpineDir)
+                    android.util.Log.i("LinuxSandbox", "Migrated legacy rootfs to alpine distro")
+                } catch (_: Exception) {
+                    legacyRootfs.copyRecursively(alpineDir, overwrite = true)
+                    legacyRootfs.deleteRecursively()
+                    android.util.Log.i("LinuxSandbox", "Copied legacy rootfs to alpine distro")
+                }
+            }
+        }
+    }
+
+    private fun loadActiveDistro() {
+        try {
+            if (activeDistroFile.exists()) {
+                val distroId = activeDistroFile.readText().trim()
+                LinuxDistro.fromId(distroId)?.let {
+                    activeDistro = it
+                }
+            }
+        } catch (_: Exception) {
+            // fall through to default
+        }
+    }
+
+    private fun saveActiveDistro() {
+        try {
+            activeDistroFile.writeText(activeDistro.id)
+        } catch (_: Exception) {
+        }
+    }
+
+    fun setActiveDistro(distro: LinuxDistro) {
+        if (distro == activeDistro) return
+        activeDistro = distro
+        saveActiveDistro()
+        checkExistingInstallation()
+    }
+
+    fun getInstalledDistros(): List<LinuxDistro> {
+        return LinuxDistro.ALL.filter { d ->
+            distroRootfsDir(d).isDirectory
+        }
+    }
+
+    fun getDistroStatus(distro: LinuxDistro): DistroStatus {
+        val rootfsDir = distroRootfsDir(distro)
+        val isReady = rootfsDir.isDirectory && prootExists()
+        val diskUsageMB = if (rootfsDir.isDirectory) {
+            rootfsDir.walkTopDown().sumOf { it.length() } / (1024 * 1024)
+        } else 0L
+        return DistroStatus(
+            distro = distro,
+            installed = rootfsDir.isDirectory,
+            ready = isReady,
+            diskUsageMB = diskUsageMB,
+        )
+    }
+
+    private fun prootExists(): Boolean {
         val proot = File(prootPath)
-        if (rootfs.isDirectory && proot.exists() && proot.canExecute()) {
-            _state.value = SandboxState.Ready
+        return proot.exists() && proot.canExecute()
+    }
+
+    private fun checkExistingInstallation() {
+        val rootfs = File(rootfsPath)
+        if (rootfs.isDirectory && prootExists()) {
+            _state.value = SandboxState.Ready(activeDistro)
+        } else if (rootfs.exists()) {
+            // rootfs exists but proot missing - partial install
+            _state.value = SandboxState.NotInstalled
+        } else {
+            _state.value = SandboxState.NotInstalled
         }
     }
 
@@ -64,7 +161,7 @@ class LinuxSandboxManager(private val context: Context) {
             } catch (e: kotlinx.coroutines.CancellationException) {
                 checkExistingInstallation()
             } catch (e: Exception) {
-                _state.value = SandboxState.Error(e.message ?: "Setup failed")
+                _state.value = SandboxState.Error(activeDistro, e.message ?: "Setup failed")
             }
         }
     }
@@ -72,10 +169,11 @@ class LinuxSandboxManager(private val context: Context) {
     fun cancel() {
         currentJob?.cancel()
         currentJob = null
-        File(sandboxDir, "rootfs.tar.gz").delete()
-        val rootfs = File(sandboxDir, "rootfs")
-        if (rootfs.isDirectory && File(prootPath).exists()) {
-            _state.value = SandboxState.Ready
+        val archiveFile = distroArchiveFile(activeDistro)
+        archiveFile.delete()
+        val rootfs = File(rootfsPath)
+        if (rootfs.isDirectory && prootExists()) {
+            _state.value = SandboxState.Ready(activeDistro)
         } else {
             _state.value = SandboxState.NotInstalled
         }
@@ -83,6 +181,7 @@ class LinuxSandboxManager(private val context: Context) {
 
     private suspend fun setupInternal() {
         val arch = getLinuxArch()
+        val distro = activeDistro
 
         val proot = File(prootPath)
         if (!proot.exists()) {
@@ -93,35 +192,44 @@ class LinuxSandboxManager(private val context: Context) {
         }
 
         sandboxDir.mkdirs()
+        distrosDir.mkdirs()
         File(sandboxDir, "home").mkdirs()
         File(sandboxDir, "tmp").mkdirs()
 
         copyLibtalloc()
 
-        val rootfsDir = File(sandboxDir, "rootfs")
+        val rootfsDir = distroRootfsDir(distro)
+        rootfsDir.parentFile?.mkdirs()
+
         if (!rootfsDir.isDirectory) {
-            val tarGzFile = File(sandboxDir, "rootfs.tar.gz")
+            val archiveFile = distroArchiveFile(distro)
             try {
                 _state.value = SandboxState.Downloading(0f)
-                downloader.download(arch, tarGzFile) { progress ->
-                    _state.value = SandboxState.Downloading(progress)
-                }
+                downloader.download(
+                    url = distro.getDownloadUrl(arch),
+                    targetFile = archiveFile,
+                    onProgress = { progress ->
+                        _state.value = SandboxState.Downloading(progress)
+                    }
+                )
 
                 _state.value = SandboxState.Extracting
-                downloader.extractTarGz(tarGzFile, rootfsDir)
+                downloader.extractTarArchive(archiveFile, rootfsDir)
             } finally {
-                tarGzFile.delete()
+                archiveFile.delete()
             }
         }
 
-        _state.value = SandboxState.Installing("Configuring...")
+        _state.value = SandboxState.Installing(activeDistro, "Configuring...")
         downloader.makeWritable(rootfsDir)
-        downloader.writeResolvConf(rootfsDir)
 
         val executor = createProotExecutor()
-        executor.execute("apk update", timeoutSeconds = 60)
+        for (cmd in distro.getPostExtractCommands()) {
+            ensureActive()
+            executor.execute(cmd, timeoutSeconds = 60)
+        }
 
-        _state.value = SandboxState.Ready
+        _state.value = SandboxState.Ready(activeDistro)
     }
 
     private fun copyLibtalloc() {
@@ -138,7 +246,7 @@ class LinuxSandboxManager(private val context: Context) {
         val hasStorage = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             android.os.Environment.isExternalStorageManager()
         } else {
-            true // Prior to R, permissions are handled by manifest on install
+            true
         }
         return ProotExecutor(
             prootPath = prootPath,
@@ -152,14 +260,25 @@ class LinuxSandboxManager(private val context: Context) {
 
     fun installPackages() {
         if (currentJob?.isActive == true) return
-        val packages = listOf("bash", "curl", "wget", "git", "jq", "python3", "py3-pip", "nodejs")
+        val distro = activeDistro
+        val packages = distro.getDefaultPackages()
         currentJob = scope.launch {
             try {
                 val executor = createProotExecutor()
+
+                // Run update first
+                ensureActive()
+                _state.value = SandboxState.Installing(distro, "Updating package list...")
+                executor.execute(distro.getUpdateCommand(), timeoutSeconds = 60)
+
                 for (pkg in packages) {
                     ensureActive()
-                    _state.value = SandboxState.Installing("Installing $pkg...")
-                    val result = executor.execute("apk add --no-cache $pkg", timeoutSeconds = 120)
+                    _state.value = SandboxState.Installing(distro, "Installing $pkg...")
+                    val installCmd = when (distro) {
+                        is LinuxDistro.Alpine -> "apk add --no-cache $pkg"
+                        is LinuxDistro.Ubuntu, is LinuxDistro.Debian -> "apt-get install -y $pkg"
+                    }
+                    val result = executor.execute(installCmd, timeoutSeconds = 120)
                     ensureActive()
                     val success = result["success"] as? Boolean ?: false
                     if (!success) {
@@ -168,24 +287,33 @@ class LinuxSandboxManager(private val context: Context) {
                         val error = result["error"] as? String ?: ""
                         val timedOut = result["timed_out"] as? Boolean ?: false
                         val exitCode = result["exit_code"] as? Int ?: -1
-                        android.util.Log.e("LinuxSandbox", "Failed to install $pkg: exit=$exitCode timedOut=$timedOut error=$error stdout=$stdout stderr=$stderr")
-                        _state.value = SandboxState.Error("Failed to install $pkg: ${stderr.ifEmpty { error }.ifEmpty { stdout }.take(200)}")
+                        android.util.Log.e("LinuxSandbox", "Failed to install $pkg on ${distro.name}: exit=$exitCode timedOut=$timedOut error=$error stdout=$stdout stderr=$stderr")
+                        _state.value = SandboxState.Error(distro, "Failed to install $pkg: ${stderr.ifEmpty { error }.ifEmpty { stdout }.take(200)}")
                         return@launch
                     }
                 }
-                _state.value = SandboxState.Ready
+                _state.value = SandboxState.Ready(distro)
             } catch (_: kotlinx.coroutines.CancellationException) {
-                _state.value = SandboxState.Ready
+                _state.value = SandboxState.Ready(distro)
             } catch (e: Exception) {
-                android.util.Log.e("LinuxSandbox", "Package install exception", e)
-                _state.value = SandboxState.Error("Install failed: ${e.message}")
+                android.util.Log.e("LinuxSandbox", "Package install exception on ${distro.name}", e)
+                _state.value = SandboxState.Error(distro, "Install failed: ${e.message}")
             }
         }
     }
 
     fun reset() {
         scope.launch {
-            sandboxDir.deleteRecursively()
+            val rootfsDir = distroRootfsDir(activeDistro)
+            rootfsDir.deleteRecursively()
+            checkExistingInstallation()
+        }
+    }
+
+    fun resetAll() {
+        scope.launch {
+            distrosDir.deleteRecursively()
+            activeDistroFile.delete()
             _state.value = SandboxState.NotInstalled
         }
     }
@@ -195,8 +323,21 @@ class LinuxSandboxManager(private val context: Context) {
         return sandboxDir.walkTopDown().sumOf { it.length() } / (1024 * 1024)
     }
 
+    fun getDistroDiskUsageMB(distro: LinuxDistro): Long {
+        val rootfsDir = distroRootfsDir(distro)
+        if (!rootfsDir.isDirectory) return 0
+        return rootfsDir.walkTopDown().sumOf { it.length() } / (1024 * 1024)
+    }
+
     fun arePackagesInstalled(): Boolean {
         if (_state.value !is SandboxState.Ready) return false
         return File(rootfsPath, "usr/bin/python3").exists()
     }
 }
+
+data class DistroStatus(
+    val distro: LinuxDistro,
+    val installed: Boolean = false,
+    val ready: Boolean = false,
+    val diskUsageMB: Long = 0,
+)
