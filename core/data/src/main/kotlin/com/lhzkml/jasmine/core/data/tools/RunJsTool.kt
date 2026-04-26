@@ -2,6 +2,7 @@ package com.lhzkml.jasmine.core.data.tools
 
 import android.util.Log
 import com.lhzkml.jasmine.core.agent.tools.Tool
+import com.lhzkml.jasmine.core.domain.repository.SkillManager
 import com.lhzkml.jasmine.core.prompt.model.ToolDescriptor
 import com.lhzkml.jasmine.core.prompt.model.ToolParameterDescriptor
 import com.lhzkml.jasmine.core.prompt.model.ToolParameterType
@@ -18,7 +19,8 @@ import kotlin.coroutines.resume
 
 @Singleton
 class RunJsTool @Inject constructor(
-    private val agentEventBus: AgentEventBus
+    private val agentEventBus: AgentEventBus,
+    private val skillManager: SkillManager,
 ) : Tool() {
 
     companion object {
@@ -55,8 +57,8 @@ class RunJsTool @Inject constructor(
         val scriptName = json["scriptName"]?.jsonPrimitive?.content?.trim() ?: "index.html"
         val data = json["data"]?.jsonPrimitive?.content?.trim()?.ifEmpty { "{}" } ?: "{}"
 
-        // Since Jasmine doesn't have a backend JS execution secret yet, we will just stub the secret out.
-        val secret = ""
+        // Read the API key/secret from SkillManager preferences
+        val secret = skillManager.getSecret(skillName)
 
         // Calculate the local asset path for the skill
         val url = "file:///android_asset/skills/${skillName}/scripts/${scriptName}"

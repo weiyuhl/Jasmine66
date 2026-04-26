@@ -44,20 +44,26 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material.icons.outlined.ContentPaste
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.aspectRatio
@@ -76,6 +82,15 @@ fun SkillsRoute(
     var isBuiltInExpanded by remember { mutableStateOf(true) }
     var skillToShowDetails by remember { mutableStateOf<Skill?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Dialog states
+    var showImportDialog by remember { mutableStateOf(false) }
+    var showKeyDialog by remember { mutableStateOf<Skill?>(null) }
+    var showDeleteDialog by remember { mutableStateOf<Skill?>(null) }
+    var importUrl by remember { mutableStateOf("") }
+    var importResult by remember { mutableStateOf<String?>(null) }
+    var keyValue by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.loadSkills()
@@ -147,7 +162,7 @@ fun SkillsRoute(
                                 .height(48.dp)
                                 .aspectRatio(1f)
                                 .clip(CircleShape)
-                                .clickable { }
+                                .clickable { showImportDialog = true }
                                 .background(MaterialTheme.colorScheme.primary),
                             contentAlignment = Alignment.Center,
                         ) {
@@ -234,7 +249,9 @@ fun SkillsRoute(
                                     },
                                     onViewClick = {
                                         skillToShowDetails = skillState.skill
-                                    }
+                                    },
+                                    onKeyClick = { showKeyDialog = skillState.skill },
+                                    onDeleteClick = { showDeleteDialog = skillState.skill },
                                 )
                             }
                         }
@@ -287,6 +304,96 @@ fun SkillsRoute(
                 }
             }
         }
+
+        // Import Dialog
+        if (showImportDialog) {
+            AlertDialog(
+                onDismissRequest = { showImportDialog = false; importUrl = ""; importResult = null },
+                title = { Text("导入技能") },
+                text = {
+                    Column {
+                        Text("输入技能 SKILL.md 文件的 URL:", style = MaterialTheme.typography.bodyMedium)
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = importUrl,
+                            onValueChange = { importUrl = it },
+                            placeholder = { Text("https://example.com/SKILL.md") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        if (importResult != null) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(importResult!!, style = MaterialTheme.typography.bodySmall,
+                                color = if (importResult!!.startsWith("技能已导入")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        if (importUrl.isNotBlank()) {
+                            viewModel.importSkillFromUrl(importUrl) { success, msg ->
+                                importResult = msg
+                                if (success) { importUrl = "" }
+                            }
+                        }
+                    }) { Text("导入") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showImportDialog = false; importUrl = ""; importResult = null }) { Text("取消") }
+                },
+            )
+        }
+
+        // Key Dialog
+        showKeyDialog?.let { skill ->
+            val existingSecret = remember(skill) { viewModel.getSecret(skill.name) }
+            AlertDialog(
+                onDismissRequest = { showKeyDialog = null; keyValue = "" },
+                title = { Text("API 密钥 - ${skill.name}") },
+                text = {
+                    Column {
+                        if (skill.requireSecretDescription.isNotBlank()) {
+                            Text(skill.requireSecretDescription, style = MaterialTheme.typography.bodyMedium)
+                            Spacer(Modifier.height(8.dp))
+                        }
+                        OutlinedTextField(
+                            value = keyValue.ifEmpty { existingSecret },
+                            onValueChange = { keyValue = it },
+                            placeholder = { Text("输入 API 密钥...") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.saveSecret(skill.name, keyValue.ifEmpty { existingSecret })
+                        showKeyDialog = null; keyValue = ""
+                    }) { Text("保存") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showKeyDialog = null; keyValue = "" }) { Text("取消") }
+                },
+            )
+        }
+
+        // Delete Dialog
+        showDeleteDialog?.let { skill ->
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = null },
+                title = { Text("删除技能") },
+                text = { Text("确定要删除「${skill.name}」吗？此操作不可撤销。") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.deleteSkill(skill.name)
+                        showDeleteDialog = null
+                    }) { Text("删除", color = MaterialTheme.colorScheme.error) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = null }) { Text("取消") }
+                },
+            )
+        }
     }
 }
 
@@ -296,6 +403,8 @@ private fun SkillItemRow(
     skillState: SkillState,
     onSkillEnabledChange: (Boolean) -> Unit,
     onViewClick: () -> Unit,
+    onKeyClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {},
 ) {
     val skill = skillState.skill
     val uriHandler = LocalUriHandler.current
@@ -367,7 +476,7 @@ private fun SkillItemRow(
 
                 if (skill.requireSecret) {
                     FilledTonalButton(
-                        onClick = { },
+                        onClick = onKeyClick,
                         modifier = Modifier
                             .height(32.dp)
                             .padding(end = 8.dp),
@@ -387,7 +496,7 @@ private fun SkillItemRow(
 
                 if (!skill.builtIn) {
                     FilledTonalButton(
-                        onClick = { },
+                        onClick = onDeleteClick,
                         modifier = Modifier.height(32.dp),
                     ) {
                         Icon(

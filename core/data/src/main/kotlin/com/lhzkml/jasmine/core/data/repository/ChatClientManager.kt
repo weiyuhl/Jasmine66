@@ -3,6 +3,7 @@ package com.lhzkml.jasmine.core.data.repository
 import com.lhzkml.jasmine.core.data.model.SimpleChatMessage
 import com.lhzkml.jasmine.core.data.model.StreamChatResult
 import com.lhzkml.jasmine.core.data.model.ToolCallInfo
+import com.lhzkml.jasmine.core.domain.repository.SkillManager
 import com.lhzkml.jasmine.core.prompt.executor.ApiType
 import com.lhzkml.jasmine.core.prompt.executor.ChatClientConfig
 import com.lhzkml.jasmine.core.prompt.executor.ChatClientFactory
@@ -49,6 +50,7 @@ import kotlin.time.Duration.Companion.seconds
 class ChatClientManager @Inject constructor(
     private val providerRepo: ChatProviderRepository,
     private val toolManager: ChatToolManager,
+    private val skillManager: SkillManager,
 ) {
     private val _isConfigured = MutableStateFlow(false)
     /** 供应商是否已就绪 */
@@ -516,11 +518,21 @@ class ChatClientManager @Inject constructor(
         // 注入 System Prompt
         val id = providerRepo.getActiveProviderId() ?: ""
         val customPrompt = providerRepo.getSystemPrompt(id)
-        val systemMsg = systemPromptManager.createSystemMessage(
+        var systemContent = systemPromptManager.createSystemMessage(
             if (customPrompt.isNotBlank()) customPrompt else null,
             kaiUiEnabled = kaiUiEnabled,
-        )
-        result.add(systemMsg)
+        ).content
+
+        // 注入选中的技能指令
+        val skillsInstructions = skillManager.getSelectedSkillsInstructions()
+        if (skillsInstructions != "No active skills.") {
+            systemContent += "\n\n<available_skills>\n" +
+                "用户已启用以下技能。当用户请求涉及这些技能的功能时，你应使用 manage_skills 工具加载技能，然后按技能指令调用 run_js 或 run_intent 工具执行。\n" +
+                skillsInstructions +
+                "\n</available_skills>"
+        }
+
+        result.add(ChatMessage.system(systemContent))
 
         // 转换用户消息
         for (msg in messages) {

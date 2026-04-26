@@ -7,11 +7,16 @@ import com.lhzkml.jasmine.core.model.Skill
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.InputStreamReader
+import java.net.URL
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val TAG = "SkillManager"
+private const val PREFS_NAME = "jasmine_skills"
+private const val KEY_SELECTED = "selected_skills"
+private const val KEY_SECRET_PREFIX = "skill_secret_"
 
 /**
  * Skill 管理器 - 管理应用的 Skills
@@ -20,6 +25,7 @@ private const val TAG = "SkillManager"
 class SkillManager @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
+    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val skills = mutableListOf<Skill>()
     private var isLoaded = false
 
@@ -63,8 +69,17 @@ class SkillManager @Inject constructor(
 
         skills.clear()
         skills.addAll(loadedSkills)
+
+        // Restore persisted selections
+        val selectedSet = prefs.getStringSet(KEY_SELECTED, emptySet()) ?: emptySet()
+        if (selectedSet.isNotEmpty()) {
+            for (i in skills.indices) {
+                skills[i] = skills[i].copy(selected = selectedSet.contains(skills[i].name))
+            }
+        }
+
         isLoaded = true
-        
+
         return@withContext skills.toList()
     }
 
@@ -115,10 +130,87 @@ class SkillManager @Inject constructor(
         val index = skills.indexOfFirst { it.name.equals(name, ignoreCase = true) }
         if (index >= 0) {
             skills[index] = skills[index].copy(selected = selected)
+            persistSelections()
             Log.d(TAG, "技能 '${skills[index].name}' 已${if (selected) "启用" else "禁用"}")
             return true
         }
         return false
+    }
+
+    /**
+     * 持久化当前技能选择状态到 SharedPreferences
+     */
+    private fun persistSelections() {
+        val selected = skills.filter { it.selected }.map { it.name }.toSet()
+        prefs.edit().putStringSet(KEY_SELECTED, selected).apply()
+    }
+
+    /**
+     * 从 URL 下载并导入技能
+     */
+    suspend fun importSkillFromUrl(url: String): Result<Skill> = withContext(Dispatchers.IO) {
+        try {
+            val content = URL(url).readText()
+            val (skillProto, errors) = convertSkillMdToProto(
+                content, builtIn = false, selected = true, skillUrl = url
+            )
+            if (errors.isNotEmpty() || skillProto == null) {
+                return@withContext Result.failure(Exception("解析失败: ${errors.joinToString()}"))
+            }
+
+            // Save to internal storage
+            val importDir = File(context.filesDir, "skills/imported/${skillProto.name}")
+            importDir.mkdirs()
+            File(importDir, "SKILL.md").writeText(content)
+
+            val skill = skillProto.copy(importDirName = importDir.absolutePath)
+            skills.add(skill)
+            persistSelections()
+            Log.d(TAG, "已导入技能: ${skill.name}")
+            Result.success(skill)
+        } catch (e: Exception) {
+            Log.e(TAG, "导入技能失败", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * 保存技能的 API 密钥
+     */
+    fun saveSecret(skillName: String, secret: String) {
+        prefs.edit().putString(KEY_SECRET_PREFIX + skillName.lowercase(), secret).apply()
+        Log.d(TAG, "已保存密钥: $skillName")
+    }
+
+    /**
+     * 获取技能的 API 密钥
+     */
+    fun getSecret(skillName: String): String {
+        return prefs.getString(KEY_SECRET_PREFIX + skillName.lowercase(), "") ?: ""
+    }
+
+    /**
+     * 删除技能
+     */
+    fun deleteSkill(name: String): Boolean {
+        val index = skills.indexOfFirst { it.name.equals(name, ignoreCase = true) }
+        if (index < 0) return false
+        val skill = skills[index]
+        if (skill.builtIn) return false
+
+        skills.removeAt(index)
+        persistSelections()
+        prefs.edit().remove(KEY_SECRET_PREFIX + name.lowercase()).apply()
+
+        // Delete from internal storage
+        if (skill.importDirName.isNotBlank()) {
+            try {
+                File(skill.importDirName).deleteRecursively()
+            } catch (_: Exception) { }
+        }
+
+        Log.d(TAG, "已删除技能: $name")
+        return true
     }
 
     /**

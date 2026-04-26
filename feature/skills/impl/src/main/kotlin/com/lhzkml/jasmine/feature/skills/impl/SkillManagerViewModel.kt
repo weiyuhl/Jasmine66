@@ -97,4 +97,33 @@ class SkillManagerViewModel @Inject constructor(
             "- ${skill.name}: ${skill.description}"
         }
     }
+
+    fun importSkillFromUrl(url: String, onResult: (Boolean, String) -> Unit) {
+        viewModelScope.launch(ioDispatcher) {
+            val result = skillManager.importSkillFromUrl(url)
+            result.onSuccess { skill ->
+                _uiState.update { currentState ->
+                    currentState.copy(skills = currentState.skills + SkillState(skill = skill))
+                }
+                withContext(ioDispatcher) { onResult(true, "技能已导入: ${skill.name}") }
+            }
+            result.onFailure { e ->
+                withContext(ioDispatcher) { onResult(false, e.message ?: "导入失败") }
+            }
+        }
+    }
+
+    fun getSecret(skillName: String): String = skillManager.getSecret(skillName)
+
+    fun saveSecret(skillName: String, secret: String) {
+        skillManager.saveSecret(skillName, secret)
+    }
+
+    fun deleteSkill(skillName: String) {
+        if (skillManager.deleteSkill(skillName)) {
+            _uiState.update { currentState ->
+                currentState.copy(skills = currentState.skills.filter { it.skill.name != skillName })
+            }
+        }
+    }
 }
