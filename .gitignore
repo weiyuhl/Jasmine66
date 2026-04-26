@@ -79,6 +79,7 @@ objectbox-models/*.json.bak
 release.jks
 *.jks
 *.keystore
+keystore.properties
 
 # OS generated files
 Thumbs.db

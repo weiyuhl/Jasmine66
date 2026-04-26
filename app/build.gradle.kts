@@ -1,10 +1,26 @@
 import com.lhzkml.jasmine.JasmineBuildType
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.jasmine.android.application)
     alias(libs.plugins.jasmine.android.application.compose)
     alias(libs.plugins.jasmine.hilt)
     alias(libs.plugins.kotlin.serialization)
+}
+
+// Release signing config
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val releaseSigningConfig = if (keystorePropertiesFile.exists()) {
+    val props = Properties()
+    props.load(keystorePropertiesFile.inputStream())
+    android.signingConfigs.create("release") {
+        storeFile = file(props.getProperty("storeFile"))
+        storePassword = props.getProperty("storePassword")
+        keyAlias = props.getProperty("keyAlias")
+        keyPassword = props.getProperty("keyPassword")
+    }
+} else {
+    null
 }
 
 android {
@@ -25,9 +41,7 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),
                           "proguard-rules.pro")
 
-            // Use debug signing config for release builds since release.jks is not available.
-            // For production, a proper release keystore should be configured.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = releaseSigningConfig ?: signingConfigs.getByName("debug")
         }
     }
 

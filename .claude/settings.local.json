@@ -8,7 +8,9 @@
       "Bash(./gradlew :app:assembleDebug *)",
       "Bash(./gradlew :linux-sandbox:sandbox:compileDebugKotlin)",
       "WebSearch",
-      "WebFetch(domain:cdimage.ubuntu.com)"
+      "WebFetch(domain:cdimage.ubuntu.com)",
+      "Bash(keytool *)",
+      "Bash(./gradlew :app:assembleRelease)"
     ]
   }
 }
