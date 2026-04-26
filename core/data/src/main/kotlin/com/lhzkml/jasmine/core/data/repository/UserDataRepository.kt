@@ -23,7 +23,7 @@ interface UserDataRepository {
     suspend fun setShouldHideOnboarding(shouldHideOnboarding: Boolean)
 
     /**
-     * Sets whether the kai-ui dynamic UI feature is enabled.
+     * Sets whether the dynamic UI feature is enabled.
      */
     suspend fun setUiEnabled(uiEnabled: Boolean)
 

@@ -215,7 +215,7 @@ object UiParser {
 
         for (match in uiBlockRegex.findAll(message)) {
             if (++blockCount > MAX_UI_BLOCKS) {
-                segments.add(ErrorSegment("Too many kai-ui blocks (max $MAX_UI_BLOCKS)"))
+                segments.add(ErrorSegment("Too many dynamic UI blocks (max $MAX_UI_BLOCKS)"))
                 break
             }
             val before = message.substring(lastIndex, match.range.first)

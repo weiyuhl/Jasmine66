@@ -16,7 +16,7 @@ message UserPreferences {
 
     bool use_dynamic_color = 19;
 
-    bool kai_ui_enabled = 21;
+    bool ui_enabled = 21;
 
     bool web_search_enabled = 22;
 
