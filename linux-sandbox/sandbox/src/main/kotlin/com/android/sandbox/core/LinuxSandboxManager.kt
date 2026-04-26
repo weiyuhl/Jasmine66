@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -225,7 +226,7 @@ class LinuxSandboxManager(private val context: Context) {
 
         val executor = createProotExecutor()
         for (cmd in distro.getPostExtractCommands()) {
-            ensureActive()
+            if (currentJob?.isActive == false) throw kotlinx.coroutines.CancellationException()
             executor.execute(cmd, timeoutSeconds = 60)
         }
 
