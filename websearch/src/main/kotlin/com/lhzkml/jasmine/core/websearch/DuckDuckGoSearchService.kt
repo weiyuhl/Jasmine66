@@ -25,7 +25,7 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
         private const val HTML_SEARCH_URL = "https://duckduckgo.com/html/"
     }
 
-    private suspend fun searchWithContent(query: String, maxResults: Int = 5): List<WebSearchResult> {
+    private suspend fun searchWithContent(query: String, maxResults: Int = 5, timeFilter: String? = null, region: String? = null): List<WebSearchResult> {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "Searching with content extraction for: $query")
@@ -47,7 +47,7 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
                     Log.w(TAG, "Failed to fetch content from URL: $extractedUrl")
                 }
 
-                val searchUrls = getSearchUrls(query, maxResults)
+                val searchUrls = getSearchUrls(query, maxResults, timeFilter, region)
                 if (searchUrls.isEmpty()) {
                     Log.w(TAG, "No search URLs found")
                     return@withContext emptyList()
@@ -135,10 +135,21 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
 
     private data class UrlData(val title: String, val url: String)
 
-    private suspend fun getSearchUrls(query: String, maxResults: Int): List<UrlData> {
+    private fun buildHtmlSearchUrl(query: String, timeFilter: String?, region: String?): String {
+        val encodedQuery = URLEncoder.encode(query, "UTF-8")
+        val sb = StringBuilder("${HTML_SEARCH_URL}?q=$encodedQuery")
+        if (!timeFilter.isNullOrBlank()) {
+            sb.append("&df=$timeFilter")
+        }
+        if (!region.isNullOrBlank()) {
+            sb.append("&kl=$region")
+        }
+        return sb.toString()
+    }
+
+    private suspend fun getSearchUrls(query: String, maxResults: Int, timeFilter: String?, region: String?): List<UrlData> {
         return try {
-            val encodedQuery = URLEncoder.encode(query, "UTF-8")
-            val url = "${HTML_SEARCH_URL}?q=${encodedQuery}"
+            val url = buildHtmlSearchUrl(query, timeFilter, region)
 
             val request = Request.Builder()
                 .url(url)
@@ -259,12 +270,17 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
         }
     }
 
-    override suspend fun search(query: String, maxResults: Int): List<WebSearchResult> {
+    override suspend fun search(
+        query: String,
+        maxResults: Int,
+        timeFilter: String?,
+        region: String?,
+    ): List<WebSearchResult> {
         return withContext(Dispatchers.IO) {
             try {
-                Log.d(TAG, "Searching for: $query")
+                Log.d(TAG, "Searching for: $query (timeFilter=$timeFilter, region=$region)")
 
-                val contentResults = searchWithContent(query, maxResults)
+                val contentResults = searchWithContent(query, maxResults, timeFilter, region)
                 if (contentResults.isNotEmpty()) {
                     Log.d(TAG, "Found ${contentResults.size} content-based results")
                     return@withContext contentResults
@@ -276,7 +292,7 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
                     return@withContext instantResults.take(maxResults)
                 }
 
-                val htmlResults = searchHTML(query, maxResults)
+                val htmlResults = searchHTML(query, maxResults, timeFilter, region)
                 Log.d(TAG, "Found ${htmlResults.size} HTML search results")
 
                 // Debug: log the first result if available
@@ -304,7 +320,7 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
     private suspend fun searchInstantAnswer(query: String): List<WebSearchResult> {
         return try {
             val encodedQuery = URLEncoder.encode(query, "UTF-8")
-            val url = "${SEARCH_URL}?q=${encodedQuery}&format=json&no_html=1&skip_disambig=1"
+            val url = "${SEARCH_URL}?q=${encodedQuery}&format=json&no_html=1&skip_disambig=1&t=jasmine"
 
             val request = Request.Builder()
                 .url(url)
@@ -395,10 +411,9 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
         }
     }
 
-    private suspend fun searchHTML(query: String, maxResults: Int): List<WebSearchResult> {
+    private suspend fun searchHTML(query: String, maxResults: Int, timeFilter: String?, region: String?): List<WebSearchResult> {
         return try {
-            val encodedQuery = URLEncoder.encode(query, "UTF-8")
-            val url = "${HTML_SEARCH_URL}?q=${encodedQuery}"
+            val url = buildHtmlSearchUrl(query, timeFilter, region)
 
             val request = Request.Builder()
                 .url(url)
@@ -523,11 +538,11 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
             }
 
             if (results.isEmpty()) {
-                Log.w(TAG, "Could not parse any results from HTML")
+                Log.w(TAG, "Could not parse any results from HTML for query: $query")
                 results.add(
                     WebSearchResult(
-                        title = "Search Completed",
-                        snippet = "I successfully searched for '$query' and found results, but the webpage format has changed and I couldn't extract the specific details. However, the search was performed and current information should be available.",
+                        title = "Search Error",
+                        snippet = "无法解析搜索结果。DuckDuckGo 页面结构已变更，请尝试更换搜索关键词。",
                         url = "",
                         source = "DuckDuckGo",
                     ),
@@ -538,11 +553,11 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
             return results
 
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to parse HTML results", e)
+            Log.e(TAG, "Failed to parse HTML results for query: $query", e)
             return listOf(
                 WebSearchResult(
                     title = "Search Error",
-                    snippet = "I attempted to search for '$query', but encountered a technical issue while processing the results. Please try rephrasing your question.",
+                    snippet = "搜索处理失败: ${e.message}. 请重试或更换搜索关键词。",
                     url = "",
                     source = "Error",
                 ),

@@ -118,7 +118,7 @@ class ChatViewModel @Inject constructor(
 
         streamJob = viewModelScope.launch {
             try {
-                val uiEnabled = userDataRepository.userData.first().uiEnabled
+                val userData = userDataRepository.userData.first()
                 val result = clientManager.streamChat(
                     messages = history,
                     model = model,
@@ -130,7 +130,8 @@ class ChatViewModel @Inject constructor(
                             it.copy(thinking = (it.thinking ?: "") + thinkChunk)
                         }
                     },
-                    uiEnabled = uiEnabled,
+                    uiEnabled = userData.uiEnabled,
+                    webSearchEnabled = userData.webSearchEnabled,
                 )
                 updateLastAssistant {
                     it.copy(
@@ -143,7 +144,6 @@ class ChatViewModel @Inject constructor(
                 val errorMsg = e.message ?: "请求失败"
                 _errorMessage.value = errorMsg
                 com.lhzkml.jasmine.core.data.log.FileLogger.logError("ChatViewModel", "UI callback failed: $errorMsg", e)
-                // Ensure isStreaming = false so UI blocks render even on partial response
                 updateLastAssistant { it.copy(isStreaming = false) }
             } finally {
                 _isChatRunning.value = false
@@ -176,7 +176,7 @@ class ChatViewModel @Inject constructor(
 
         streamJob = viewModelScope.launch {
             try {
-                val uiEnabled = userDataRepository.userData.first().uiEnabled
+                val userData = userDataRepository.userData.first()
                 val result = clientManager.streamChat(
                     messages = history,
                     model = model,
@@ -213,7 +213,8 @@ class ChatViewModel @Inject constructor(
                             )
                         }
                     },
-                    uiEnabled = uiEnabled,
+                    uiEnabled = userData.uiEnabled,
+                    webSearchEnabled = userData.webSearchEnabled,
                 )
                 updateLastAssistant {
                     it.copy(

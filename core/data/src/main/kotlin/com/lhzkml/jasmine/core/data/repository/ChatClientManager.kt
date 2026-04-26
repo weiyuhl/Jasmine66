@@ -217,15 +217,17 @@ class ChatClientManager @Inject constructor(
         onToolCallStart: suspend (String, String) -> Unit = { _, _ -> },
         onToolCallResult: suspend (String, String) -> Unit = { _, _ -> },
         uiEnabled: Boolean = true,
+        webSearchEnabled: Boolean = true,
     ): StreamChatResult {
         val client = chatClient
             ?: throw IllegalStateException("发送失败: ${_setupState.value}")
 
-        val tools = toolManager.descriptors()
+        val allTools = toolManager.descriptors()
+        val tools = if (webSearchEnabled) allTools else allTools.filter { it.name != "web_search" }
         val hasTools = tools.isNotEmpty()
 
         // 1. 转换消息并注入 System Prompt
-        val apiMessages = buildApiMessagesWithSystemPrompt(messages, uiEnabled)
+        val apiMessages = buildApiMessagesWithSystemPrompt(messages, uiEnabled, webSearchEnabled)
 
         // 2. 上下文窗口裁剪
         val trimmedMessages = contextManager.trimMessages(apiMessages)
@@ -260,6 +262,7 @@ class ChatClientManager @Inject constructor(
             messages = trimmedMessages,
             model = model,
             samplingParams = samplingParams,
+            tools = tools,
             onChunk = onChunk,
             onThinking = onThinking,
             onResumeAttempt = onResumeAttempt,
@@ -273,6 +276,7 @@ class ChatClientManager @Inject constructor(
         messages: List<ChatMessage>,
         model: String,
         samplingParams: ResolvedSamplingParams,
+        tools: List<ToolDescriptor>,
         onChunk: suspend (String) -> Unit,
         onThinking: suspend (String) -> Unit,
         onResumeAttempt: suspend (Int) -> Unit,
@@ -300,7 +304,7 @@ class ChatClientManager @Inject constructor(
                 model = model,
                 maxTokens = samplingParams.maxTokens,
                 samplingParams = samplingParams.coreSamplingParams,
-                tools = toolManager.descriptors(),
+                tools = tools,
                 onChunk = onChunk,
                 onThinking = onThinking,
                 onResumeAttempt = onResumeAttempt,
@@ -512,7 +516,7 @@ class ChatClientManager @Inject constructor(
     /**
      * 构建包含 System Prompt 的 API 消息列表
      */
-    private fun buildApiMessagesWithSystemPrompt(messages: List<SimpleChatMessage>, uiEnabled: Boolean = true): List<ChatMessage> {
+    private fun buildApiMessagesWithSystemPrompt(messages: List<SimpleChatMessage>, uiEnabled: Boolean = true, webSearchEnabled: Boolean = true): List<ChatMessage> {
         val result = mutableListOf<ChatMessage>()
 
         // 注入 System Prompt
@@ -530,6 +534,14 @@ class ChatClientManager @Inject constructor(
                 "用户已启用以下技能。当用户请求涉及这些技能的功能时，你应使用 manage_skills 工具加载技能，然后按技能指令调用 run_js 或 run_intent 工具执行。\n" +
                 skillsInstructions +
                 "\n</available_skills>"
+        }
+
+        // 注入联网搜索指引
+        if (webSearchEnabled) {
+            systemContent += "\n\n<web_search>\n" +
+                "你可以使用 web_search 工具获取网络实时信息。当用户询问近期事件、新闻、最新数据或需要查询实时信息时，主动调用 web_search。\n" +
+                "搜索时使用精准的关键词，优先使用用户消息中的原词。对于需要最新信息的查询（日期、价格、版本号等），务必搜索确认。\n" +
+                "</web_search>"
         }
 
         result.add(ChatMessage.system(systemContent))
