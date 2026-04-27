@@ -9,6 +9,10 @@ android {
     namespace = "com.lhzkml.jasmine.core.database"
 }
 
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
 dependencies {
     api(projects.core.model)
 

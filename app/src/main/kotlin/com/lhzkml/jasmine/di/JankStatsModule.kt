@@ -14,11 +14,17 @@ import dagger.hilt.android.components.ActivityComponent
 @InstallIn(ActivityComponent::class)
 object JankStatsModule {
     @Provides
-    fun providesOnFrameListener(): OnFrameListener = OnFrameListener { frameData ->
-        // Make sure to only log janky frames.
-        if (frameData.isJank) {
-            // We're currently logging this but would better report it to a backend.
-            FileLogger.log("Jank", frameData.toString())
+    fun providesOnFrameListener(): OnFrameListener {
+        var lastLogTime = 0L
+        val minIntervalMs = 500L
+        return OnFrameListener { frameData ->
+            if (frameData.isJank) {
+                val now = System.currentTimeMillis()
+                if (now - lastLogTime >= minIntervalMs) {
+                    lastLogTime = now
+                    FileLogger.log("Jank", frameData.toString())
+                }
+            }
         }
     }
 
