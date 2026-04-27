@@ -66,6 +66,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import com.lhzkml.jasmine.core.designsystem.component.MarkdownText
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -177,7 +178,7 @@ internal fun ChatScreen(
                     modifier = Modifier.weight(1f),
                 )
                 TextButton(onClick = { viewModel.clearError() }) {
-                    Text("关闭", fontSize = 12.sp)
+                    Text(stringResource(R.string.feature_chat_impl_close), fontSize = 12.sp)
                 }
             }
         }
@@ -298,14 +299,14 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
-                        text = "💭 思考过程",
+                        text = stringResource(R.string.feature_chat_impl_thinking_process),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = colorScheme.onSurfaceVariant,
                     )
                     Icon(
                         imageVector = if (isThinkingExpanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
-                        contentDescription = if (isThinkingExpanded) "收起" else "展开",
+                        contentDescription = if (isThinkingExpanded) stringResource(R.string.feature_chat_impl_collapse) else stringResource(R.string.feature_chat_impl_expand),
                         tint = colorScheme.onSurfaceVariant,
                     )
                 }
@@ -524,7 +525,7 @@ private fun ChatComposer(
                     strokeWidth = 2.dp
                 )
                 BasicText(
-                    text = "正在生成回复...",
+                    text = stringResource(R.string.feature_chat_impl_generating_reply),
                     style = TextStyle(
                         fontSize = 13.sp,
                         color = colorScheme.onSurfaceVariant,
