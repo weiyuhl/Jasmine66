@@ -49,7 +49,6 @@ graph TB
   end
   subgraph :core
     direction TB
-    :core:analytics[analytics]:::android-library
     :core:common[common]:::jvm-library
     :core:data[data]:::android-library
     :core:database[database]:::android-library
@@ -67,7 +66,6 @@ graph TB
   :app[app]:::android-application
 
   :app -.->|baselineProfile| :benchmarks
-  :app -.-> :core:analytics
   :app -.-> :core:common
   :app -.-> :core:data
   :app -.-> :core:designsystem
@@ -86,7 +84,6 @@ graph TB
   :app -.-> :feature:topic:impl
   :app -.-> :sync:work
   :benchmarks -.->|testedApks| :app
-  :core:data -.-> :core:analytics
   :core:data --> :core:common
   :core:data --> :core:database
   :core:data --> :core:datastore
@@ -102,7 +99,6 @@ graph TB
   :core:network --> :core:model
   :core:notifications -.-> :core:common
   :core:notifications --> :core:model
-  :core:ui --> :core:analytics
   :core:ui --> :core:designsystem
   :core:ui --> :core:model
   :feature:bookmarks:api --> :core:navigation
@@ -142,7 +138,6 @@ graph TB
   :feature:topic:impl -.-> :core:designsystem
   :feature:topic:impl -.-> :core:ui
   :feature:topic:impl -.-> :feature:topic:api
-  :sync:work -.-> :core:analytics
   :sync:work -.-> :core:data
   :sync:work -.-> :core:notifications
 

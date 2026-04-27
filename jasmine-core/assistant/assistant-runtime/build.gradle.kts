@@ -31,6 +31,8 @@ dependencies {
     // 基础依赖保持
     implementation(libs.kotlinx.serialization.json)
     
-    testImplementation(libs.junit)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.vintage)
     testImplementation(libs.kotlinx.coroutines.test)
 }

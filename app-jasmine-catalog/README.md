@@ -13,7 +13,6 @@ config:
 graph TB
   subgraph :core
     direction TB
-    :core:analytics[analytics]:::android-library
     :core:designsystem[designsystem]:::android-library
     :core:model[model]:::jvm-library
     :core:ui[ui]:::android-library
@@ -22,7 +21,6 @@ graph TB
 
   :app--catalog -.-> :core:designsystem
   :app--catalog -.-> :core:ui
-  :core:ui --> :core:analytics
   :core:ui --> :core:designsystem
   :core:ui --> :core:model
 

@@ -28,6 +28,8 @@ dependencies {
     api(project(":jasmine-core:prompt:prompt-llm"))
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.json)
-    testImplementation(libs.junit)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.vintage)
     testImplementation(libs.kotlinx.coroutines.test)
 }

@@ -26,5 +26,7 @@ dependencies {
     api(project(":jasmine-core:agent:agent-tools"))
     api(project(":jasmine-core:agent:agent-observe"))
     implementation(libs.kotlinx.coroutines.core)
-    testImplementation(libs.junit)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.vintage)
 }

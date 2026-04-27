@@ -18,7 +18,9 @@ dependencies {
     implementation(projects.core.navigation)
     implementation(projects.feature.sandbox.api)
 
-    testImplementation(libs.junit)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.vintage)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockito.core)
 }

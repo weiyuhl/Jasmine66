@@ -60,6 +60,8 @@ dependencies {
     // DocumentFile for SAF
     implementation("androidx.documentfile:documentfile:1.0.1")
     
-    testImplementation(libs.junit)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.vintage)
     testImplementation(libs.kotlinx.coroutines.test)
 }

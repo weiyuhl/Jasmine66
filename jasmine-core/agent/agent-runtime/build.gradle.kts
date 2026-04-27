@@ -30,6 +30,8 @@ dependencies {
     api(project(":jasmine-core:config:config-manager"))
     api(project(":jasmine-core:conversation:conversation-storage"))
     implementation(libs.kotlinx.coroutines.core)
-    testImplementation(libs.junit)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.vintage)
     testImplementation(libs.kotlinx.coroutines.test)
 }

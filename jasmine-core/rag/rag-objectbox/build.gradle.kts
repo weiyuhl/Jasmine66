@@ -25,5 +25,7 @@ android {
 dependencies {
     implementation(project(":jasmine-core:rag:rag-core"))
     implementation(libs.kotlinx.coroutines.core)
-    testImplementation(libs.junit)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.vintage)
 }

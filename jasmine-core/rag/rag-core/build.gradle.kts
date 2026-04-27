@@ -24,5 +24,7 @@ android {
 dependencies {
     api(project(":jasmine-core:prompt:prompt-llm"))
     implementation(libs.kotlinx.coroutines.core)
-    testImplementation(libs.junit)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.vintage)
 }
