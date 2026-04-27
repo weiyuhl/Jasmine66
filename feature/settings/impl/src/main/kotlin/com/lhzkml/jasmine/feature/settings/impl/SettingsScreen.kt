@@ -418,9 +418,13 @@ private fun exportLogs(context: Context) {
             context.startActivity(Intent.createChooser(intent, "分享日志"))
         }
     } catch (e: Exception) {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val logContent = FileLogger.getCombinedLogs()
-        clipboard.setPrimaryClip(ClipData.newPlainText("Jasmine Logs", logContent))
-        Toast.makeText(context, "日志已复制到剪贴板", Toast.LENGTH_SHORT).show()
+        try {
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+            val logContent = FileLogger.getCombinedLogs()
+            clipboard?.setPrimaryClip(ClipData.newPlainText("Jasmine Logs", logContent))
+            Toast.makeText(context, "日志已复制到剪贴板", Toast.LENGTH_SHORT).show()
+        } catch (_: Exception) {
+            Toast.makeText(context, "无法导出日志", Toast.LENGTH_SHORT).show()
+        }
     }
 }

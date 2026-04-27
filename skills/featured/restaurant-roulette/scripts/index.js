@@ -80,8 +80,8 @@ window['ai_edge_gallery_get_result'] = async (dataStr, secret) => {
       console.warn('Gemini API failed.', apiError);
       // IF IT FAILS, THE WHEEL WILL NOW SHOW YOU THE EXACT ERROR MESSAGE!
       let errorMessage = apiError.message;
-      if (errorMessage.length > 15)
-        errorMessage = errorMessage.substring(0, 15);
+      if (errorMessage.length > 80)
+        errorMessage = errorMessage.substring(0, 80) + '...';
       places = ['Error:', errorMessage, 'Check', 'Console'];
     }
 

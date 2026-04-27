@@ -262,8 +262,8 @@ val MaterialTheme.customColors: CustomColors
 fun StatusBarColorController(useDarkTheme: Boolean) {
     val view = LocalView.current
     if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as? Activity)?.window ?: return@SideEffect
+        LaunchedEffect(useDarkTheme) {
+            val window = (view.context as? Activity)?.window ?: return@LaunchedEffect
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 val controller = window.insetsController
                 if (useDarkTheme) {

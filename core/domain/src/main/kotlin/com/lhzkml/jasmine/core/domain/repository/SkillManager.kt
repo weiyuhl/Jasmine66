@@ -30,7 +30,7 @@ private const val KEY_SECRET_PREFIX = "skill_secret_"
 class SkillManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) {
-    private val prefs: SharedPreferences = run {
+    private val prefs: SharedPreferences by lazy {
         val masterKey = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
         val encryptedPrefs = EncryptedSharedPreferences.create(
             PREFS_NAME,

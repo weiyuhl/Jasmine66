@@ -20,7 +20,7 @@ data class ProviderPreset(
 class ChatProviderRepository @Inject constructor(
     @ApplicationContext context: Context,
 ) {
-    private val prefs: SharedPreferences = run {
+    private val prefs: SharedPreferences by lazy {
         val masterKey = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
         val encryptedPrefs = EncryptedSharedPreferences.create(
             "jasmine_provider_encrypted",
