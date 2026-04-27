@@ -172,42 +172,42 @@ private fun SettingsMenuScreen(
             ) {
                 Column {
                     SettingsMenuItem(
-                        title = "基本设置",
-                        subtitle = "主题、动态色彩、深色模式",
+                        title = stringResource(string.feature_settings_impl_basic_settings),
+                        subtitle = stringResource(string.feature_settings_impl_basic_settings_subtitle),
                         onClick = onBasicSettingsClick,
                     )
 
                     SettingsMenuItem(
                         title = stringResource(string.feature_settings_impl_provider_config),
-                        subtitle = "API Key 与供应商选择",
+                        subtitle = stringResource(string.feature_settings_impl_provider_config_subtitle),
                         onClick = onProviderConfigClick,
                     )
 
                     SettingsMenuItem(
-                        title = "Linux Sandbox",
-                        subtitle = "Alpine Linux 终端环境",
+                        title = stringResource(string.feature_settings_impl_linux_sandbox),
+                        subtitle = stringResource(string.feature_settings_impl_linux_sandbox_subtitle),
                         onClick = onSandboxClick,
                     )
 
                     SettingsMenuItem(
-                        title = "导出日志",
-                        subtitle = "导出应用日志用于问题排查",
+                        title = stringResource(string.feature_settings_impl_export_logs),
+                        subtitle = stringResource(string.feature_settings_impl_export_logs_subtitle),
                         onClick = { exportLogs(context) },
                     )
 
                     SettingsToggleItem(
-                        title = "动态交互 UI",
-                        subtitle = "允许 AI 渲染按钮、表单等交互组件",
+                        title = stringResource(string.feature_settings_impl_dynamic_ui),
+                        subtitle = stringResource(string.feature_settings_impl_dynamic_ui_subtitle),
                         checked = uiEnabled,
                         onCheckedChange = onUiToggle,
                     )
 
                     SettingsToggleItem(
-                        title = "联网搜索",
+                        title = stringResource(string.feature_settings_impl_web_search),
                         subtitle = if (webSearchEnabled) {
-                            "获取网络实时信息"
+                            stringResource(string.feature_settings_impl_web_search_on)
                         } else {
-                            "仅使用离线知识"
+                            stringResource(string.feature_settings_impl_web_search_off)
                         },
                         checked = webSearchEnabled,
                         onCheckedChange = onWebSearchToggle,
@@ -215,7 +215,7 @@ private fun SettingsMenuScreen(
 
                     SettingsMenuItem(
                         title = stringResource(string.feature_settings_impl_licenses),
-                        subtitle = "查看第三方开源许可证",
+                        subtitle = stringResource(string.feature_settings_impl_licenses_subtitle),
                         onClick = onLicensesClick,
                     )
                 }

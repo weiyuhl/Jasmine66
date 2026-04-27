@@ -9,4 +9,5 @@
     <string name="web_search_found_results">✅ Found %1$d results. Analyzing…</string>
     <string name="web_search_no_results">❌ No current search results found. Using offline knowledge.</string>
     <string name="web_search_failed">❌ Web search failed: %1$s. Using offline knowledge.</string>
+    <string name="skill_management">技能管理</string>
 </resources>

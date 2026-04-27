@@ -332,7 +332,7 @@ private fun ChatBubble(message: UiChatMessage, onUiCallback: ((String, Map<Strin
                             .padding(start = 12.dp)
                     ) {
                         Text(
-                            text = message.thinking ?: "",
+                            text = message.thinking,
                             color = colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall,
                             lineHeight = 18.sp,

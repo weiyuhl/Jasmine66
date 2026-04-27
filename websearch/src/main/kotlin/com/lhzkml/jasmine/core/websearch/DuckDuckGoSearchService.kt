@@ -16,10 +16,17 @@ import javax.inject.Singleton
 @Singleton
 class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
 
-    private val client = OkHttpClient.Builder()
+    internal constructor(client: OkHttpClient, baseUrl: String) : this() {
+        this.client = client
+        this.baseUrl = baseUrl
+    }
+
+    private var client = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
         .build()
+
+    private var baseUrl = "https://api.duckduckgo.com/"
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -28,7 +35,6 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
 
     companion object {
         private const val TAG = "DuckDuckGoSearch"
-        private const val API_URL = "https://api.duckduckgo.com/"
     }
 
     override suspend fun search(
@@ -43,7 +49,7 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
 
                 val encodedQuery = URLEncoder.encode(query, "UTF-8")
                 val url = buildString {
-                    append("${API_URL}?q=$encodedQuery")
+                    append("${baseUrl}?q=$encodedQuery")
                     append("&format=json&no_html=1&skip_disambig=1&t=jasmine")
                 }
 

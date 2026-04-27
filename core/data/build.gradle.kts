@@ -6,6 +6,9 @@ plugins {
 
 android {
     namespace = "com.lhzkml.jasmine.core.data"
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -24,4 +27,6 @@ dependencies {
     implementation(projects.jasmineCore.agent.agentTools)
     implementation(projects.jasmineCore.agent.agentRuntime)
     implementation(projects.linuxSandbox.sandbox)
+
+    testImplementation(libs.junit)
 }

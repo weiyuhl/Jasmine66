@@ -140,7 +140,7 @@ internal fun JasmineAppContent(
                     icon = {
                         Icon(
                             imageVector = JasmineIcons.Search,
-                            contentDescription = null,
+                            contentDescription = stringResource(searchR.string.feature_search_api_title),
                         )
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
@@ -156,13 +156,13 @@ internal fun JasmineAppContent(
                      icon = {
                          Icon(
                              imageVector = JasmineIcons.Settings,
-                             contentDescription = null,
+                             contentDescription = stringResource(settingsR.string.feature_settings_impl_title),
                          )
                      },
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                  )
                  NavigationDrawerItem(
-                     label = { Text("技能管理") },
+                     label = { Text(stringResource(R.string.skill_management)) },
                      selected = appState.navigationState.currentKey == SkillsNavKey,
                      onClick = {
                          navigator.navigate(SkillsNavKey)
@@ -171,7 +171,7 @@ internal fun JasmineAppContent(
                      icon = {
                          Icon(
                              imageVector = JasmineIcons.Settings,
-                             contentDescription = null,
+                             contentDescription = stringResource(R.string.skill_management),
                          )
                      },
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
@@ -194,13 +194,13 @@ internal fun JasmineAppContent(
                         icon = {
                             Icon(
                                 imageVector = navItem.unselectedIcon,
-                                contentDescription = null,
+                                contentDescription = stringResource(navItem.iconTextId),
                             )
                         },
                         selectedIcon = {
                             Icon(
                                 imageVector = navItem.selectedIcon,
-                                contentDescription = null,
+                                contentDescription = stringResource(navItem.iconTextId),
                             )
                         },
                         label = { Text(stringResource(navItem.iconTextId)) },

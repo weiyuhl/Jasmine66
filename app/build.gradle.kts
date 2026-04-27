@@ -92,7 +92,7 @@ dependencies {
 
     implementation(libs.androidx.activity.compose)
 
-    implementation(libs.androidx.activity.compose)
+    /* Duplicate removed */
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.compose.material3.adaptive)
@@ -112,9 +112,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     
     // Compottie - Lottie 动画支持
-    implementation("io.github.alexzhirkevich:compottie:2.0.0-rc02")
-    implementation("io.github.alexzhirkevich:compottie-dot:2.0.0-rc02")
-    implementation("io.github.alexzhirkevich:compottie-resources:2.0.0-rc02")
+    implementation(libs.compottie)
+    implementation(libs.compottie.dot)
+    implementation(libs.compottie.resources)
 
     ksp(libs.hilt.compiler)
 }

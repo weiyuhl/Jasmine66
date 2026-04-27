@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import com.lhzkml.jasmine.core.data.repository.ProviderPreset
 import com.lhzkml.jasmine.core.data.repository.ChatProviderRepository
 import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
@@ -113,7 +114,7 @@ private fun ProviderListScreen(
             TopAppBar(
                 titleRes = R.string.feature_settings_impl_provider_config,
                 navigationIcon = JasmineIcons.ArrowBack,
-                navigationIconContentDescription = "返回",
+                navigationIconContentDescription = stringResource(R.string.feature_settings_impl_back),
                 onNavigationClick = onBackClick,
             )
         },
@@ -125,7 +126,7 @@ private fun ProviderListScreen(
         ) {
             item {
                 Text(
-                    text = "所有供应商共享全局设置，开启开关即可切换到该模型。",
+                    text = stringResource(R.string.feature_settings_impl_provider_shared_notice),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(16.dp)
@@ -156,7 +157,10 @@ private fun ProviderListScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = if (viewModel.getApiKey(preset.id).isNotBlank()) "已配置 API Key" else "未配置 API Key",
+                                text = if (viewModel.getApiKey(preset.id).isNotBlank())
+                                    stringResource(R.string.feature_settings_impl_api_key_configured)
+                                else
+                                    stringResource(R.string.feature_settings_impl_api_key_not_configured),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (viewModel.getApiKey(preset.id).isNotBlank())
                                     MaterialTheme.colorScheme.primary
@@ -207,13 +211,14 @@ private fun ProviderDetailScreen(
     var isLoadingBalance by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
+    val balanceUnsupportedText = stringResource(R.string.feature_settings_impl_balance_unsupported)
 
     Scaffold(
         topBar = {
             TopAppBar(
                 titleRes = R.string.feature_settings_impl_provider_config,
                 navigationIcon = JasmineIcons.ArrowBack,
-                navigationIconContentDescription = "返回",
+                navigationIconContentDescription = stringResource(R.string.feature_settings_impl_back),
                 onNavigationClick = onBackClick,
             )
         },
@@ -226,13 +231,13 @@ private fun ProviderDetailScreen(
                 .padding(horizontal = 20.dp, vertical = 16.dp),
         ) {
             Text(
-                text = "${preset.name} 配置",
+                text = stringResource(R.string.feature_settings_impl_provider_config_format, preset.name),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            SectionHeader("基础配置")
+            SectionHeader(stringResource(R.string.feature_settings_impl_basic_config))
 
             OutlinedTextField(
                 value = apiKey,
@@ -265,7 +270,7 @@ private fun ProviderDetailScreen(
                             model = it
                             showModelDropdown = false
                         },
-                        label = { Text("模型名称") },
+                        label = { Text(stringResource(R.string.feature_settings_impl_model_name)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         shape = androidx.compose.foundation.shape.CircleShape,
@@ -303,15 +308,15 @@ private fun ProviderDetailScreen(
                         }
                     },
                 ) {
-                    Text(if (isLoadingModels) "加载中..." else "获取列表")
+                    Text(if (isLoadingModels) stringResource(R.string.feature_settings_impl_loading_text) else stringResource(R.string.feature_settings_impl_fetch_list))
                 }
             }
             Spacer(modifier = Modifier.height(20.dp))
 
-            SectionHeader("系统提示词")
+            SectionHeader(stringResource(R.string.feature_settings_impl_system_prompt_header))
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "定义 AI 助手的角色和行为，留空则使用默认",
+                text = stringResource(R.string.feature_settings_impl_system_prompt_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -320,7 +325,7 @@ private fun ProviderDetailScreen(
             OutlinedTextField(
                 value = systemPrompt,
                 onValueChange = { systemPrompt = it },
-                label = { Text("自定义 System Prompt") },
+                label = { Text(stringResource(R.string.feature_settings_impl_custom_system_prompt)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp),
@@ -328,7 +333,7 @@ private fun ProviderDetailScreen(
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            SectionHeader("采样参数")
+            SectionHeader(stringResource(R.string.feature_settings_impl_sampling_params))
 
             Spacer(modifier = Modifier.height(12.dp))
             Row(
@@ -376,7 +381,7 @@ private fun ProviderDetailScreen(
             OutlinedTextField(
                 value = maxTokensText,
                 onValueChange = { maxTokensText = it.filter { c -> c.isDigit() } },
-                label = { Text("Max Tokens (留空使用默认值)") },
+                label = { Text(stringResource(R.string.feature_settings_impl_max_tokens_hint)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = androidx.compose.foundation.shape.CircleShape,
@@ -388,18 +393,19 @@ private fun ProviderDetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                SectionHeader("API 余额")
+                SectionHeader(stringResource(R.string.feature_settings_impl_api_balance))
                 OutlinedButton(
                     enabled = !isLoadingBalance && apiKey.isNotBlank(),
                     onClick = {
                         isLoadingBalance = true
                         coroutineScope.launch {
-                            balanceText = viewModel.getBalance(preset.id, apiKey, baseUrl) ?: "该供应商不支持余额查询"
+                            balanceText = viewModel.getBalance(preset.id, apiKey, baseUrl)
+                                ?: balanceUnsupportedText
                             isLoadingBalance = false
                         }
                     },
                 ) {
-                    Text(if (isLoadingBalance) "查询中..." else "查询余额")
+                    Text(if (isLoadingBalance) stringResource(R.string.feature_settings_impl_querying) else stringResource(R.string.feature_settings_impl_query_balance))
                 }
             }
             balanceText?.let { balance ->
@@ -427,7 +433,7 @@ private fun ProviderDetailScreen(
                 }
             ) {
                 Text(
-                    text = "保存配置",
+                    text = stringResource(R.string.feature_settings_impl_save_config),
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                 )
