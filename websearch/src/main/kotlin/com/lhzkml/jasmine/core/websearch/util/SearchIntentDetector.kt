@@ -85,8 +85,11 @@ object SearchIntentDetector {
         "我的城市", "我的位置", "这里", "当前位置", "我在哪里", "附近", "我附近", "周边", "本地",
     )
 
-    private val currentInfoKeywords = listOf(
-        "2024", "2025", "2026", "latest", "newest", "recent", "current", "today", "now",
+    private val currentInfoKeywords by lazy {
+        val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toString()
+        listOf(
+            (currentYear.toInt() - 2).toString(), (currentYear.toInt() - 1).toString(), currentYear,
+            "latest", "newest", "recent", "current", "today", "now",
         "breaking", "news", "update", "announcement", "today's", "this week",
         "right now", "currently",
         "what's the latest", "latest news", "what happened", "news about", "recent news",

@@ -207,10 +207,12 @@ fun JasmineNavigationSuiteScaffold(
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
-            JasmineNavigationSuiteScope(
-                navigationSuiteScope = this,
-                navigationSuiteItemColors = navigationSuiteItemColors,
-            ).run(navigationSuiteItems)
+            remember(this, navigationSuiteItemColors) {
+                JasmineNavigationSuiteScope(
+                    navigationSuiteScope = this,
+                    navigationSuiteItemColors = navigationSuiteItemColors,
+                )
+            }.run(navigationSuiteItems)
         },
         layoutType = layoutType,
         containerColor = Color.Transparent,

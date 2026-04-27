@@ -227,7 +227,7 @@ internal fun JasmineAppContent(
                     topBar = {
                         if (shouldShowTopAppBar) {
                             val destination = TOP_LEVEL_NAV_ITEMS[appState.navigationState.currentTopLevelKey]
-                                ?: error("Top level nav item not found for ${appState.navigationState.currentTopLevelKey}")
+                                ?: return@JasmineNavigationSuiteScaffold
 
                             TopAppBar(
                                 titleRes = destination.titleTextId,

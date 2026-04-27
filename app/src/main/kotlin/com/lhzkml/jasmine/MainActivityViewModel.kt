@@ -11,6 +11,7 @@ import com.lhzkml.jasmine.core.model.data.UserData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -21,6 +22,9 @@ class MainActivityViewModel @Inject constructor(
 ) : ViewModel() {
     val uiState: StateFlow<MainActivityUiState> = userDataRepository.userData.map {
         Success(it)
+    }.catch { e ->
+        android.util.Log.e("MainActivityVM", "UserData flow failed", e)
+        emit(Loading)
     }.stateIn(
         scope = viewModelScope,
         initialValue = Loading,

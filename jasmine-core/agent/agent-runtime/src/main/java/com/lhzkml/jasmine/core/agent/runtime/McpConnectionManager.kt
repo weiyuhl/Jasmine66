@@ -72,11 +72,13 @@ class McpConnectionManager(private val configRepo: ConfigRepository) {
      * 如果已经连接过或正在连接中，直接跳过。
      */
     suspend fun preconnect() = withContext(Dispatchers.IO) {
-        // 已连接或正在连接中，跳过
-        if (preloaded || connecting) return@withContext
+        // 已连接或正在连接中，跳过（mutex 保护 check-then-act）
+        mutex.withLock {
+            if (preloaded || connecting) return@withContext
+            connecting = true
+        }
         if (!configRepo.isMcpEnabled()) return@withContext
 
-        connecting = true
         try {
             val servers = configRepo.getMcpServers().filter { it.enabled && it.url.isNotBlank() }
             if (servers.isEmpty()) {

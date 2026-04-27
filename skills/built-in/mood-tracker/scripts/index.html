@@ -98,7 +98,8 @@ limitations under the License.
             resultMessage = `No mood entry found for ${date}.`;
           }
         } else if (action === 'get_history') {
-          const daysCount = parseInt(input.days) || 7;
+          const parsedDays = parseInt(input.days);
+          const daysCount = isNaN(parsedDays) ? 7 : Math.max(0, parsedDays);
           const history = [];
           // Sort chronologically (oldest first) for better trend analysis
           const sortedDates = Object.keys(allData).sort().slice(-daysCount);

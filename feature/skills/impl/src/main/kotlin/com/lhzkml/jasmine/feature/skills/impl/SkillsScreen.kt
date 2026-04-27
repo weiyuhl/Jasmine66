@@ -346,7 +346,7 @@ fun SkillsRoute(
 
         // Key Dialog
         showKeyDialog?.let { skill ->
-            val existingSecret = remember(skill) { viewModel.getSecret(skill.name) }
+            val existingSecret = remember(skill.name) { viewModel.getSecret(skill.name) }
             AlertDialog(
                 onDismissRequest = { showKeyDialog = null; keyValue = "" },
                 title = { Text("API 密钥 - ${skill.name}") },

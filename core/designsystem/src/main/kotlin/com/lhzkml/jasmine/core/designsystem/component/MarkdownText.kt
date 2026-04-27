@@ -30,8 +30,7 @@ fun MarkdownText(
     val fontSize =
         if (smallFontSize) MaterialTheme.typography.bodyMedium.fontSize
         else MaterialTheme.typography.bodyLarge.fontSize
-    CompositionLocalProvider {
-        ProvideTextStyle(
+    ProvideTextStyle(
             value =
             TextStyle(
                 fontSize = fontSize,
@@ -60,5 +59,4 @@ fun MarkdownText(
                 Markdown(content = text)
             }
         }
-    }
 }
