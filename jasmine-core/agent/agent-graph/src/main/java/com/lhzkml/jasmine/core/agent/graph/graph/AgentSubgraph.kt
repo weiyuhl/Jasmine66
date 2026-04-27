@@ -30,9 +30,11 @@ class AgentSubgraph<TInput, TOutput>(
 
         var currentNode: BaseAgentNode = startNode
         var currentValue: Any? = input
+        var iteration = 0
+        val maxIterations = 1000
 
         try {
-            while (true) {
+            while (iteration++ < maxIterations) {
                 if (currentNode is FinishNode<*>) {
                     tracing?.emit(
                         TraceEvent.SubgraphCompleted(
@@ -90,6 +92,7 @@ class AgentSubgraph<TInput, TOutput>(
                 currentNode = nextNode.first
                 currentValue = nextNode.second
             }
+            throw IllegalStateException("Agent exceeded max iterations ($maxIterations) in subgraph '$name'")
         } catch (e: IllegalStateException) {
             throw e
         } catch (e: Exception) {

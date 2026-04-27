@@ -31,7 +31,7 @@ class ChatMessageBuilder @Inject constructor() {
 
         // Inject selected skill instructions
         val skillsInstructions = skillManager.getSelectedSkillsInstructions()
-        if (skillsInstructions != "No active skills.") {
+        if (skillsInstructions != SkillManager.NO_ACTIVE_SKILLS) {
             systemContent += "\n\n<available_skills>\n" +
                 "用户已启用以下技能。当用户请求涉及这些技能的功能时，你应使用 manage_skills 工具加载技能，然后按技能指令调用 run_js 或 run_intent 工具执行。\n" +
                 skillsInstructions +

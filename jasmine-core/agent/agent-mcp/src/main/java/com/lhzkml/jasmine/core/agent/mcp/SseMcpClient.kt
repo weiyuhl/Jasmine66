@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -156,7 +157,10 @@ class SseMcpClient(
                     }
 
                     override fun onResponse(call: Call, response: Response) {
-                        if (!response.isSuccessful) return
+                        if (!response.isSuccessful) {
+                            android.util.Log.w("SseMcpClient", "SSE endpoint returned ${response.code}")
+                            return
+                        }
 
                         response.body?.charStream()?.buffered()?.use { reader ->
                             var currentEvent = ""
@@ -185,7 +189,7 @@ class SseMcpClient(
                 })
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
-                // SSE 连接断开
+                android.util.Log.e("SseMcpClient", "SSE connection error", e)
             }
         }
     }
@@ -299,7 +303,7 @@ class SseMcpClient(
             throw McpException("Failed to send RPC request: ${e.message}", e)
         }
 
-        return deferred.await()
+        return withTimeout(30_000) { deferred.await() }
     }
 
     private suspend fun rpcNotify(method: String, params: JsonObject? = null) {

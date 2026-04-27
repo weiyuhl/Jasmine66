@@ -205,9 +205,9 @@ class ExecuteShellCommandTool(
         }
     }
 
-    private fun readPartialOutput(process: Process, waitSeconds: Long): String {
+    private suspend fun readPartialOutput(process: Process, waitSeconds: Long): String {
         return try {
-            Thread.sleep(waitSeconds * 1000)
+            kotlinx.coroutines.delay(waitSeconds * 1000)
             readAvailableOutput(process)
         } catch (_: Exception) {
             ""

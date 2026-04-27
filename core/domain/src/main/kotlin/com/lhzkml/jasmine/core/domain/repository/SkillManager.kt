@@ -47,7 +47,7 @@ class SkillManager @Inject constructor(
             for ((key, value) in oldPrefs.all) {
                 when (value) {
                     is String -> editor.putString(key, value)
-                    is MutableSet<*> -> editor.putString(key, (value as Set<String>).joinToString(","))
+                    is MutableSet<*> -> editor.putString(key, value.map { it.toString() }.joinToString(","))
                     is Int -> editor.putInt(key, value)
                     is Long -> editor.putLong(key, value as Long)
                     is Float -> editor.putFloat(key, value as Float)
@@ -161,7 +161,7 @@ class SkillManager @Inject constructor(
     suspend fun getSelectedSkillsInstructions(): String = mutex.withLock {
         val selectedSkills = skills.filter { it.selected }
         if (selectedSkills.isEmpty()) {
-            return "No active skills."
+            return NO_ACTIVE_SKILLS
         }
 
         selectedSkills.joinToString("\n\n") { skill ->
@@ -364,12 +364,13 @@ class SkillManager @Inject constructor(
     }
 
     companion object {
+        const val NO_ACTIVE_SKILLS = "No active skills."
+
         private val ALLOWED_IMPORT_SCHEMES = setOf("https")
         private val ALLOWED_IMPORT_HOSTS = setOf(
             "github.com",
             "gitlab.com",
             "raw.githubusercontent.com",
-            "gitlab.com",
             "gitee.com",
         )
     }

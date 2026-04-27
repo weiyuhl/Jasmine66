@@ -30,11 +30,7 @@ abstract class Tool {
      * 执行 ToolCall 并返回 ToolResult
      */
     suspend fun execute(call: ToolCall): ToolResult {
-        val content = try {
-            execute(call.arguments)
-        } catch (e: Exception) {
-            "Error: ${e.message}"
-        }
+        val content = execute(call.arguments)
         return ToolResult(callId = call.id, name = call.name, content = content)
     }
 }
