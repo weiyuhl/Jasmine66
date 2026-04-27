@@ -1,8 +1,11 @@
 package com.lhzkml.jasmine.core.domain.repository
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.res.AssetManager
 import android.util.Log
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import com.lhzkml.jasmine.core.model.Skill
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -14,18 +17,49 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val TAG = "SkillManager"
-private const val PREFS_NAME = "jasmine_skills"
+private const val PREFS_NAME = "jasmine_skills_encrypted"
 private const val KEY_SELECTED = "selected_skills"
 private const val KEY_SECRET_PREFIX = "skill_secret_"
 
 /**
  * Skill 管理器 - 管理应用的 Skills
+ * 使用 EncryptedSharedPreferences 保护技能 API 密钥
  */
 @Singleton
 class SkillManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) {
-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = run {
+        val masterKey = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+        val encryptedPrefs = EncryptedSharedPreferences.create(
+            PREFS_NAME,
+            masterKey,
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
+
+        // Migrate from old plaintext SharedPreferences
+        val oldPrefs = context.getSharedPreferences("jasmine_skills", Context.MODE_PRIVATE)
+        if (oldPrefs.all.isNotEmpty() && encryptedPrefs.all.isEmpty()) {
+            val editor = encryptedPrefs.edit()
+            for ((key, value) in oldPrefs.all) {
+                when (value) {
+                    is String -> editor.putString(key, value)
+                    is MutableSet<*> -> editor.putString(key, (value as Set<String>).joinToString(","))
+                    is Int -> editor.putInt(key, value)
+                    is Long -> editor.putLong(key, value as Long)
+                    is Float -> editor.putFloat(key, value as Float)
+                    is Boolean -> editor.putBoolean(key, value as Boolean)
+                }
+            }
+            editor.apply()
+            oldPrefs.edit().clear().apply()
+            Log.d(TAG, "已将技能数据迁移到加密存储")
+        }
+        encryptedPrefs
+    }
+
     private val skills = mutableListOf<Skill>()
     private var isLoaded = false
 
@@ -39,7 +73,7 @@ class SkillManager @Inject constructor(
 
         val loadedSkills = mutableListOf<Skill>()
         val assetManager = context.assets
-        
+
         try {
             // 从 assets 加载内置 Skills
             val skillAssetDirs = assetManager.list("skills") ?: emptyArray()
@@ -70,9 +104,10 @@ class SkillManager @Inject constructor(
         skills.clear()
         skills.addAll(loadedSkills)
 
-        // Restore persisted selections
-        val selectedSet = prefs.getStringSet(KEY_SELECTED, emptySet()) ?: emptySet()
-        if (selectedSet.isNotEmpty()) {
+        // Restore persisted selections (stored as comma-separated string now)
+        val selectedStr = prefs.getString(KEY_SELECTED, "")
+        if (!selectedStr.isNullOrBlank()) {
+            val selectedSet = selectedStr.split(",").toSet()
             for (i in skills.indices) {
                 skills[i] = skills[i].copy(selected = selectedSet.contains(skills[i].name))
             }
@@ -112,7 +147,7 @@ class SkillManager @Inject constructor(
         if (selectedSkills.isEmpty()) {
             return "No active skills."
         }
-        
+
         return selectedSkills.joinToString("\n\n") { skill ->
             """
             |=== Skill: ${skill.name} ===
@@ -138,11 +173,11 @@ class SkillManager @Inject constructor(
     }
 
     /**
-     * 持久化当前技能选择状态到 SharedPreferences
+     * 持久化当前技能选择状态
      */
     private fun persistSelections() {
-        val selected = skills.filter { it.selected }.map { it.name }.toSet()
-        prefs.edit().putStringSet(KEY_SELECTED, selected).apply()
+        val selected = skills.filter { it.selected }.joinToString(",") { it.name }
+        prefs.edit().putString(KEY_SELECTED, selected).apply()
     }
 
     /**
@@ -150,6 +185,20 @@ class SkillManager @Inject constructor(
      */
     suspend fun importSkillFromUrl(url: String): Result<Skill> = withContext(Dispatchers.IO) {
         try {
+            val uri = java.net.URI(url)
+            val scheme = uri.scheme?.lowercase()
+            if (scheme !in ALLOWED_IMPORT_SCHEMES) {
+                return@withContext Result.failure(
+                    Exception("不允许的 URL 协议: $scheme，仅支持 HTTPS")
+                )
+            }
+            val host = uri.host?.lowercase() ?: ""
+            if (ALLOWED_IMPORT_HOSTS.none { host == it || host.endsWith(".$it") }) {
+                return@withContext Result.failure(
+                    Exception("不允许的域名: $host，仅支持 GitHub、GitLab 等可信来源")
+                )
+            }
+
             val content = URL(url).readText()
             val (skillProto, errors) = convertSkillMdToProto(
                 content, builtIn = false, selected = true, skillUrl = url
@@ -175,7 +224,7 @@ class SkillManager @Inject constructor(
     }
 
     /**
-     * 保存技能的 API 密钥
+     * 保存技能的 API 密钥（加密存储）
      */
     fun saveSecret(skillName: String, secret: String) {
         prefs.edit().putString(KEY_SECRET_PREFIX + skillName.lowercase(), secret).apply()
@@ -290,5 +339,16 @@ class SkillManager @Inject constructor(
         )
 
         return Pair(skill, emptyList())
+    }
+
+    companion object {
+        private val ALLOWED_IMPORT_SCHEMES = setOf("https")
+        private val ALLOWED_IMPORT_HOSTS = setOf(
+            "github.com",
+            "gitlab.com",
+            "raw.githubusercontent.com",
+            "gitlab.com",
+            "gitee.com",
+        )
     }
 }

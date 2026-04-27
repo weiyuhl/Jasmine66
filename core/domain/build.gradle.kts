@@ -14,4 +14,5 @@ dependencies {
     implementation(libs.javax.inject)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.hilt.android)
+    implementation(libs.security.crypto)
 }

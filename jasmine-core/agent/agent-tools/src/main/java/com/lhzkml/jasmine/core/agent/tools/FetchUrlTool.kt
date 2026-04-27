@@ -11,6 +11,8 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.net.InetAddress
+import java.net.URI
 import java.util.concurrent.TimeUnit
 
 /**
@@ -34,6 +36,9 @@ class FetchUrlTool : AutoCloseable {
         val url = obj["url"]?.jsonPrimitive?.content
             ?: throw IllegalArgumentException("Missing parameter 'url'")
         val headers = obj["headers"]?.jsonObject
+
+        // SSRF protection: validate URL before fetching
+        validateUrl(url)
 
         val requestBuilder = Request.Builder().url(url)
         headers?.forEach { (key, value) ->
@@ -162,6 +167,41 @@ class FetchUrlTool : AutoCloseable {
     }
 
     companion object {
+        private val BLOCKED_HOSTS = setOf(
+            "localhost",
+            "127.0.0.1",
+            "0.0.0.0",
+            "[::1]",
+            "metadata.google.internal",
+        )
+
+        private fun isPrivateAddress(host: String): Boolean {
+            return try {
+                val addr = InetAddress.getByName(host)
+                addr.isSiteLocalAddress || addr.isLoopbackAddress || addr.isLinkLocalAddress
+                    || addr.isMulticastAddress
+            } catch (_: Exception) {
+                false
+            }
+        }
+
+        private fun validateUrl(url: String) {
+            val uri = URI(url)
+            val scheme = uri.scheme?.lowercase()
+                ?: throw IllegalArgumentException("Invalid URL: missing scheme")
+            if (scheme != "http" && scheme != "https") {
+                throw IllegalArgumentException("URL scheme '$scheme' is not allowed")
+            }
+            val host = uri.host?.lowercase()
+                ?: throw IllegalArgumentException("Invalid URL: missing host")
+            if (host in BLOCKED_HOSTS) {
+                throw IllegalArgumentException("Access to '$host' is blocked")
+            }
+            if (isPrivateAddress(host)) {
+                throw IllegalArgumentException("Access to private/internal address '$host' is blocked")
+            }
+        }
+
         /**
          * HTML → Markdown 转换
          * 基于正则的轻量实现，覆盖常见 HTML 元素

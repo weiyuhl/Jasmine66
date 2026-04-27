@@ -207,7 +207,7 @@ class IpLocationTool : Tool() {
     override suspend fun execute(arguments: String): String {
         return try {
             val request = Request.Builder()
-                .url("http://ip-api.com/json/")
+                .url("https://ip-api.com/json/")
                 .build()
             
             val response = withContext(Dispatchers.IO) {
@@ -236,9 +236,15 @@ class OpenUrlTool(private val context: Context) : Tool() {
     override suspend fun execute(arguments: String): String {
         val args = Json.parseToJsonElement(arguments).jsonObject
         val url = args["url"]?.jsonPrimitive?.content ?: return "Error: URL is required"
-        
+
+        val uri = android.net.Uri.parse(url)
+        val scheme = uri.scheme?.lowercase()
+        if (scheme !in ALLOWED_SCHEMES) {
+            return "Error: URL scheme '$scheme' is not allowed. Only https and http are supported."
+        }
+
         return try {
-            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).apply {
+            val intent = Intent(Intent.ACTION_VIEW, uri).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
@@ -246,5 +252,9 @@ class OpenUrlTool(private val context: Context) : Tool() {
         } catch (e: Exception) {
             "Error: ${e.message}"
         }
+    }
+
+    private companion object {
+        private val ALLOWED_SCHEMES = setOf("http", "https")
     }
 }

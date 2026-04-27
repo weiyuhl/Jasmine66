@@ -2,5 +2,6 @@
 <full-backup-content>
     <exclude domain="sharedpref" path="jasmine_provider.xml" />
     <exclude domain="sharedpref" path="jasmine_provider_encrypted.xml" />
+    <exclude domain="sharedpref" path="jasmine_skills.xml" />
     <exclude domain="file" path="logs/" />
 </full-backup-content>

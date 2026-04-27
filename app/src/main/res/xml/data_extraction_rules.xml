@@ -3,11 +3,13 @@
     <cloud-backup>
         <exclude domain="sharedpref" path="jasmine_provider.xml" />
         <exclude domain="sharedpref" path="jasmine_provider_encrypted.xml" />
+        <exclude domain="sharedpref" path="jasmine_skills.xml" />
         <exclude domain="file" path="logs/" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="jasmine_provider.xml" />
         <exclude domain="sharedpref" path="jasmine_provider_encrypted.xml" />
+        <exclude domain="sharedpref" path="jasmine_skills.xml" />
         <exclude domain="file" path="logs/" />
     </device-transfer>
 </data-extraction-rules>
