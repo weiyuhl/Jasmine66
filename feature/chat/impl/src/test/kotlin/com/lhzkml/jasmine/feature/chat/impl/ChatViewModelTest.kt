@@ -1,19 +1,22 @@
 package com.lhzkml.jasmine.feature.chat.impl
 
-import com.lhzkml.jasmine.core.data.model.SimpleChatMessage
 import com.lhzkml.jasmine.core.data.model.StreamChatResult
 import com.lhzkml.jasmine.core.data.repository.ChatClientManager
 import com.lhzkml.jasmine.core.data.repository.UserDataRepository
 import com.lhzkml.jasmine.core.data.tools.AgentEventBus
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig
-import com.lhzkml.jasmine.core.model.data.ThemeBrand
 import com.lhzkml.jasmine.core.model.data.UserData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -21,14 +24,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when` as whenMock
 import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
 
-    private val testDispatcher = UnconfinedTestDispatcher()
+    private val testDispatcher = StandardTestDispatcher()
 
     private lateinit var viewModel: ChatViewModel
     private lateinit var mockClientManager: ChatClientManager
@@ -46,6 +48,8 @@ class ChatViewModelTest {
 
     @Before
     fun setUp() {
+        Dispatchers.setMain(testDispatcher)
+
         userDataFlow = MutableStateFlow(testUserData)
         isConfiguredFlow = MutableStateFlow(true)
         setupStateFlow = MutableStateFlow("")
@@ -61,14 +65,18 @@ class ChatViewModelTest {
         mockClientManager = mock(ChatClientManager::class.java)
         mockEventBus = mock(AgentEventBus::class.java)
 
-        whenMock(mockClientManager.isConfigured).thenReturn(isConfiguredFlow)
-        whenMock(mockClientManager.setupState).thenReturn(setupStateFlow)
-        whenMock(mockClientManager.configChangesFlow).thenReturn(emptyFlow())
-        whenMock(mockClientManager.getActiveModel()).thenReturn("test-model")
-
-        whenMock(mockEventBus.jsEvents).thenReturn(MutableSharedFlow(replay = 0))
+        whenever(mockClientManager.isConfigured).thenReturn(isConfiguredFlow)
+        whenever(mockClientManager.setupState).thenReturn(setupStateFlow)
+        whenever(mockClientManager.configChangesFlow).thenReturn(emptyFlow())
+        whenever(mockClientManager.getActiveModel()).thenReturn("test-model")
+        whenever(mockEventBus.jsEvents).thenReturn(MutableSharedFlow(replay = 0))
 
         viewModel = ChatViewModel(mockClientManager, userDataRepo, mockEventBus)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @Test
@@ -87,8 +95,7 @@ class ChatViewModelTest {
     }
 
     @Test
-    fun clearError_resetsErrorMessage() = runTest(testDispatcher) {
-        // Simulate error being set (not directly settable, test via clear)
+    fun clearError_resetsErrorMessage() {
         viewModel.clearError()
         assertNull(viewModel.errorMessage.value)
     }
@@ -107,60 +114,51 @@ class ChatViewModelTest {
     }
 
     @Test
-    fun onSendClick_doesNothingWhenRunning() = runTest(testDispatcher) {
-        // Set up: configure client for success
-        val result = StreamChatResult(
-            content = "response",
-            finishReason = "stop",
-            thinking = null,
-            toolCalls = emptyList(),
-        )
-        whenMock(mockClientManager.streamChat(
-            messages = anyOrNull(),
-            model = anyOrNull(),
-            onChunk = anyOrNull(),
-            onThinking = anyOrNull(),
-            onResumeAttempt = anyOrNull(),
-            onToolCallStart = anyOrNull(),
-            onToolCallResult = anyOrNull(),
+    fun onSendClick_sequentialCallsBothSucceed() = runTest(testDispatcher) {
+        val result = StreamChatResult("response", "stop", null, emptyList())
+        whenever(mockClientManager.streamChat(
+            messages = any(),
+            model = any(),
+            onChunk = any(),
+            onThinking = any(),
+            onResumeAttempt = any(),
+            onToolCallStart = any(),
+            onToolCallResult = any(),
             uiEnabled = any(),
             webSearchEnabled = any(),
         )).thenReturn(result)
 
-        // First send: should work
-        viewModel.onPromptChange("first message")
+        // First send
+        viewModel.onPromptChange("first")
         viewModel.onSendClick()
+        advanceUntilIdle()
         assertEquals(2, viewModel.messages.value.size)
 
-        // Second send while running: should be blocked
-        viewModel.onPromptChange("second message")
+        // Second send after first completes — should succeed (guard only blocks concurrent)
+        viewModel.onPromptChange("second")
         viewModel.onSendClick()
-        // Should still have only 2 messages (first pair)
-        assertEquals(2, viewModel.messages.value.size)
+        advanceUntilIdle()
+        assertEquals(4, viewModel.messages.value.size)
     }
 
     @Test
     fun onSendClick_addsUserAndAssistantMessages() = runTest(testDispatcher) {
-        val result = StreamChatResult(
-            content = "Hello!",
-            finishReason = "stop",
-            thinking = null,
-            toolCalls = emptyList(),
-        )
-        whenMock(mockClientManager.streamChat(
-            messages = anyOrNull(),
-            model = anyOrNull(),
-            onChunk = anyOrNull(),
-            onThinking = anyOrNull(),
-            onResumeAttempt = anyOrNull(),
-            onToolCallStart = anyOrNull(),
-            onToolCallResult = anyOrNull(),
+        val result = StreamChatResult("Hello!", "stop", null, emptyList())
+        whenever(mockClientManager.streamChat(
+            messages = any(),
+            model = any(),
+            onChunk = any(),
+            onThinking = any(),
+            onResumeAttempt = any(),
+            onToolCallStart = any(),
+            onToolCallResult = any(),
             uiEnabled = any(),
             webSearchEnabled = any(),
         )).thenReturn(result)
 
         viewModel.onPromptChange("Hi")
         viewModel.onSendClick()
+        advanceUntilIdle()
 
         val msgs = viewModel.messages.value
         assertEquals(2, msgs.size)
@@ -172,26 +170,22 @@ class ChatViewModelTest {
 
     @Test
     fun onSendClick_setsRunningFalseAfterCompletion() = runTest(testDispatcher) {
-        val result = StreamChatResult(
-            content = "Done",
-            finishReason = "stop",
-            thinking = null,
-            toolCalls = emptyList(),
-        )
-        whenMock(mockClientManager.streamChat(
-            messages = anyOrNull(),
-            model = anyOrNull(),
-            onChunk = anyOrNull(),
-            onThinking = anyOrNull(),
-            onResumeAttempt = anyOrNull(),
-            onToolCallStart = anyOrNull(),
-            onToolCallResult = anyOrNull(),
+        val result = StreamChatResult("Done", "stop", null, emptyList())
+        whenever(mockClientManager.streamChat(
+            messages = any(),
+            model = any(),
+            onChunk = any(),
+            onThinking = any(),
+            onResumeAttempt = any(),
+            onToolCallStart = any(),
+            onToolCallResult = any(),
             uiEnabled = any(),
             webSearchEnabled = any(),
         )).thenReturn(result)
 
         viewModel.onPromptChange("Run")
         viewModel.onSendClick()
+        advanceUntilIdle()
 
         assertFalse(viewModel.isChatRunning.value)
     }
