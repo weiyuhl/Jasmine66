@@ -16,6 +16,7 @@ class ProcessManager(private val sandboxManager: LinuxSandboxManager) {
         @Volatile var finished: Boolean = false,
         @Volatile var exitCode: Int? = null,
         @Volatile var timedOut: Boolean = false,
+        internal var future: CompletableFuture<Void>? = null,
     )
 
     private val sessions = ConcurrentHashMap<String, Session>()
@@ -36,7 +37,7 @@ class ProcessManager(private val sandboxManager: LinuxSandboxManager) {
         sessions[sessionId] = session
 
         val executor = sandboxManager.createProotExecutor()
-        CompletableFuture.runAsync {
+        session.future = CompletableFuture.runAsync {
             val result = executor.execute(command, timeoutSeconds, workingDir, envMap)
             session.stdout = result["stdout"] as? String ?: ""
             session.stderr = result["stderr"] as? String ?: ""
@@ -91,10 +92,18 @@ class ProcessManager(private val sandboxManager: LinuxSandboxManager) {
             return mapOf("success" to true, "message" to "Process already finished", "exit_code" to (session.exitCode ?: -1))
         }
 
+        session.future?.cancel(true)
         session.finished = true
         session.exitCode = -1
         session.timedOut = true
-        return mapOf("success" to true, "message" to "Process marked as terminated")
+
+        // Attempt to kill the actual command via pkill inside the sandbox
+        try {
+            val exec = sandboxManager.createProotExecutor()
+            exec.execute("pkill -f '${session.command.take(80)}'", timeoutSeconds = 5L)
+        } catch (_: Exception) { }
+
+        return mapOf("success" to true, "message" to "Process terminated")
     }
 
     fun remove(sessionId: String): Map<String, Any> {

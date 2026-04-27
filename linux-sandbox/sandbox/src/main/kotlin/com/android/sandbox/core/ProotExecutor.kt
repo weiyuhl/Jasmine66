@@ -3,6 +3,8 @@ package com.android.sandbox.core
 import java.io.BufferedReader
 import java.io.File
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 private const val MAX_OUTPUT_LENGTH = 15_000
@@ -38,6 +40,12 @@ class ProotExecutor(
     private val tmpPath: String,
     private val hasExternalStorageAccess: Boolean = false,
 ) {
+
+    companion object {
+        private val ioExecutor: ExecutorService = Executors.newCachedThreadPool { r ->
+            Thread(r, "proot-io").apply { isDaemon = true }
+        }
+    }
 
     fun execute(
         command: String,
@@ -126,12 +134,12 @@ class ProotExecutor(
         return try {
             val process = Runtime.getRuntime().exec(processArgs, envVars, File(rootfsPath).parentFile)
 
-            val stdoutFuture = CompletableFuture.supplyAsync {
+            val stdoutFuture = CompletableFuture.supplyAsync({
                 readBounded(process.inputStream.bufferedReader())
-            }
-            val stderrFuture = CompletableFuture.supplyAsync {
+            }, ioExecutor)
+            val stderrFuture = CompletableFuture.supplyAsync({
                 readBounded(process.errorStream.bufferedReader())
-            }
+            }, ioExecutor)
 
             val completed = process.waitFor(effectiveTimeout, TimeUnit.SECONDS)
 

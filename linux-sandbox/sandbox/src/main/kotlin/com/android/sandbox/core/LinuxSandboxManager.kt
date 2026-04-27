@@ -63,7 +63,10 @@ class LinuxSandboxManager(private val context: Context) {
             try {
                 setupInternal()
             } catch (e: CancellationException) {
-                checkExistingInstallation()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                    checkExistingInstallation()
+                }
+                throw e
             } catch (e: Exception) {
                 _state.value = SandboxState.Error(e.message ?: "Setup failed")
             }
@@ -274,5 +277,11 @@ class LinuxSandboxManager(private val context: Context) {
     private fun prootExists(): Boolean {
         val proot = File(prootPath)
         return proot.exists() && proot.canExecute()
+    }
+
+    fun destroy() {
+        currentJob?.cancel()
+        scope.cancel()
+        downloader.close()
     }
 }

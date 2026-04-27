@@ -122,9 +122,9 @@ class ExecuteShellCommandTool(
 
 class ManageProcessTool(
     private val sandboxManager: LinuxSandboxManager,
+    private val processManager: ProcessManager = ProcessManager(sandboxManager),
 ) : Tool() {
 
-    private val processManager by lazy { ProcessManager(sandboxManager) }
     private val sandboxTool = com.android.sandbox.tools.ProcessManagerTool(sandboxManager)
 
     override val descriptor: ToolDescriptor = sandboxTool.schema.toDescriptor()

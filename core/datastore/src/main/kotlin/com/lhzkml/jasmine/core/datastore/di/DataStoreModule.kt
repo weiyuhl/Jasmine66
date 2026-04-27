@@ -30,7 +30,7 @@ object DataStoreModule {
         DataStoreFactory.create(
             serializer = userPreferencesSerializer,
             scope = scope,
-            migrations = listOf(),
+            migrations = listOf(), // Add DataMigration entries here when UserPreferences schema changes
         ) {
             context.dataStoreFile("user_preferences.pb")
         }

@@ -69,4 +69,9 @@ class AndroidSandboxController(context: Context) : SandboxController {
             if (exitCode != null && exitCode != 0 && isEmpty()) append("Exit code: $exitCode")
         }
     }
+
+    fun destroy() {
+        scope.cancel()
+        sandboxManager.destroy()
+    }
 }
