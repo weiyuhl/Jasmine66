@@ -7,9 +7,11 @@ import android.app.PendingIntent
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.CalendarContract
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.lhzkml.jasmine.core.agent.tools.Tool
 import com.lhzkml.jasmine.core.prompt.model.ToolDescriptor
 import com.lhzkml.jasmine.core.prompt.model.ToolParameterDescriptor
@@ -132,6 +134,13 @@ class CalendarTool(private val context: Context) : Tool() {
         val args = Json.parseToJsonElement(arguments).jsonObject
         val title = args["title"]?.jsonPrimitive?.content ?: return "Error: Title required"
         val startTimeRaw = args["start_time"]?.jsonPrimitive?.content ?: return "Error: Start time required"
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_CALENDAR)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            return "Error: WRITE_CALENDAR permission is required. Please grant it in Settings."
+        }
 
         return try {
             val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME

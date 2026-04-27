@@ -40,13 +40,13 @@ class DeviceControlTool @Inject constructor(
     override val descriptor = ToolDescriptor(
         name = TOOL_NAME,
         description = "Controls device hardware and system functions. " +
-                "Supported actions: flashlight_on, flashlight_off, create_contact, send_email, " +
+                "Supported actions: flashlight_on, flashlight_off, create_contact, " +
                 "show_map, open_wifi_settings, create_calendar_event.",
         requiredParameters = listOf(
             ToolParameterDescriptor(
                 "action",
                 "The device action: 'flashlight_on', 'flashlight_off', 'create_contact', " +
-                        "'send_email', 'show_map', 'open_wifi_settings', 'create_calendar_event'.",
+                        "'show_map', 'open_wifi_settings', 'create_calendar_event'.",
                 ToolParameterType.StringType
             )
         ),
@@ -55,7 +55,6 @@ class DeviceControlTool @Inject constructor(
                 "parameters",
                 "A JSON string with action-specific fields. " +
                         "create_contact: {first_name, last_name, phone_number, email}. " +
-                        "send_email: {to, subject, body}. " +
                         "show_map: {location}. " +
                         "create_calendar_event: {datetime (YYYY-MM-DDTHH:MM:SS), title}.",
                 ToolParameterType.StringType
@@ -77,21 +76,11 @@ class DeviceControlTool @Inject constructor(
                 "flashlight_off" -> setFlashlight(false)
 
                 "create_contact" -> {
-                    if (!hasPermission(android.Manifest.permission.WRITE_CONTACTS)) {
-                        return permissionDeniedMessage("create_contact", "WRITE_CONTACTS")
-                    }
                     val firstName = params?.get("first_name")?.jsonPrimitive?.content ?: ""
                     val lastName = params?.get("last_name")?.jsonPrimitive?.content ?: ""
                     val phone = params?.get("phone_number")?.jsonPrimitive?.content ?: ""
                     val email = params?.get("email")?.jsonPrimitive?.content ?: ""
                     createContact(firstName, lastName, phone, email)
-                }
-
-                "send_email" -> {
-                    val to = params?.get("to")?.jsonPrimitive?.content ?: ""
-                    val subject = params?.get("subject")?.jsonPrimitive?.content ?: ""
-                    val body = params?.get("body")?.jsonPrimitive?.content ?: ""
-                    sendEmail(to, subject, body)
                 }
 
                 "show_map" -> {
@@ -102,9 +91,6 @@ class DeviceControlTool @Inject constructor(
                 "open_wifi_settings" -> openWifiSettings()
 
                 "create_calendar_event" -> {
-                    if (!hasPermission(android.Manifest.permission.WRITE_CALENDAR)) {
-                        return permissionDeniedMessage("create_calendar_event", "WRITE_CALENDAR")
-                    }
                     val datetime = params?.get("datetime")?.jsonPrimitive?.content ?: ""
                     val title = params?.get("title")?.jsonPrimitive?.content ?: ""
                     createCalendarEvent(datetime, title)
@@ -161,20 +147,6 @@ class DeviceControlTool @Inject constructor(
         }
         context.startActivity(intent)
         return "✅ Creating contact: $firstName $lastName"
-    }
-
-    // ── Send Email ──────────────────────────────────────────
-    private fun sendEmail(to: String, subject: String, body: String): String {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            data = "mailto:".toUri()
-            type = "text/plain"
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(to))
-            putExtra(Intent.EXTRA_SUBJECT, subject)
-            putExtra(Intent.EXTRA_TEXT, body)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(intent)
-        return "✅ Sending email to $to"
     }
 
     // ── Show Map ────────────────────────────────────────────

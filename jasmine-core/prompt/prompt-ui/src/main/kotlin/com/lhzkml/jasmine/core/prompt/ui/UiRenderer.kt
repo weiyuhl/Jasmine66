@@ -273,7 +273,6 @@ private fun initializeFormState(node: UiNode, formState: MutableMap<String, Stri
                 is ColumnNode -> node.children
                 is RowNode -> node.children
                 is CardNode -> node.children
-                else -> emptyList()
             }
             childrenList.forEach { initializeFormState(it, formState) }
         }
@@ -556,7 +555,6 @@ private fun RenderCountdown(node: CountdownNode, isInteractive: Boolean, formSta
                                 is CallbackAction -> currentOnCallback(action.event, collectFormData(action, formState))
                                 is ToggleAction -> toggleState[action.targetId] = !(toggleState[action.targetId] ?: true)
                                 is OpenUrlAction -> uriHandler.openUri(action.url)
-                                null -> {}
                             }
                         } catch (_: Exception) {}
                     }

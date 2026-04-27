@@ -64,6 +64,7 @@ fun JasmineTab(
  * @param tabs The tabs inside this tab row. Typically this will be multiple [Tab]s. Each element
  * inside this lambda will be measured and placed evenly across the row, each taking up equal space.
  */
+@Suppress("DEPRECATION")
 @Composable
 fun JasmineTabRow(
     selectedTabIndex: Int,

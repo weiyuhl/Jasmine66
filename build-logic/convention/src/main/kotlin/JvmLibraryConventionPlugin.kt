@@ -13,6 +13,10 @@ abstract class JvmLibraryConventionPlugin : Plugin<Project> {
             apply(plugin = "org.jetbrains.kotlin.jvm")
             apply(plugin = "jasmine.android.lint")
 
+            dependencies {
+                "implementation"(libs.findLibrary("kotlinx.coroutines.core").get())
+            }
+
             configureKotlinJvm()
             configureSpotlessForJvm()
         }

@@ -10,7 +10,20 @@
       "WebSearch",
       "WebFetch(domain:cdimage.ubuntu.com)",
       "Bash(keytool *)",
-      "Bash(./gradlew :app:assembleRelease)"
+      "Bash(./gradlew :app:assembleRelease)",
+      "Bash(./gradlew :websearch:compileDebugUnitTestKotlin)",
+      "Bash(./gradlew :websearch:dependencies --configuration debugUnitTestRuntimeClasspath)",
+      "Bash(./gradlew :websearch:clean :websearch:compileDebugUnitTestKotlin)",
+      "Bash(./gradlew :jasmine-core:prompt:prompt-ui:compileDebugKotlin)",
+      "Bash(./gradlew :jasmine-core:prompt:prompt-ui:compileDebugKotlin --info)",
+      "Bash(./gradlew compileDebugKotlin)",
+      "Bash(./gradlew :core:data:testDebugUnitTest :feature:chat:impl:testDebugUnitTest)",
+      "Bash(./gradlew :core:datastore-proto:compileDebugKotlin)",
+      "Bash(./gradlew :core:datastore-proto:compileDebugKotlin --info)",
+      "Bash(./gradlew :core:datastore-proto:compileKotlin)",
+      "Bash(./gradlew --stop)",
+      "Bash(rm -rf .gradle/configuration-cache build-logic/convention/build)",
+      "Bash(./gradlew :core:designsystem:compileDebugKotlin)"
     ]
   }
 }

@@ -45,12 +45,13 @@ object FileLogger {
     }
 
     fun logError(tag: String, message: String, throwable: Throwable? = null) {
+        val sanitizedMessage = sanitizeApiKey(message)
         val exceptionDetails = if (throwable != null) {
-            "\n${throwable.javaClass.name}: ${throwable.message}\n${android.util.Log.getStackTraceString(throwable)}"
+            "\n${throwable.javaClass.name}: ${sanitizeApiKey(throwable.message ?: "")}\n${android.util.Log.getStackTraceString(throwable)}"
         } else {
             ""
         }
-        log(tag, "$message$exceptionDetails", LogLevel.ERROR)
+        log(tag, "$sanitizedMessage$exceptionDetails", LogLevel.ERROR)
     }
 
     fun logApiError(tag: String, url: String, statusCode: Int, responseBody: String, extra: String = "") {
@@ -93,6 +94,14 @@ object FileLogger {
     fun clearLogs() {
         val dir = logDir ?: return
         dir.listFiles()?.forEach { it.delete() }
+    }
+
+    private fun sanitizeApiKey(message: String): String {
+        var result = message
+            .replace(Regex("""Bearer\s+[\w\-._~+/]+=*""", RegexOption.IGNORE_CASE), "Bearer [REDACTED]")
+            .replace(Regex("""(?i)x-api-key:\s*[\w\-._~+/]+=*"""), "x-api-key: [REDACTED]")
+            .replace(Regex("""[?&]key=[\w\-._~+/]+=*"""), "?key=[REDACTED]")
+        return result
     }
 
     private fun getCurrentDate(): String =

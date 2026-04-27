@@ -50,18 +50,6 @@ class DeviceControlToolTest {
     }
 
     @Test
-    fun sendEmail_params_are_correctly_structured() {
-        val params = JsonObject(mapOf(
-            "to" to JsonPrimitive("test@example.com"),
-            "subject" to JsonPrimitive("Hello"),
-            "body" to JsonPrimitive("Test body"),
-        ))
-        val args = buildJsonArgs("send_email", params)
-        assertTrue(args.contains("send_email"))
-        assertTrue(args.contains("test@example.com"))
-    }
-
-    @Test
     fun createCalendarEvent_contains_datetime_and_title() {
         val params = JsonObject(mapOf(
             "datetime" to JsonPrimitive("2026-04-27T14:00:00"),

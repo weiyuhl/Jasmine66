@@ -5,6 +5,9 @@ plugins {
 
 android {
     namespace = "com.lhzkml.jasmine.feature.chat.impl"
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -12,4 +15,8 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.jasmineCore.prompt.promptUi)
     implementation(libs.compottie)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockito.core)
 }
