@@ -56,7 +56,7 @@ import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.FOLLOW_SYSTEM
 import com.lhzkml.jasmine.core.model.data.DarkThemeConfig.LIGHT
 import com.lhzkml.jasmine.core.navigation.Navigator
 import com.lhzkml.jasmine.core.navigation.SettingsNavKey
-import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
+
 import com.lhzkml.jasmine.feature.sandbox.api.navigation.SandboxNavKey
 import com.lhzkml.jasmine.feature.settings.impl.R.string
 
@@ -162,8 +162,6 @@ private fun SettingsMenuScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            TrackScreenViewEvent(screenName = "Settings")
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -28,7 +28,7 @@ AI 驱动的 Android 移动应用，集成多模型 LLM 聊天、Agent 框架、
 - **对话存储**：Room 数据库持久化对话历史和 token 用量
 - **供应商配置**：支持 API Key、Base URL、模型选择、采样参数、系统提示词自定义
 
-## 模块架构（42 个模块）
+## 模块架构（41 个模块）
 
 ```
 app/                              # 主应用入口
@@ -36,8 +36,8 @@ app-jasmine-catalog/              # UI 组件目录（开发用）
 
 build-logic/convention/           # 11 个自定义 Gradle 约定插件
 
-core/                             # 13 个核心模块
-├── analytics/                    # 分析埋点抽象
+core/                             # 12 个核心模块
+
 ├── common/                       # 协程调度器、Result 类型
 ├── data/                         # 数据层（Repository、ChatClientManager、Agent 工具注册）
 ├── database/                     # Room 数据库（搜索历史）

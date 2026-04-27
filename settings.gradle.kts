@@ -41,7 +41,7 @@ rootProject.name = "Jasmine"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 include(":app")
 include(":app-jasmine-catalog")
-include(":core:analytics")
+
 include(":core:common")
 include(":core:data")
 include(":core:database")

@@ -72,7 +72,7 @@ import com.lhzkml.jasmine.core.designsystem.component.MarkdownText
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhzkml.jasmine.core.designsystem.theme.customColors
-import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
+
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.rememberLottieComposition
@@ -102,8 +102,6 @@ internal fun ChatScreen(
     LaunchedEffect(Unit) {
         viewModel.refreshProviderState()
     }
-
-    TrackScreenViewEvent(screenName = "Chat")
 
     val density = LocalDensity.current
     val imeBottom = WindowInsets.ime.getBottom(density)

@@ -55,7 +55,7 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
 
                 val request = Request.Builder()
                     .url(url)
-                    .addHeader("User-Agent", "Jasmine Android App (jasmine.lhzkml.com)")
+                    .addHeader("User-Agent", "Jasmine Android App")
                     .build()
 
                 val response = client.newCall(request).execute()

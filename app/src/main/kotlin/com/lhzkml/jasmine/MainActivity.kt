@@ -18,8 +18,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.metrics.performance.JankStats
 import androidx.tracing.trace
 import com.lhzkml.jasmine.MainActivityUiState.Loading
-import com.lhzkml.jasmine.core.analytics.JasmineAnalyticsHelper
-import com.lhzkml.jasmine.core.analytics.LocalJasmineAnalyticsHelper
 import com.lhzkml.jasmine.core.data.util.NetworkMonitor
 import com.lhzkml.jasmine.core.data.util.TimeZoneMonitor
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
@@ -49,10 +47,6 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var timeZoneMonitor: TimeZoneMonitor
-
-    @Inject
-    lateinit var JasmineAnalyticsHelper: JasmineAnalyticsHelper
-
 
     private val viewModel: MainActivityViewModel by viewModels()
 
@@ -118,7 +112,6 @@ class MainActivity : ComponentActivity() {
             val currentTimeZone by appState.currentTimeZone.collectAsStateWithLifecycle()
 
             CompositionLocalProvider(
-                LocalJasmineAnalyticsHelper provides JasmineAnalyticsHelper,
                 LocalTimeZone provides currentTimeZone,
             ) {
                 JasmineTheme(

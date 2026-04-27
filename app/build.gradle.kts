@@ -79,7 +79,7 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.data)
     implementation(projects.core.model)
-    implementation(projects.core.analytics)
+
     implementation(projects.websearch)
 
     // Linux Sandbox module

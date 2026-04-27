@@ -20,7 +20,7 @@ dependencies {
 
     implementation(libs.security.crypto)
     implementation(libs.kotlinx.serialization.json)
-    implementation(projects.core.analytics)
+
     implementation(projects.core.domain)
     implementation(projects.core.notifications)
     implementation(projects.jasmineCore.prompt.promptExecutor)

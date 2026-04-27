@@ -32,7 +32,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhzkml.jasmine.core.designsystem.component.MarkdownText
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
-import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,8 +41,6 @@ fun LicensesScreen(
     viewModel: LicensesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-
-    TrackScreenViewEvent("Licenses")
 
     Scaffold(
         topBar = {

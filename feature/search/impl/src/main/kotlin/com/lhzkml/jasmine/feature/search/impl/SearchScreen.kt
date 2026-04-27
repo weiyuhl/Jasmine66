@@ -52,7 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import com.lhzkml.jasmine.core.designsystem.theme.JasmineTheme
 import com.lhzkml.jasmine.core.ui.DevicePreviews
-import com.lhzkml.jasmine.core.ui.TrackScreenViewEvent
+
 import com.lhzkml.jasmine.feature.search.api.R as searchR
 import com.lhzkml.jasmine.core.ui.R as uiR
 
@@ -89,7 +89,6 @@ internal fun SearchScreen(
     onClearRecentSearches: () -> Unit = {},
     onBackClick: () -> Unit = {},
 ) {
-    TrackScreenViewEvent(screenName = "Search")
     Column(modifier = modifier) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.safeDrawing))
         SearchToolbar(
