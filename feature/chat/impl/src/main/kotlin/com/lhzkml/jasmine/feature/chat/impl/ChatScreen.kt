@@ -565,7 +565,7 @@ private fun ChatComposer(
                     ) {
                         if (value.isEmpty()) {
                             BasicText(
-                                text = "询问任何问题",
+                                text = stringResource(R.string.feature_chat_impl_ask_anything),
                                 style = TextStyle(
                                     fontSize = 16.sp,
                                     color = colorScheme.onSurfaceVariant,
@@ -615,7 +615,7 @@ private fun ChatComposer(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Rounded.Send,
-                        contentDescription = "发送",
+                        contentDescription = stringResource(R.string.feature_chat_impl_send),
                         modifier = Modifier.size(16.dp).offset(x = 2.dp),
                         tint = if (sendEnabled) Color.White else colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     )
