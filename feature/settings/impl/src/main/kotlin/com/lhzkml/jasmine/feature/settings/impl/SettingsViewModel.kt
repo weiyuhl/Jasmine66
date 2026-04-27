@@ -20,8 +20,8 @@ import kotlin.time.Duration.Companion.seconds
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
-    val providerRepo: ChatProviderRepository,
-    val clientManager: ChatClientManager,
+    private val providerRepo: ChatProviderRepository,
+    private val clientManager: ChatClientManager,
 ) : ViewModel() {
     val settingsUiState: StateFlow<SettingsUiState> =
         userDataRepository.userData
@@ -40,6 +40,10 @@ class SettingsViewModel @Inject constructor(
                 initialValue = Loading,
             )
 
+    val configChangesFlow = providerRepo.configChangesFlow
+
+    // ==================== Dark theme & toggles ====================
+
     fun updateDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
         viewModelScope.launch {
             userDataRepository.setDarkThemeConfig(darkThemeConfig)
@@ -57,11 +61,55 @@ class SettingsViewModel @Inject constructor(
             userDataRepository.setWebSearchEnabled(webSearchEnabled)
         }
     }
+
+    // ==================== Provider config delegation ====================
+
+    fun getActiveProviderId(): String? = providerRepo.getActiveProviderId()
+
+    fun setActiveProviderId(id: String) {
+        providerRepo.setActiveProviderId(id)
+    }
+
+    fun getApiKey(providerId: String): String = providerRepo.getApiKey(providerId)
+
+    fun getBaseUrl(providerId: String): String = providerRepo.getBaseUrl(providerId)
+
+    fun getModel(providerId: String): String = providerRepo.getModel(providerId)
+
+    fun getSystemPrompt(providerId: String): String = providerRepo.getSystemPrompt(providerId)
+
+    fun getTemperature(providerId: String): Double? = providerRepo.getTemperature(providerId)
+
+    fun getTopP(providerId: String): Double? = providerRepo.getTopP(providerId)
+
+    fun getMaxTokens(providerId: String): Int? = providerRepo.getMaxTokens(providerId)
+
+    fun saveProviderConfig(providerId: String, apiKey: String, baseUrl: String, model: String) {
+        providerRepo.saveProviderConfig(providerId, apiKey, baseUrl, model)
+    }
+
+    fun saveSystemPrompt(providerId: String, prompt: String) {
+        providerRepo.setSystemPrompt(providerId, prompt)
+    }
+
+    fun saveSamplingParams(
+        providerId: String,
+        temperature: Double,
+        topP: Double,
+        maxTokens: Int?,
+    ) {
+        providerRepo.setTemperature(providerId, temperature)
+        providerRepo.setTopP(providerId, topP)
+        providerRepo.setMaxTokens(providerId, maxTokens)
+    }
+
+    suspend fun listModels(providerId: String, apiKey: String, baseUrl: String): List<String> =
+        clientManager.listModelsFor(providerId, apiKey, baseUrl)
+
+    suspend fun getBalance(providerId: String, apiKey: String, baseUrl: String): String? =
+        clientManager.getBalanceFor(providerId, apiKey, baseUrl)
 }
 
-/**
- * Represents the settings which the user can edit within the app.
- */
 data class UserEditableSettings(
     val darkThemeConfig: DarkThemeConfig,
     val uiEnabled: Boolean,

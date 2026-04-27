@@ -111,14 +111,15 @@ internal fun ChatScreen(
     val extraPaddingPx = max(0, imeBottom - bottomBarHeightPx)
     val extraPaddingDp = with(density) { extraPaddingPx.toDp() }
 
-    // Jasmine Headless WebView JS Sandbox
+    // Secured WebView JS Sandbox for skill execution
+    val sandbox = remember { com.lhzkml.jasmine.core.data.sandbox.SkillJsSandbox() }
     var sandboxWebView by remember { mutableStateOf<android.webkit.WebView?>(null) }
     Box(modifier = Modifier.size(0.dp)) {
         androidx.compose.ui.viewinterop.AndroidView(
             factory = { ctx ->
-                android.webkit.WebView(ctx).apply {
-                    settings.javaScriptEnabled = true
-                    sandboxWebView = this
+                android.webkit.WebView(ctx).also {
+                    sandbox.createWebView(it)
+                    sandboxWebView = it
                 }
             }
         )
@@ -126,39 +127,24 @@ internal fun ChatScreen(
 
     LaunchedEffect(viewModel.agentEventBus) {
         viewModel.agentEventBus.jsEvents.collect { event ->
-            // Update the JS interface per-event to capture the correct continuation
-            sandboxWebView?.addJavascriptInterface(object {
-                @android.webkit.JavascriptInterface
-                fun onResultReady(result: String) {
-                    if (event.continuation.isActive) {
-                        event.continuation.resumeWith(Result.success(result))
-                    }
-                }
-            }, "AiEdgeGallery")
-
-            sandboxWebView?.webViewClient = object : android.webkit.WebViewClient() {
-                override fun onPageFinished(view: android.webkit.WebView?, url: String?) {
-                    super.onPageFinished(view, url)
-                    val script = """
-                        (async function() {
-                            var startTs = Date.now();
-                            while(true) {
-                                if (typeof ai_edge_gallery_get_result === 'function') {
-                                    break;
-                                }
-                                await new Promise(resolve=>{ setTimeout(resolve, 100) });
-                                if (Date.now() - startTs > 10000) {
-                                    break;
-                                }
-                            }
-                            var result = await ai_edge_gallery_get_result(`${event.data}`, `${event.secret}`);
-                            AiEdgeGallery.onResultReady(result);
-                        })()
-                    """.trimIndent()
-                    sandboxWebView?.evaluateJavascript(script, null)
-                }
+            val wv = sandboxWebView ?: return@collect
+            val result = try {
+                sandbox.executeSkill(
+                    webView = wv,
+                    url = event.url,
+                    data = event.data,
+                    secret = event.secret,
+                )
+            } catch (e: com.lhzkml.jasmine.core.data.sandbox.SkillJsSandbox.SkillExecutionException) {
+                event.continuation.resumeWith(Result.success(""))
+                return@collect
+            } catch (e: Exception) {
+                event.continuation.resumeWith(Result.success(""))
+                return@collect
             }
-            sandboxWebView?.loadUrl(event.url)
+            if (event.continuation.isActive) {
+                event.continuation.resumeWith(Result.success(result))
+            }
         }
     }
 

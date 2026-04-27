@@ -117,8 +117,7 @@ internal fun SettingsScreen(
 
         SettingsSubPage.PROVIDER_CONFIG -> {
             ProviderConfigScreen(
-                providerRepo = viewModel.providerRepo,
-                clientManager = viewModel.clientManager,
+                viewModel = viewModel,
                 onBackClick = { currentSubPage = SettingsSubPage.NONE },
             )
         }

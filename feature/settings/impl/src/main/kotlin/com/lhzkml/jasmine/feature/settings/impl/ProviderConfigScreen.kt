@@ -2,7 +2,6 @@ package com.lhzkml.jasmine.feature.settings.impl
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,29 +42,26 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lhzkml.jasmine.core.data.repository.ChatClientManager
-import com.lhzkml.jasmine.core.data.repository.ChatProviderRepository
 import com.lhzkml.jasmine.core.data.repository.ProviderPreset
+import com.lhzkml.jasmine.core.data.repository.ChatProviderRepository
 import com.lhzkml.jasmine.core.designsystem.component.TopAppBar
 import com.lhzkml.jasmine.core.designsystem.icon.JasmineIcons
 import kotlinx.coroutines.launch
 
 @Composable
 internal fun ProviderConfigScreen(
-    providerRepo: ChatProviderRepository,
-    clientManager: ChatClientManager,
+    viewModel: SettingsViewModel,
     onBackClick: () -> Unit,
 ) {
     var editingProviderId by remember { mutableStateOf<String?>(null) }
-    var activeProviderId by remember { mutableStateOf(providerRepo.getActiveProviderId()) }
+    var activeProviderId by remember { mutableStateOf(viewModel.getActiveProviderId()) }
 
     LaunchedEffect(Unit) {
-        providerRepo.configChangesFlow.collect {
-            activeProviderId = providerRepo.getActiveProviderId()
+        viewModel.configChangesFlow.collect {
+            activeProviderId = viewModel.getActiveProviderId()
         }
     }
 
@@ -76,12 +72,12 @@ internal fun ProviderConfigScreen(
     AnimatedContent(targetState = editingProviderId, label = "ProviderConfigs") { targetId ->
         if (targetId == null) {
             ProviderListScreen(
-                providerRepo = providerRepo,
+                viewModel = viewModel,
                 activeProviderId = activeProviderId,
                 onBackClick = onBackClick,
                 onProviderClick = { editingProviderId = it },
                 onToggleActive = { newActiveId ->
-                    providerRepo.setActiveProviderId(newActiveId)
+                    viewModel.setActiveProviderId(newActiveId)
                     activeProviderId = newActiveId
                 }
             )
@@ -90,8 +86,7 @@ internal fun ProviderConfigScreen(
             if (preset != null) {
                 ProviderDetailScreen(
                     preset = preset,
-                    providerRepo = providerRepo,
-                    clientManager = clientManager,
+                    viewModel = viewModel,
                     onBackClick = { editingProviderId = null }
                 )
             } else {
@@ -101,11 +96,11 @@ internal fun ProviderConfigScreen(
     }
 }
 
-// ==================== 供应商列表页面 ====================
+// ==================== Provider list ====================
 
 @Composable
 private fun ProviderListScreen(
-    providerRepo: ChatProviderRepository,
+    viewModel: SettingsViewModel,
     activeProviderId: String?,
     onBackClick: () -> Unit,
     onProviderClick: (String) -> Unit,
@@ -161,9 +156,9 @@ private fun ProviderListScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = if (providerRepo.getApiKey(preset.id).isNotBlank()) "已配置 API Key" else "未配置 API Key",
+                                text = if (viewModel.getApiKey(preset.id).isNotBlank()) "已配置 API Key" else "未配置 API Key",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (providerRepo.getApiKey(preset.id).isNotBlank())
+                                color = if (viewModel.getApiKey(preset.id).isNotBlank())
                                     MaterialTheme.colorScheme.primary
                                 else
                                     MaterialTheme.colorScheme.error,
@@ -187,31 +182,27 @@ private fun ProviderListScreen(
     }
 }
 
-// ==================== 单个供应商详情配置 ====================
+// ==================== Provider detail ====================
 
 @Composable
 private fun ProviderDetailScreen(
     preset: ProviderPreset,
-    providerRepo: ChatProviderRepository,
-    clientManager: ChatClientManager,
+    viewModel: SettingsViewModel,
     onBackClick: () -> Unit,
 ) {
-    var apiKey by remember { mutableStateOf(providerRepo.getApiKey(preset.id)) }
-    var baseUrl by remember { mutableStateOf(providerRepo.getBaseUrl(preset.id)) }
-    var model by remember { mutableStateOf(providerRepo.getModel(preset.id)) }
-    var systemPrompt by remember { mutableStateOf(providerRepo.getSystemPrompt(preset.id)) }
+    var apiKey by remember { mutableStateOf(viewModel.getApiKey(preset.id)) }
+    var baseUrl by remember { mutableStateOf(viewModel.getBaseUrl(preset.id)) }
+    var model by remember { mutableStateOf(viewModel.getModel(preset.id)) }
+    var systemPrompt by remember { mutableStateOf(viewModel.getSystemPrompt(preset.id)) }
 
-    // 采样参数
-    var temperature by remember { mutableFloatStateOf(providerRepo.getTemperature(preset.id)?.toFloat() ?: 1.0f) }
-    var topP by remember { mutableFloatStateOf(providerRepo.getTopP(preset.id)?.toFloat() ?: 1.0f) }
-    var maxTokensText by remember { mutableStateOf(providerRepo.getMaxTokens(preset.id)?.toString() ?: "") }
+    var temperature by remember { mutableFloatStateOf(viewModel.getTemperature(preset.id)?.toFloat() ?: 1.0f) }
+    var topP by remember { mutableFloatStateOf(viewModel.getTopP(preset.id)?.toFloat() ?: 1.0f) }
+    var maxTokensText by remember { mutableStateOf(viewModel.getMaxTokens(preset.id)?.toString() ?: "") }
 
-    // 模型列表
     var modelList by remember { mutableStateOf<List<String>>(emptyList()) }
     var isLoadingModels by remember { mutableStateOf(false) }
     var showModelDropdown by remember { mutableStateOf(false) }
 
-    // 余额
     var balanceText by remember { mutableStateOf<String?>(null) }
     var isLoadingBalance by remember { mutableStateOf(false) }
 
@@ -241,10 +232,8 @@ private fun ProviderDetailScreen(
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ==================== 基础配置 ====================
             SectionHeader("基础配置")
 
-            // API Key
             OutlinedTextField(
                 value = apiKey,
                 onValueChange = { apiKey = it },
@@ -255,7 +244,6 @@ private fun ProviderDetailScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Base URL
             OutlinedTextField(
                 value = baseUrl,
                 onValueChange = { baseUrl = it },
@@ -266,7 +254,6 @@ private fun ProviderDetailScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Model（带获取列表按钮）
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -284,7 +271,6 @@ private fun ProviderDetailScreen(
                         shape = androidx.compose.foundation.shape.CircleShape,
                     )
 
-                    // 模型下拉列表
                     DropdownMenu(
                         expanded = showModelDropdown && modelList.isNotEmpty(),
                         onDismissRequest = { showModelDropdown = false },
@@ -303,13 +289,12 @@ private fun ProviderDetailScreen(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // 获取模型列表按钮
                 OutlinedButton(
                     enabled = !isLoadingModels && apiKey.isNotBlank(),
                     onClick = {
                         isLoadingModels = true
                         coroutineScope.launch {
-                            val list = clientManager.listModelsFor(preset.id, apiKey, baseUrl)
+                            val list = viewModel.listModels(preset.id, apiKey, baseUrl)
                             isLoadingModels = false
                             if (list.isNotEmpty()) {
                                 modelList = list
@@ -323,7 +308,6 @@ private fun ProviderDetailScreen(
             }
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ==================== System Prompt ====================
             SectionHeader("系统提示词")
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -344,10 +328,8 @@ private fun ProviderDetailScreen(
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ==================== 采样参数 ====================
             SectionHeader("采样参数")
 
-            // Temperature
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -369,7 +351,6 @@ private fun ProviderDetailScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            // Top P
             Spacer(modifier = Modifier.height(4.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -391,7 +372,6 @@ private fun ProviderDetailScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            // Max Tokens
             Spacer(modifier = Modifier.height(4.dp))
             OutlinedTextField(
                 value = maxTokensText,
@@ -403,7 +383,6 @@ private fun ProviderDetailScreen(
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ==================== 余额查询 ====================
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -415,7 +394,7 @@ private fun ProviderDetailScreen(
                     onClick = {
                         isLoadingBalance = true
                         coroutineScope.launch {
-                            balanceText = clientManager.getBalanceFor(preset.id, apiKey, baseUrl) ?: "该供应商不支持余额查询"
+                            balanceText = viewModel.getBalance(preset.id, apiKey, baseUrl) ?: "该供应商不支持余额查询"
                             isLoadingBalance = false
                         }
                     },
@@ -434,19 +413,16 @@ private fun ProviderDetailScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // ==================== 保存按钮 ====================
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = androidx.compose.foundation.shape.CircleShape,
                 onClick = {
-                    providerRepo.saveProviderConfig(preset.id, apiKey, baseUrl, model)
-                    providerRepo.setSystemPrompt(preset.id, systemPrompt)
-                    providerRepo.setTemperature(preset.id, temperature.toDouble())
-                    providerRepo.setTopP(preset.id, topP.toDouble())
+                    viewModel.saveProviderConfig(preset.id, apiKey, baseUrl, model)
+                    viewModel.saveSystemPrompt(preset.id, systemPrompt)
                     val maxTokens = maxTokensText.toIntOrNull()
-                    providerRepo.setMaxTokens(preset.id, maxTokens)
+                    viewModel.saveSamplingParams(preset.id, temperature.toDouble(), topP.toDouble(), maxTokens)
                     onBackClick()
                 }
             ) {
@@ -461,8 +437,6 @@ private fun ProviderDetailScreen(
         }
     }
 }
-
-// ==================== 辅助组件 ====================
 
 @Composable
 private fun SectionHeader(title: String) {

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_chat_impl_generating_reply">正在生成回复...</string>
+    <string name="feature_chat_impl_close">关闭</string>
+    <string name="feature_chat_impl_thinking_process">💭 思考过程</string>
+    <string name="feature_chat_impl_ask_anything">询问任何问题</string>
+    <string name="feature_chat_impl_send">发送</string>
+    <string name="feature_chat_impl_collapse">收起</string>
+    <string name="feature_chat_impl_expand">展开</string>
+    <string name="feature_chat_impl_add_tool">+</string>
+</resources>
