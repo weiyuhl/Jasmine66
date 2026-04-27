@@ -1,6 +1,6 @@
 package com.lhzkml.jasmine.core.data.sandbox
 
-import android.util.Log
+import com.lhzkml.jasmine.core.data.log.FileLogger
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import kotlinx.coroutines.suspendCancellableCoroutine

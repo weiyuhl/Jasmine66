@@ -23,3 +23,13 @@
 -keep class dagger.hilt.** { *; }
 -keep class * extends dagger.hilt.android.internal.managers.ViewComponentManager$FragmentContextWrapper { *; }
 -keep class * extends androidx.hilt.work.WorkerAssistedFactory { *; }
+
+# Strip android.util.Log calls in release builds to prevent parameter leakage.
+# FileLogger should be used for all in-app logging instead.
+-assumenosideeffects class android.util.Log {
+    public static int v(...);
+    public static int d(...);
+    public static int i(...);
+    public static int w(...);
+    public static int e(...);
+}

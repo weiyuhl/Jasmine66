@@ -1,6 +1,6 @@
 package com.lhzkml.jasmine.core.data.tools
 
-import android.util.Log
+import com.lhzkml.jasmine.core.data.log.FileLogger
 import com.lhzkml.jasmine.core.agent.tools.Tool
 import com.lhzkml.jasmine.core.domain.repository.SkillManager
 import com.lhzkml.jasmine.core.prompt.model.ToolDescriptor
@@ -63,7 +63,7 @@ class RunJsTool @Inject constructor(
         // Calculate the local asset path for the skill
         val url = "file:///android_asset/skills/${skillName}/scripts/${scriptName}"
 
-        Log.d(TAG, "RunJsTool executed. Preparing to evaluate $url with data: $data")
+        FileLogger.log(TAG, "RunJsTool executed. Preparing to evaluate $url with data: $data")
 
         try {
             // We use a safe timeout so a badly formed JS script won't hang the LLM generation loop forever 
@@ -81,7 +81,7 @@ class RunJsTool @Inject constructor(
             
             return@withContext result
         } catch (e: Exception) {
-            Log.e(TAG, "Exception during JS execution request flow", e)
+            FileLogger.logError(TAG, "Exception during JS execution request flow", e)
             return@withContext "{\"error\": \"${e.message}\"}"
         }
     }

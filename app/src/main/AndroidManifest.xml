@@ -30,8 +30,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Jasmine.Splash">
-        <profileable android:shell="true" tools:targetApi="q" />
-
         <activity
             android:name=".MainActivity"
             android:configChanges="uiMode"

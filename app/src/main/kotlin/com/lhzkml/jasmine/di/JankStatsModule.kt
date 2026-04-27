@@ -1,7 +1,7 @@
 package com.lhzkml.jasmine.di
 
 import android.app.Activity
-import android.util.Log
+import com.lhzkml.jasmine.core.data.log.FileLogger
 import android.view.Window
 import androidx.metrics.performance.JankStats
 import androidx.metrics.performance.JankStats.OnFrameListener
@@ -18,7 +18,7 @@ object JankStatsModule {
         // Make sure to only log janky frames.
         if (frameData.isJank) {
             // We're currently logging this but would better report it to a backend.
-            Log.v(" Jank", frameData.toString())
+            FileLogger.log("Jank", frameData.toString())
         }
     }
 

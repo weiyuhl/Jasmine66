@@ -9,7 +9,7 @@ import android.os.Build
 import android.provider.CalendarContract
 import android.provider.ContactsContract
 import android.provider.Settings
-import android.util.Log
+import com.lhzkml.jasmine.core.data.log.FileLogger
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.lhzkml.jasmine.core.agent.tools.Tool
@@ -70,7 +70,7 @@ class DeviceControlTool @Inject constructor(
             val paramsStr = json["parameters"]?.jsonPrimitive?.content ?: "{}"
             val params = try { Json.parseToJsonElement(paramsStr).jsonObject } catch (_: Exception) { null }
 
-            Log.d(TAG, "Action: $action, Parameters: $paramsStr")
+            FileLogger.log(TAG, "Action: $action, Parameters: $paramsStr")
 
             when (action) {
                 "flashlight_on" -> setFlashlight(true)
@@ -113,7 +113,7 @@ class DeviceControlTool @Inject constructor(
                 else -> "❌ Unknown device action: '$action'"
             }
         } catch (e: Exception) {
-            Log.e(TAG, "DeviceControlTool error", e)
+            FileLogger.logError(TAG, "DeviceControlTool error", e)
             "❌ Error: ${e.message}"
         }
     }
@@ -143,7 +143,7 @@ class DeviceControlTool @Inject constructor(
             }
             return "⚠️ No flash unit found on this device."
         } catch (e: Exception) {
-            Log.e(TAG, "Flashlight error", e)
+            FileLogger.logError(TAG, "Flashlight error", e)
             return "❌ Flashlight error: ${e.message}"
         }
     }
@@ -203,7 +203,7 @@ class DeviceControlTool @Inject constructor(
             val ldt = LocalDateTime.parse(datetime)
             ms = ldt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
         } catch (_: Exception) {
-            Log.w(TAG, "Failed to parse datetime '$datetime', using current time")
+            FileLogger.log(TAG, "Failed to parse datetime '$datetime', using current time", com.lhzkml.jasmine.core.data.log.LogLevel.WARN)
         }
         val intent = Intent(Intent.ACTION_INSERT).apply {
             data = CalendarContract.Events.CONTENT_URI

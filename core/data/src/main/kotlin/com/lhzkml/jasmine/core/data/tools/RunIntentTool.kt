@@ -2,7 +2,7 @@ package com.lhzkml.jasmine.core.data.tools
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import com.lhzkml.jasmine.core.data.log.FileLogger
 import androidx.core.net.toUri
 import com.lhzkml.jasmine.core.agent.tools.Tool
 import com.lhzkml.jasmine.core.prompt.model.ToolDescriptor
@@ -49,7 +49,7 @@ class RunIntentTool @Inject constructor(
             val action = json["intent"]?.jsonPrimitive?.content ?: ""
             val parameters = json["parameters"]?.jsonPrimitive?.content ?: ""
 
-            Log.d(TAG, "Run intent called: action='$action', parameters='$parameters'")
+            FileLogger.log(TAG, "Run intent called: action='$action', parameters='$parameters'")
 
             val paramsJson = Json.parseToJsonElement(parameters).jsonObject
 
@@ -86,7 +86,7 @@ class RunIntentTool @Inject constructor(
                 else -> "❌ Error: Unknown action '$action'"
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to execute run_intent", e)
+            FileLogger.logError(TAG, "Failed to execute run_intent", e)
             "❌ Error executing intent: ${e.message}"
         }
     }
