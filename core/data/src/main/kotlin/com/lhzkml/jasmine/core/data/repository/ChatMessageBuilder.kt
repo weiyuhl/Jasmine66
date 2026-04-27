@@ -13,7 +13,7 @@ class ChatMessageBuilder @Inject constructor() {
 
     private val systemPromptManager = SystemPromptManager()
 
-    fun buildApiMessagesWithSystemPrompt(
+    suspend fun buildApiMessagesWithSystemPrompt(
         messages: List<SimpleChatMessage>,
         providerRepo: ChatProviderRepository,
         skillManager: SkillManager,

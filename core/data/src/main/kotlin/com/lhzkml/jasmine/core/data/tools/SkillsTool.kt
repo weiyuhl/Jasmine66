@@ -60,7 +60,7 @@ class SkillsTool @Inject constructor(
         }
     }
 
-    private fun listSkills(): String {
+    private suspend fun listSkills(): String {
         val skills = skillManager.getAllSkills()
         if (skills.isEmpty()) {
             return "No skills available. Skills can be added from the Skills settings page."
@@ -81,7 +81,7 @@ class SkillsTool @Inject constructor(
         """.trimMargin()
     }
 
-    private fun loadSkill(skillName: String): String {
+    private suspend fun loadSkill(skillName: String): String {
         if (skillName.isBlank()) {
             return "Error: skill_name is required for 'load' action. Use action='list' to see available skills."
         }
@@ -106,7 +106,7 @@ class SkillsTool @Inject constructor(
         """.trimMargin()
     }
 
-    private fun checkSkill(skillName: String): String {
+    private suspend fun checkSkill(skillName: String): String {
         if (skillName.isBlank()) {
             return "Error: skill_name is required for 'check' action."
         }
@@ -123,7 +123,7 @@ class SkillsTool @Inject constructor(
         }
     }
 
-    private fun enableSkill(skillName: String): String {
+    private suspend fun enableSkill(skillName: String): String {
         if (skillName.isBlank()) {
             return "Error: skill_name is required for 'enable' action."
         }
@@ -138,7 +138,7 @@ class SkillsTool @Inject constructor(
         return "✅ Skill '$skillName' has been enabled. You can now use action='load' to get its instructions."
     }
 
-    private fun disableSkill(skillName: String): String {
+    private suspend fun disableSkill(skillName: String): String {
         if (skillName.isBlank()) {
             return "Error: skill_name is required for 'disable' action."
         }

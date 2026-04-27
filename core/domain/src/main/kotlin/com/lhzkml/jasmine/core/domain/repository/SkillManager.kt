@@ -9,9 +9,10 @@ import androidx.security.crypto.MasterKeys
 import com.lhzkml.jasmine.core.model.Skill
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.InputStreamReader
 import java.net.URL
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -62,36 +63,45 @@ class SkillManager @Inject constructor(
 
     private val skills = mutableListOf<Skill>()
     private var isLoaded = false
+    private val mutex = Mutex()
 
     /**
      * 加载所有可用的 Skills
+     * IO 操作在锁外执行，仅临界区（读写 skills / isLoaded）在锁内
      */
-    suspend fun loadSkills(): List<Skill> = withContext(Dispatchers.IO) {
-        if (isLoaded) {
-            return@withContext skills.toList()
+    suspend fun loadSkills(): List<Skill> {
+        // Fast path: already loaded, return copy under lock
+        mutex.withLock {
+            if (isLoaded) {
+                return skills.toList()
+            }
         }
 
+        // Slow path: do IO-heavy work outside the lock
         val loadedSkills = mutableListOf<Skill>()
         val assetManager = context.assets
 
         try {
-            // 从 assets 加载内置 Skills
-            val skillAssetDirs = assetManager.list("skills") ?: emptyArray()
+            val skillAssetDirs = withContext(Dispatchers.IO) {
+                assetManager.list("skills") ?: emptyArray()
+            }
             for (dirName in skillAssetDirs) {
                 val skillMdPath = "skills/$dirName/SKILL.md"
                 try {
-                    assetManager.open(skillMdPath).use { inputStream ->
-                        val mdContent = inputStream.bufferedReader().use { it.readText() }
-                        val (skillProto, errors) = convertSkillMdToProto(
-                            mdContent,
-                            builtIn = true,
-                            selected = true,
-                            importDir = "skills/$dirName",
-                        )
-                        if (errors.isEmpty() && skillProto != null) {
-                            loadedSkills.add(skillProto)
-                            Log.d(TAG, "已加载内置技能：${skillProto.name}")
+                    val mdContent = withContext(Dispatchers.IO) {
+                        assetManager.open(skillMdPath).use { inputStream ->
+                            inputStream.bufferedReader().use { it.readText() }
                         }
+                    }
+                    val (skillProto, errors) = convertSkillMdToProto(
+                        mdContent,
+                        builtIn = true,
+                        selected = true,
+                        importDir = "skills/$dirName",
+                    )
+                    if (errors.isEmpty() && skillProto != null) {
+                        loadedSkills.add(skillProto)
+                        Log.d(TAG, "已加载内置技能：${skillProto.name}")
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "读取内置技能失败 $dirName", e)
@@ -101,54 +111,60 @@ class SkillManager @Inject constructor(
             Log.e(TAG, "列出技能目录失败", e)
         }
 
-        skills.clear()
-        skills.addAll(loadedSkills)
-
-        // Restore persisted selections (stored as comma-separated string now)
-        val selectedStr = prefs.getString(KEY_SELECTED, "")
-        if (!selectedStr.isNullOrBlank()) {
-            val selectedSet = selectedStr.split(",").toSet()
-            for (i in skills.indices) {
-                skills[i] = skills[i].copy(selected = selectedSet.contains(skills[i].name))
+        // Critical section: apply loaded data, restore selections
+        mutex.withLock {
+            // Double-check: another coroutine might have loaded while we were doing IO
+            if (isLoaded) {
+                return skills.toList()
             }
+
+            skills.clear()
+            skills.addAll(loadedSkills)
+
+            val selectedStr = prefs.getString(KEY_SELECTED, "")
+            if (!selectedStr.isNullOrBlank()) {
+                val selectedSet = selectedStr.split(",").toSet()
+                for (i in skills.indices) {
+                    skills[i] = skills[i].copy(selected = selectedSet.contains(skills[i].name))
+                }
+            }
+
+            isLoaded = true
+            return skills.toList()
         }
-
-        isLoaded = true
-
-        return@withContext skills.toList()
     }
 
     /**
-     * 获取所有可用的 Skills
+     * 获取所有可用的 Skills（线程安全）
      */
-    fun getAllSkills(): List<Skill> {
-        return skills.toList()
+    suspend fun getAllSkills(): List<Skill> = mutex.withLock {
+        skills.toList()
     }
 
     /**
-     * 根据名称获取 Skill
+     * 根据名称获取 Skill（线程安全）
      */
-    fun getSkillByName(name: String): Skill? {
-        return skills.find { it.name.equals(name, ignoreCase = true) }
+    suspend fun getSkillByName(name: String): Skill? = mutex.withLock {
+        skills.find { it.name.equals(name, ignoreCase = true) }
     }
 
     /**
-     * 获取所有已激活的 Skills
+     * 获取所有已激活的 Skills（线程安全）
      */
-    fun getSelectedSkills(): List<Skill> {
-        return skills.filter { it.selected }
+    suspend fun getSelectedSkills(): List<Skill> = mutex.withLock {
+        skills.filter { it.selected }
     }
 
     /**
-     * 获取已激活 Skills 的 instructions
+     * 获取已激活 Skills 的 instructions（线程安全）
      */
-    fun getSelectedSkillsInstructions(): String {
-        val selectedSkills = getSelectedSkills()
+    suspend fun getSelectedSkillsInstructions(): String = mutex.withLock {
+        val selectedSkills = skills.filter { it.selected }
         if (selectedSkills.isEmpty()) {
             return "No active skills."
         }
 
-        return selectedSkills.joinToString("\n\n") { skill ->
+        selectedSkills.joinToString("\n\n") { skill ->
             """
             |=== Skill: ${skill.name} ===
             |Description: ${skill.description}
@@ -159,9 +175,9 @@ class SkillManager @Inject constructor(
     }
 
     /**
-     * 更新 Skill 的选择状态
+     * 更新 Skill 的选择状态（线程安全）
      */
-    fun updateSkillSelection(name: String, selected: Boolean): Boolean {
+    suspend fun updateSkillSelection(name: String, selected: Boolean): Boolean = mutex.withLock {
         val index = skills.indexOfFirst { it.name.equals(name, ignoreCase = true) }
         if (index >= 0) {
             skills[index] = skills[index].copy(selected = selected)
@@ -169,11 +185,11 @@ class SkillManager @Inject constructor(
             Log.d(TAG, "技能 '${skills[index].name}' 已${if (selected) "启用" else "禁用"}")
             return true
         }
-        return false
+        false
     }
 
     /**
-     * 持久化当前技能选择状态
+     * 持久化当前技能选择状态（调用方必须持有 mutex）
      */
     private fun persistSelections() {
         val selected = skills.filter { it.selected }.joinToString(",") { it.name }
@@ -213,8 +229,10 @@ class SkillManager @Inject constructor(
             File(importDir, "SKILL.md").writeText(content)
 
             val skill = skillProto.copy(importDirName = importDir.absolutePath)
-            skills.add(skill)
-            persistSelections()
+            mutex.withLock {
+                skills.add(skill)
+                persistSelections()
+            }
             Log.d(TAG, "已导入技能: ${skill.name}")
             Result.success(skill)
         } catch (e: Exception) {
@@ -239,26 +257,30 @@ class SkillManager @Inject constructor(
     }
 
     /**
-     * 删除技能
+     * 删除技能（线程安全）
      */
-    fun deleteSkill(name: String): Boolean {
-        val index = skills.indexOfFirst { it.name.equals(name, ignoreCase = true) }
-        if (index < 0) return false
-        val skill = skills[index]
-        if (skill.builtIn) return false
+    suspend fun deleteSkill(name: String): Boolean {
+        // Critical section: remove from list and persist
+        val importDir = mutex.withLock {
+            val index = skills.indexOfFirst { it.name.equals(name, ignoreCase = true) }
+            if (index < 0) return false
+            val skill = skills[index]
+            if (skill.builtIn) return false
 
-        skills.removeAt(index)
-        persistSelections()
-        prefs.edit().remove(KEY_SECRET_PREFIX + name.lowercase()).apply()
+            skills.removeAt(index)
+            persistSelections()
+            prefs.edit().remove(KEY_SECRET_PREFIX + name.lowercase()).apply()
+            Log.d(TAG, "已删除技能: $name")
+            skill.importDirName.takeIf { it.isNotBlank() }
+        }
 
-        // Delete from internal storage
-        if (skill.importDirName.isNotBlank()) {
+        // File IO outside the lock
+        if (importDir != null) {
             try {
-                File(skill.importDirName).deleteRecursively()
+                File(importDir).deleteRecursively()
             } catch (_: Exception) { }
         }
 
-        Log.d(TAG, "已删除技能: $name")
         return true
     }
 

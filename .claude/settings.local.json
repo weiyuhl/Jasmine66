@@ -23,7 +23,8 @@
       "Bash(./gradlew :core:datastore-proto:compileKotlin)",
       "Bash(./gradlew --stop)",
       "Bash(rm -rf .gradle/configuration-cache build-logic/convention/build)",
-      "Bash(./gradlew :core:designsystem:compileDebugKotlin)"
+      "Bash(./gradlew :core:designsystem:compileDebugKotlin)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }

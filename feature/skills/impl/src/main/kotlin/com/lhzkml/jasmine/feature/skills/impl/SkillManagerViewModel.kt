@@ -56,9 +56,10 @@ class SkillManagerViewModel @Inject constructor(
     }
 
     fun setSkillSelected(skillState: SkillState, selected: Boolean) {
-        // Sync the globally active instance immediately representing the model context
-        skillManager.updateSkillSelection(skillState.skill.name, selected)
-        
+        viewModelScope.launch(ioDispatcher) {
+            skillManager.updateSkillSelection(skillState.skill.name, selected)
+        }
+
         // Update Local UI layout changes representing visually what happened
         val updatedSkill = skillState.skill.copy(selected = selected)
         val updatedSkills = _uiState.value.skills.map {
@@ -73,10 +74,11 @@ class SkillManagerViewModel @Inject constructor(
 
     fun setAllSkillsSelected(selected: Boolean) {
         val currentSkills = _uiState.value.skills
-        
-        // Feed the status to the agent pool uniformly
-        currentSkills.forEach { 
-            skillManager.updateSkillSelection(it.skill.name, selected) 
+
+        viewModelScope.launch(ioDispatcher) {
+            currentSkills.forEach {
+                skillManager.updateSkillSelection(it.skill.name, selected)
+            }
         }
 
         _uiState.update { currentState ->
@@ -89,7 +91,7 @@ class SkillManagerViewModel @Inject constructor(
     }
 
     fun getSelectedSkills(): List<Skill> {
-        return skillManager.getSelectedSkills()
+        return _uiState.value.skills.filter { it.skill.selected }.map { it.skill }
     }
 
     fun getSelectedSkillsNamesAndDescriptions(): String {
@@ -120,9 +122,11 @@ class SkillManagerViewModel @Inject constructor(
     }
 
     fun deleteSkill(skillName: String) {
-        if (skillManager.deleteSkill(skillName)) {
-            _uiState.update { currentState ->
-                currentState.copy(skills = currentState.skills.filter { it.skill.name != skillName })
+        viewModelScope.launch(ioDispatcher) {
+            if (skillManager.deleteSkill(skillName)) {
+                _uiState.update { currentState ->
+                    currentState.copy(skills = currentState.skills.filter { it.skill.name != skillName })
+                }
             }
         }
     }
