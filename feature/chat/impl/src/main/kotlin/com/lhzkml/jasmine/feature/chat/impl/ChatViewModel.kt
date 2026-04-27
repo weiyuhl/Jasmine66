@@ -132,6 +132,33 @@ class ChatViewModel @Inject constructor(
                             it.copy(thinking = (it.thinking ?: "") + thinkChunk)
                         }
                     },
+                    onToolCallStart = { toolName, toolArgs ->
+                        _toolCallEvents.update { it + ToolCallEvent(
+                            toolName = toolName,
+                            arguments = toolArgs,
+                            isRunning = true,
+                        )}
+                    },
+                    onToolCallResult = { toolName, resultContent ->
+                        _toolCallEvents.update { events ->
+                            val lastIdx = events.lastIndex
+                            if (lastIdx >= 0 && events[lastIdx].toolName == toolName && events[lastIdx].isRunning) {
+                                events.toMutableList().apply {
+                                    this[lastIdx] = this[lastIdx].copy(
+                                        result = resultContent,
+                                        isRunning = false,
+                                    )
+                                }
+                            } else {
+                                events + ToolCallEvent(
+                                    toolName = toolName,
+                                    arguments = "",
+                                    result = resultContent,
+                                    isRunning = false,
+                                )
+                            }
+                        }
+                    },
                     uiEnabled = userData.uiEnabled,
                     webSearchEnabled = userData.webSearchEnabled,
                 )

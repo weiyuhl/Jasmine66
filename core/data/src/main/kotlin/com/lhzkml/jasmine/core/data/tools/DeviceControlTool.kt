@@ -118,7 +118,8 @@ class DeviceControlTool @Inject constructor(
         if (needsCameraPermission && !hasPermission(android.Manifest.permission.CAMERA)) {
             return permissionDeniedMessage("flashlight", "CAMERA")
         }
-        val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
+            ?: return "Camera service not available on this device"
         try {
             for (id in cameraManager.cameraIdList) {
                 val chars = cameraManager.getCameraCharacteristics(id)

@@ -53,17 +53,15 @@ internal class ConnectivityManagerNetworkMonitor @Inject constructor(
                 }
             }
 
+            // Send initial state before registering callback to avoid stale overwrite
+            channel.trySend(connectivityManager.isCurrentlyConnected())
+
             trace("NetworkMonitor.registerNetworkCallback") {
                 val request = Builder()
                     .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                     .build()
                 connectivityManager.registerNetworkCallback(request, callback)
             }
-
-            /**
-             * Sends the latest connectivity status to the underlying channel.
-             */
-            channel.trySend(connectivityManager.isCurrentlyConnected())
 
             awaitClose {
                 connectivityManager.unregisterNetworkCallback(callback)

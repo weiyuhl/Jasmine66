@@ -92,6 +92,8 @@ fun JasmineApp(
                 message = notConnectedMessage,
                 duration = Indefinite,
             )
+        } else {
+            snackbarHostState.currentSnackbarData?.dismiss()
         }
     }
     CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {

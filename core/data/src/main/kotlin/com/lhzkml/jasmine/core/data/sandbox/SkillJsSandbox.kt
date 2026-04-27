@@ -149,7 +149,8 @@ class SkillJsSandbox {
                     require(uri.authority == "android_asset") {
                         "Only file:///android_asset/ URLs are allowed, got: $url"
                     }
-                    require(!uri.path.contains("..")) {
+                    val decodedPath = java.net.URLDecoder.decode(uri.path, "UTF-8")
+                    require(!decodedPath.contains("..")) {
                         "Path traversal not allowed: $url"
                     }
                 }

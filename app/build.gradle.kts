@@ -42,7 +42,9 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),
                           "proguard-rules.pro")
 
-            signingConfig = releaseSigningConfig ?: signingConfigs.getByName("debug")
+            signingConfig = releaseSigningConfig ?: signingConfigs.getByName("debug").also {
+                logger.warn("Release signing config not found, falling back to debug keystore")
+            }
         }
     }
 

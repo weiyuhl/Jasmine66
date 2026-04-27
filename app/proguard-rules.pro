@@ -1,5 +1,5 @@
-# Repackage classes into the default package to reduce the size of descriptors.
--repackageclasses
+# Repackage classes into a named package to avoid root-package conflicts with reflection.
+-repackageclasses com.lhzkml.jasmine.repackaged
 
 # Preserve annotations (required for Hilt, Serialization, JS bridge)
 -keepattributes *Annotation*

@@ -89,7 +89,9 @@ class SandboxViewModel @Inject constructor(
                 val packageVersions = versionsOutput.lines().map { it.trim() }.filter { it.isNotBlank() }
 
                 _state.update { it.copy(osInfo = osInfo, kernelInfo = kernelInfo, kernelCompileTime = kernelCompileTime, archInfo = archInfo, packageVersions = packageVersions) }
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                android.util.Log.w("SandboxVM", "Failed to fetch system info", e)
+            }
         }
     }
 
