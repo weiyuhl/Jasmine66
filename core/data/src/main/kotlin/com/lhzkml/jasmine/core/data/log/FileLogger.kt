@@ -16,6 +16,7 @@ object FileLogger {
     private const val MAX_LOG_FILES = 5
 
     private var logDir: File? = null
+    private val writeLock = Any()
 
     fun init(context: Context) {
         logDir = File(context.filesDir, LOG_DIR_NAME)
@@ -32,15 +33,17 @@ object FileLogger {
         val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()).format(Date())
         val logEntry = "[$timestamp] [$level] [$tag] $message\n"
 
-        try {
-            val currentLogFile = File(logFile, "$LOG_FILE_PREFIX${getCurrentDate()}$LOG_FILE_EXTENSION")
-            rotateLogFile(currentLogFile)
+        synchronized(writeLock) {
+            try {
+                val currentLogFile = File(logFile, "$LOG_FILE_PREFIX${getCurrentDate()}$LOG_FILE_EXTENSION")
+                rotateLogFile(currentLogFile)
 
-            FileWriter(currentLogFile, true).use { writer ->
-                writer.append(logEntry)
+                FileWriter(currentLogFile, true).use { writer ->
+                    writer.append(logEntry)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("FileLogger", "Failed to write log", e)
             }
-        } catch (e: Exception) {
-            android.util.Log.e("FileLogger", "Failed to write log", e)
         }
     }
 

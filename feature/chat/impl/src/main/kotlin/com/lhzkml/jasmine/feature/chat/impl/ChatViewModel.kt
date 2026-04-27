@@ -7,6 +7,7 @@ import com.lhzkml.jasmine.core.data.model.ToolCallInfo
 import com.lhzkml.jasmine.core.data.repository.ChatClientManager
 import com.lhzkml.jasmine.core.data.repository.UserDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -103,10 +104,10 @@ class ChatViewModel @Inject constructor(
             "Pressed: $event"
         }
         val userMsg = UiChatMessage(role = "user", content = message)
-        _messages.value = _messages.value + userMsg
+        _messages.update { it + userMsg }
 
         val assistantPlaceholder = UiChatMessage(role = "assistant", content = "", isStreaming = true)
-        _messages.value = _messages.value + assistantPlaceholder
+        _messages.update { it + assistantPlaceholder }
 
         val model = clientManager.getActiveModel()
         val history = buildApiMessages()
@@ -116,6 +117,7 @@ class ChatViewModel @Inject constructor(
         _errorMessage.value = null
         _toolCallEvents.value = emptyList()
 
+        streamJob?.cancel()
         streamJob = viewModelScope.launch {
             try {
                 val userData = userDataRepository.userData.first()
@@ -140,6 +142,8 @@ class ChatViewModel @Inject constructor(
                         toolCalls = result.toolCalls,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 val errorMsg = e.message ?: "请求失败"
                 _errorMessage.value = errorMsg
@@ -166,14 +170,15 @@ class ChatViewModel @Inject constructor(
         _toolCallEvents.value = emptyList()
 
         val userMsg = UiChatMessage(role = "user", content = prompt)
-        _messages.value = _messages.value + userMsg
+        _messages.update { it + userMsg }
 
         val assistantPlaceholder = UiChatMessage(role = "assistant", content = "", isStreaming = true)
-        _messages.value = _messages.value + assistantPlaceholder
+        _messages.update { it + assistantPlaceholder }
 
         val model = clientManager.getActiveModel()
         val history = buildApiMessages()
 
+        streamJob?.cancel()
         streamJob = viewModelScope.launch {
             try {
                 val userData = userDataRepository.userData.first()
@@ -189,28 +194,30 @@ class ChatViewModel @Inject constructor(
                         }
                     },
                     onToolCallStart = { toolName, toolArgs ->
-                        _toolCallEvents.value = _toolCallEvents.value + ToolCallEvent(
+                        _toolCallEvents.update { it + ToolCallEvent(
                             toolName = toolName,
                             arguments = toolArgs,
                             isRunning = true,
-                        )
+                        )}
                     },
                     onToolCallResult = { toolName, resultContent ->
-                        val events = _toolCallEvents.value.toMutableList()
-                        val lastIdx = events.lastIndex
-                        if (lastIdx >= 0 && events[lastIdx].toolName == toolName && events[lastIdx].isRunning) {
-                            events[lastIdx] = events[lastIdx].copy(
-                                result = resultContent,
-                                isRunning = false,
-                            )
-                            _toolCallEvents.value = events
-                        } else {
-                            _toolCallEvents.value = events + ToolCallEvent(
-                                toolName = toolName,
-                                arguments = "",
-                                result = resultContent,
-                                isRunning = false,
-                            )
+                        _toolCallEvents.update { events ->
+                            val lastIdx = events.lastIndex
+                            if (lastIdx >= 0 && events[lastIdx].toolName == toolName && events[lastIdx].isRunning) {
+                                events.toMutableList().apply {
+                                    this[lastIdx] = this[lastIdx].copy(
+                                        result = resultContent,
+                                        isRunning = false,
+                                    )
+                                }
+                            } else {
+                                events + ToolCallEvent(
+                                    toolName = toolName,
+                                    arguments = "",
+                                    result = resultContent,
+                                    isRunning = false,
+                                )
+                            }
                         }
                     },
                     uiEnabled = userData.uiEnabled,
@@ -226,6 +233,8 @@ class ChatViewModel @Inject constructor(
                 if (_errorMessage.value?.contains("续传") == true) {
                     _errorMessage.value = null
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 val errorMsg = e.message ?: "请求失败"
                 val cause = e.cause
@@ -251,11 +260,15 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun updateLastAssistant(transform: (UiChatMessage) -> UiChatMessage) {
-        val current = _messages.value.toMutableList()
-        val lastIndex = current.lastIndex
-        if (lastIndex >= 0 && current[lastIndex].role == "assistant") {
-            current[lastIndex] = transform(current[lastIndex])
-            _messages.value = current
+        _messages.update { current ->
+            val lastIndex = current.lastIndex
+            if (lastIndex >= 0 && current[lastIndex].role == "assistant") {
+                current.toMutableList().apply {
+                    this[lastIndex] = transform(this[lastIndex])
+                }
+            } else {
+                current
+            }
         }
     }
 

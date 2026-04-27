@@ -137,8 +137,9 @@ class ChatClientManager @Inject constructor(
         uiEnabled: Boolean = true,
         webSearchEnabled: Boolean = true,
     ): StreamChatResult {
-        val client = chatClient
-            ?: throw IllegalStateException("Send failed: ${_setupState.value}")
+        val client = stateMutex.withLock {
+            chatClient ?: throw IllegalStateException("Send failed: ${_setupState.value}")
+        }
 
         val allTools = toolManager.descriptors()
         val tools = if (webSearchEnabled) allTools else allTools.filter { it.name != "web_search" }
@@ -225,7 +226,7 @@ class ChatClientManager @Inject constructor(
         }
     }
 
-    fun close() {
+    suspend fun close() = stateMutex.withLock {
         chatClient?.close()
         chatClient = null
     }
