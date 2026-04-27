@@ -120,7 +120,11 @@ internal fun ChatScreen(
                     sandbox.createWebView(it)
                     sandboxWebView = it
                 }
-            }
+            },
+            onRelease = { webView ->
+                sandboxWebView = null
+                webView.destroy()
+            },
         )
     }
 

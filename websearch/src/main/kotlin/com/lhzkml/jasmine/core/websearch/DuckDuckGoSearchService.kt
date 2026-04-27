@@ -59,7 +59,9 @@ class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
                     .build()
 
                 val response = client.newCall(request).execute()
-                val body = response.body?.string() ?: return@withContext emptyList()
+                val body = response.use { resp ->
+                    resp.body?.string() ?: return@withContext emptyList()
+                }
 
                 if (!response.isSuccessful) {
                     Log.w(TAG, "API returned ${response.code}")

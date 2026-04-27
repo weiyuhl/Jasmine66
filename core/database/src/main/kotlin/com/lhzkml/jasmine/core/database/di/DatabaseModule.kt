@@ -22,6 +22,6 @@ internal object DatabaseModule {
         context,
         JasmineDatabase::class.java,
         "jasmine-database",
-    ).build()
+    ).fallbackToDestructiveMigration().build()
 }
 
