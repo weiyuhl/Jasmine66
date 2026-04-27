@@ -18,7 +18,7 @@ object FileLogger {
     private var logDir: File? = null
 
     fun init(context: Context) {
-        logDir = File(context.getExternalFilesDir(null), LOG_DIR_NAME)
+        logDir = File(context.filesDir, LOG_DIR_NAME)
         if (!logDir!!.exists()) {
             logDir!!.mkdirs()
         }

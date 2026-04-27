@@ -6,6 +6,9 @@ plugins {
 
 android {
     namespace = "com.lhzkml.jasmine.feature.settings.impl"
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -14,4 +17,8 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.navigation)
     implementation(projects.feature.sandbox.api)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockito.core)
 }

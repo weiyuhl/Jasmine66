@@ -232,11 +232,7 @@ abstract class OpenAICompatibleClient(
                     .toRequestBody("application/json".toMediaType())
 
                 android.util.Log.d("OpenAICompat", "Request: POST ${baseUrl}${chatPath} model=$model tools=${tools.size}")
-                android.util.Log.d("OpenAICompat", "Request Body: $requestBody")
                 android.util.Log.d("OpenAICompat", "Messages count: ${request.messages.size}")
-                request.messages.forEachIndexed { index, msg ->
-                    android.util.Log.d("OpenAICompat", "  Message[$index]: role=${msg.role}, content=${msg.content}, toolCalls=${msg.toolCalls?.size}, toolCallId=${msg.toolCallId}")
-                }
                 
                 val httpRequest = Request.Builder()
                     .url("${baseUrl}${chatPath}")

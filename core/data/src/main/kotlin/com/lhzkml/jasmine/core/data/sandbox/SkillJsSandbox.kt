@@ -139,11 +139,23 @@ class SkillJsSandbox {
     private fun validateUrl(url: String) {
         try {
             val uri = URI(url)
-            require(uri.scheme == "https") {
-                "Only HTTPS URLs are allowed for skill execution, got: $url"
-            }
-            require(uri.host != null && uri.host.isNotBlank()) {
-                "URL must have a valid host: $url"
+            when (uri.scheme) {
+                "https" -> {
+                    require(uri.host != null && uri.host.isNotBlank()) {
+                        "URL must have a valid host: $url"
+                    }
+                }
+                "file" -> {
+                    require(uri.authority == "android_asset") {
+                        "Only file:///android_asset/ URLs are allowed, got: $url"
+                    }
+                    require(!uri.path.contains("..")) {
+                        "Path traversal not allowed: $url"
+                    }
+                }
+                else -> throw IllegalArgumentException(
+                    "Only HTTPS or android_asset URLs are allowed for skill execution, got: $url"
+                )
             }
         } catch (e: Exception) {
             if (e is IllegalArgumentException) throw e

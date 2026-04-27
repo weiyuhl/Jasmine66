@@ -114,7 +114,7 @@ class ToolLoopExecutor @Inject constructor(
         }
 
         if (iterations >= maxIterations && finalContent.isEmpty()) {
-            mutableMessages.add(ChatMessage.user("你已经进行了 $maxIterations 轮工具调用。请根据目前收集到的信息，直接给出总结回复，不要再调用工具。"))
+            mutableMessages.add(ChatMessage.user("You have made $maxIterations rounds of tool calls. Based on the information gathered, provide a summary response. Do not make any more tool calls."))
             val finalResult = client.chatStreamWithUsageAndThinking(
                 messages = contextManager.trimMessages(mutableMessages),
                 model = model,

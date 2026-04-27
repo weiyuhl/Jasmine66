@@ -44,6 +44,8 @@ class ChatProviderRepository @Inject constructor(
                 }
             }
             editor.apply()
+            // Wipe old plaintext data after successful migration
+            oldPrefs.edit().clear().apply()
         }
         encryptedPrefs
     }

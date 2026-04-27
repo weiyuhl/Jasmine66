@@ -34,7 +34,7 @@ class ChatClientManager @Inject constructor(
     private val _isConfigured = MutableStateFlow(false)
     val isConfigured: StateFlow<Boolean> = _isConfigured.asStateFlow()
 
-    private val _setupState = MutableStateFlow("尚未加载配置")
+    private val _setupState = MutableStateFlow("Not loaded")
     val setupState: StateFlow<String> = _setupState.asStateFlow()
 
     val configChangesFlow = providerRepo.configChangesFlow
@@ -73,7 +73,7 @@ class ChatClientManager @Inject constructor(
     suspend fun refreshState() = stateMutex.withLock {
         val id = providerRepo.getActiveProviderId()
         if (id.isNullOrBlank()) {
-            _setupState.value = "配置失败: ActiveProviderId 为空"
+            _setupState.value = "Config failed: ActiveProviderId is empty"
             _isConfigured.value = false
             chatClient?.close()
             chatClient = null
@@ -81,7 +81,7 @@ class ChatClientManager @Inject constructor(
         }
         val preset = ChatProviderRepository.PRESETS.find { it.id == id }
         if (preset == null) {
-            _setupState.value = "配置失败: 找不到预设 ($id)"
+            _setupState.value = "Config failed: preset not found ($id)"
             _isConfigured.value = false
             chatClient?.close()
             chatClient = null
@@ -89,7 +89,7 @@ class ChatClientManager @Inject constructor(
         }
         val apiKey = providerRepo.getApiKey(id)
         if (apiKey.isBlank()) {
-            _setupState.value = "配置失败: API Key 为空 ($id)"
+            _setupState.value = "Config failed: API Key is empty ($id)"
             _isConfigured.value = false
             chatClient?.close()
             chatClient = null
@@ -98,7 +98,7 @@ class ChatClientManager @Inject constructor(
 
         val config = buildActiveConfig(id, preset, apiKey)
         if (config == null) {
-            _setupState.value = "配置失败: config 构建失败"
+            _setupState.value = "Config failed: config build failed"
             _isConfigured.value = false
             chatClient?.close()
             chatClient = null
@@ -109,14 +109,14 @@ class ChatClientManager @Inject constructor(
         chatClient = try {
             ChatClientFactory.create(config)
         } catch (e: Exception) {
-            _setupState.value = "配置失败: 工厂类抛出异常 (${e.message})"
+            _setupState.value = "Config failed: factory threw exception (${e.message})"
             null
         }
 
         val isOk = chatClient != null
         _isConfigured.value = isOk
         if (isOk) {
-            _setupState.value = "配置成功: ${config.providerName} (${config.providerId})"
+            _setupState.value = "Config OK: ${config.providerName} (${config.providerId})"
         }
 
         val model = providerRepo.getModel(id)
@@ -138,7 +138,7 @@ class ChatClientManager @Inject constructor(
         webSearchEnabled: Boolean = true,
     ): StreamChatResult {
         val client = chatClient
-            ?: throw IllegalStateException("发送失败: ${_setupState.value}")
+            ?: throw IllegalStateException("Send failed: ${_setupState.value}")
 
         val allTools = toolManager.descriptors()
         val tools = if (webSearchEnabled) allTools else allTools.filter { it.name != "web_search" }
