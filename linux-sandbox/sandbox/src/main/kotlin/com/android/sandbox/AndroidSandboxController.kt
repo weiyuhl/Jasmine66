@@ -10,9 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class AndroidSandboxController(context: Context) : SandboxController {
-
-    private val sandboxManager = LinuxSandboxManager(context)
+class AndroidSandboxController(
+    private val sandboxManager: LinuxSandboxManager
+) : SandboxController {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private var cachedDiskUsageMB = 0L

@@ -77,7 +77,10 @@ class McpConnectionManager(private val configRepo: ConfigRepository) {
             if (preloaded || connecting) return@withContext
             connecting = true
         }
-        if (!configRepo.isMcpEnabled()) return@withContext
+        if (!configRepo.isMcpEnabled()) {
+            connecting = false
+            return@withContext
+        }
 
         try {
             val servers = configRepo.getMcpServers().filter { it.enabled && it.url.isNotBlank() }
@@ -193,39 +196,41 @@ class McpConnectionManager(private val configRepo: ConfigRepository) {
      * @param onStatusChanged 状态变化回调，在每个服务器状态改变时调用
      */
     suspend fun reconnect(onStatusChanged: (() -> Unit)? = null) = withContext(Dispatchers.IO) {
-        // 关闭旧连接
-        clients.forEach { try { it.close() } catch (_: Exception) {} }
-        clients.clear()
-        preloadedTools.clear()
-        connectionCache.clear()
-        
-        // 获取所有启用的服务器
-        val servers = configRepo.getMcpServers().filter { it.enabled && it.url.isNotBlank() }
-        
-        // 重置标志
-        preloaded = false
-        connecting = true
-        
-        // 通知 UI 开始连接（此时 connecting = true，UI 应该显示"连接中"）
-        withContext(Dispatchers.Main) {
-            onStatusChanged?.invoke()
-        }
-        
-        try {
-            // 逐个连接服务器
-            for (server in servers) {
-                connectSingleServer(server)
-                // 每个服务器连接完成后通知 UI
+        mutex.withLock {
+            // 关闭旧连接
+            clients.forEach { try { it.close() } catch (_: Exception) {} }
+            clients.clear()
+            preloadedTools.clear()
+            connectionCache.clear()
+
+            // 获取所有启用的服务器
+            val servers = configRepo.getMcpServers().filter { it.enabled && it.url.isNotBlank() }
+
+            // 重置标志
+            preloaded = false
+            connecting = true
+
+            // 通知 UI 开始连接（此时 connecting = true，UI 应该显示"连接中"）
+            withContext(Dispatchers.Main) {
+                onStatusChanged?.invoke()
+            }
+
+            try {
+                // 逐个连接服务器
+                for (server in servers) {
+                    connectSingleServer(server)
+                    // 每个服务器连接完成后通知 UI
+                    withContext(Dispatchers.Main) {
+                        onStatusChanged?.invoke()
+                    }
+                }
+                preloaded = true
+            } finally {
+                connecting = false
+                // 连接全部完成，最后通知一次
                 withContext(Dispatchers.Main) {
                     onStatusChanged?.invoke()
                 }
-            }
-            preloaded = true
-        } finally {
-            connecting = false
-            // 连接全部完成，最后通知一次
-            withContext(Dispatchers.Main) {
-                onStatusChanged?.invoke()
             }
         }
     }

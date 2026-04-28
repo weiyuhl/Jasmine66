@@ -101,16 +101,16 @@ class SkillManagerViewModel @Inject constructor(
     }
 
     fun importSkillFromUrl(url: String, onResult: (Boolean, String) -> Unit) {
-        viewModelScope.launch(ioDispatcher) {
-            val result = skillManager.importSkillFromUrl(url)
+        viewModelScope.launch {
+            val result = withContext(ioDispatcher) { skillManager.importSkillFromUrl(url) }
             result.onSuccess { skill ->
                 _uiState.update { currentState ->
                     currentState.copy(skills = currentState.skills + SkillState(skill = skill))
                 }
-                withContext(ioDispatcher) { onResult(true, "技能已导入: ${skill.name}") }
+                onResult(true, "技能已导入: ${skill.name}")
             }
             result.onFailure { e ->
-                withContext(ioDispatcher) { onResult(false, e.message ?: "导入失败") }
+                onResult(false, e.message ?: "导入失败")
             }
         }
     }

@@ -13,7 +13,7 @@ object TraceMessageFormat {
     private val timeFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
 
     /** 格式化事件为人类可读字符串 */
-    fun format(event: TraceEvent): String {
+    fun format(event: TraceEvent): String = synchronized(timeFormat) {
         val time = timeFormat.format(Date(event.timestamp))
         val body = when (event) {
             // Agent 生命周期
@@ -76,6 +76,6 @@ object TraceMessageFormat {
             is TraceEvent.SubgraphFailed ->
                 "SubgraphFailed (runId: ${event.runId}, subgraph: ${event.subgraphName}, error: ${event.error.message})"
         }
-        return "[$time] $body"
+        "[$time] $body"
     }
 }

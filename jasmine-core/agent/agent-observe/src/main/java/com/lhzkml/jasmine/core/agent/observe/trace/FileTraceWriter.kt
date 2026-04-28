@@ -30,9 +30,11 @@ class FileTraceWriter(
         val message = format?.invoke(event) ?: TraceMessageFormat.format(event)
 
         withContext(Dispatchers.IO) {
-            writer.write(message)
-            writer.newLine()
-            writer.flush()
+            synchronized(writer) {
+                writer.write(message)
+                writer.newLine()
+                writer.flush()
+            }
         }
     }
 

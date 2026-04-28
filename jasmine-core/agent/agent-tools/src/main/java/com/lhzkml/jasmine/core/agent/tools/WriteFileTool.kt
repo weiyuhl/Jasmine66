@@ -112,7 +112,7 @@ class WriteFileTool(
         if (basePath != null) {
             val base = File(basePath).canonicalFile
             val resolved = file.canonicalFile
-            if (!resolved.path.startsWith(base.path)) return null
+            if (!resolved.path.startsWith(base.path + File.separator) && resolved != base) return null
         }
         return file
     }

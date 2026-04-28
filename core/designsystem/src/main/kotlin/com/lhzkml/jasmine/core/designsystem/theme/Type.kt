@@ -9,8 +9,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.LineHeightStyle.Alignment
 import androidx.compose.ui.text.style.LineHeightStyle.Trim
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.sp
 import com.lhzkml.jasmine.core.designsystem.R
 
@@ -36,8 +34,8 @@ internal val JasmineTypography = Typography(
         fontSize = 57.sp,
         lineHeight = 64.sp,
         letterSpacing = (-0.25).sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     displayMedium = TextStyle(
         fontFamily = appFontFamily,
@@ -45,8 +43,8 @@ internal val JasmineTypography = Typography(
         fontSize = 45.sp,
         lineHeight = 52.sp,
         letterSpacing = 0.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     displaySmall = TextStyle(
         fontFamily = appFontFamily,
@@ -54,8 +52,8 @@ internal val JasmineTypography = Typography(
         fontSize = 36.sp,
         lineHeight = 44.sp,
         letterSpacing = 0.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     headlineLarge = TextStyle(
         fontFamily = appFontFamily,
@@ -63,8 +61,8 @@ internal val JasmineTypography = Typography(
         fontSize = 32.sp,
         lineHeight = 40.sp,
         letterSpacing = 0.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     headlineMedium = TextStyle(
         fontFamily = appFontFamily,
@@ -72,8 +70,8 @@ internal val JasmineTypography = Typography(
         fontSize = 28.sp,
         lineHeight = 36.sp,
         letterSpacing = 0.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     headlineSmall = TextStyle(
         fontFamily = appFontFamily,
@@ -85,8 +83,8 @@ internal val JasmineTypography = Typography(
             alignment = Alignment.Bottom,
             trim = Trim.None,
         ),
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     titleLarge = TextStyle(
         fontFamily = appFontFamily,
@@ -98,8 +96,8 @@ internal val JasmineTypography = Typography(
             alignment = Alignment.Bottom,
             trim = Trim.LastLineBottom,
         ),
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     titleMedium = TextStyle(
         fontFamily = appFontFamily,
@@ -107,8 +105,8 @@ internal val JasmineTypography = Typography(
         fontSize = 18.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.1.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     titleSmall = TextStyle(
         fontFamily = appFontFamily,
@@ -116,8 +114,8 @@ internal val JasmineTypography = Typography(
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     bodyLarge = TextStyle(
         fontFamily = appFontFamily,
@@ -129,8 +127,8 @@ internal val JasmineTypography = Typography(
             alignment = Alignment.Center,
             trim = Trim.None,
         ),
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     bodyMedium = TextStyle(
         fontFamily = appFontFamily,
@@ -138,8 +136,8 @@ internal val JasmineTypography = Typography(
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.25.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     bodySmall = TextStyle(
         fontFamily = appFontFamily,
@@ -147,8 +145,8 @@ internal val JasmineTypography = Typography(
         fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.4.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     labelLarge = TextStyle(
         fontFamily = appFontFamily,
@@ -160,8 +158,8 @@ internal val JasmineTypography = Typography(
             alignment = Alignment.Center,
             trim = Trim.LastLineBottom,
         ),
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     labelMedium = TextStyle(
         fontFamily = appFontFamily,
@@ -173,8 +171,8 @@ internal val JasmineTypography = Typography(
             alignment = Alignment.Center,
             trim = Trim.LastLineBottom,
         ),
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
     labelSmall = TextStyle(
         fontFamily = appFontFamily,
@@ -186,8 +184,8 @@ internal val JasmineTypography = Typography(
             alignment = Alignment.Center,
             trim = Trim.LastLineBottom,
         ),
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+
+
     ),
 )
 

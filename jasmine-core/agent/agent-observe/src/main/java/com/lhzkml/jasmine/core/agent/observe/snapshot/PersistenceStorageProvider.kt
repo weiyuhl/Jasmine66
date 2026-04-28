@@ -297,15 +297,19 @@ class FilePersistenceStorageProvider(
         val keyStart = json.indexOf(keyPattern)
         if (keyStart < 0) return ""
         val valueStart = keyStart + keyPattern.length
-        // 找到未转义的结束引号
         var i = valueStart
         while (i < json.length) {
-            if (json[i] == '"' && (i == 0 || json[i - 1] != '\\')) {
-                return jsonUnescape(json.substring(valueStart, i))
-            }
-            // 处理连续反斜杠：\\" 中 \\ 是转义的反斜杠，" 是结束引号
-            if (json[i] == '"' && i >= 2 && json[i - 1] == '\\' && json[i - 2] == '\\') {
-                return jsonUnescape(json.substring(valueStart, i))
+            if (json[i] == '"') {
+                // 计算前面连续反斜杠的数量，奇数 = 转义引号，偶数 = 结束引号
+                var backslashCount = 0
+                var j = i - 1
+                while (j >= 0 && json[j] == '\\') {
+                    backslashCount++
+                    j--
+                }
+                if (backslashCount % 2 == 0) {
+                    return jsonUnescape(json.substring(valueStart, i))
+                }
             }
             i++
         }

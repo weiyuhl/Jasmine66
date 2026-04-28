@@ -62,11 +62,12 @@ class LicensesViewModel @Inject constructor(
             throw IllegalStateException("许可证信息暂不可用")
         }
 
-        val licensesText = context.resources.openRawResource(licenseIds)
-            .bufferedReader().use { it.readText() }
+        // Read as raw bytes because metadata uses byte-offsets, not character indices
+        val licenseBytes = context.resources.openRawResource(licenseIds).readBytes()
+        val totalBytes = licenseBytes.size
 
         // Parse library entries from metadata file
-        // Format: "offset:length library_name"
+        // Format: "offset:length library_name" (offset/length are byte-based)
         val results = mutableListOf<LicenseInfo>()
         context.resources.openRawResource(metadataIds)
             .bufferedReader().use { reader ->
@@ -77,8 +78,9 @@ class LicensesViewModel @Inject constructor(
                         val offset = headerParts.getOrNull(0)?.toIntOrNull() ?: 0
                         val length = headerParts.getOrNull(1)?.toIntOrNull() ?: 0
                         val libName = parts[1].trim()
-                        val licenseText = if (offset + length <= licensesText.length) {
-                            licensesText.substring(offset, offset + length).trim()
+                        val licenseText = if (offset >= 0 && length > 0 && offset + length <= totalBytes) {
+                            val slice = licenseBytes.copyOfRange(offset, offset + length)
+                            String(slice, Charsets.UTF_8).trim()
                         } else ""
                         val licenseName = extractLicenseName(licenseText)
                         results.add(LicenseInfo(name = libName, licenseName = licenseName))

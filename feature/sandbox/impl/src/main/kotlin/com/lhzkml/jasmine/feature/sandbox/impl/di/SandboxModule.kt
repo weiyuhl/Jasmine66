@@ -26,8 +26,8 @@ object SandboxModule {
     @Provides
     @ActivityRetainedScoped
     fun provideSandboxController(
-        @ApplicationContext context: Context,
+        sandboxManager: LinuxSandboxManager,
     ): SandboxController {
-        return AndroidSandboxController(context)
+        return AndroidSandboxController(sandboxManager)
     }
 }

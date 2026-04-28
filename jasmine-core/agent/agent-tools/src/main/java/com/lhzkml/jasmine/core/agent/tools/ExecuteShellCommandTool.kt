@@ -151,7 +151,7 @@ class ExecuteShellCommandTool(
             }
             if (basePath != null) {
                 val base = File(basePath).canonicalFile
-                if (!dir.canonicalFile.path.startsWith(base.path)) {
+                if (!dir.canonicalFile.path.startsWith(base.path + File.separator) && dir.canonicalFile != base) {
                     return "Error: Working directory not allowed: $workingDirectory"
                 }
             }

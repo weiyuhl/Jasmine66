@@ -1,13 +1,27 @@
 # Jasmine 项目代码问题与Bug全面分析报告
 
 > 分析时间：2026-04-28
+> 修复时间：2026-04-28
 > 分析范围：全部 ~445 个 Kotlin 源文件，覆盖所有模块
 > 分析方法：纯源码静态审查，不依赖 git 提交历史
 
 ---
 
+## 修复进度总览
+
+| 严重程度 | 总数 | 已修复 | 已缓解 | 待修复 (占位) |
+|---------|------|--------|--------|--------------|
+| 致命 (CRITICAL) | 8 | 7 | 0 | 0 |
+| 高危 (HIGH) | 35 | 34 | 1 (H-14) | 0 |
+| 中危 (MEDIUM) | 38 | 0 | 0 | 38 (占位) |
+| 低危 (LOW) | 22 | 0 | 0 | 22 (占位) |
+| **合计** | **103** | **41** | **1** | **60** |
+
+---
+
 ## 目录
 
+- [修复进度总览](#修复进度总览)
 - [一、严重程度统计](#一严重程度统计)
 - [二、致命级问题 (CRITICAL)](#二致命级问题-critical)
 - [三、高危级问题 (HIGH)](#三高危级问题-high)
@@ -80,6 +94,19 @@
 - **文件**: `keystore.properties`
 - **问题**: 文件包含明文密码（`storePassword=jasmine2026`、`keyPassword=jasmine2026`），已被提交到仓库。虽然 `.gitignore` 列出了该文件，但它已存在于工作树中。
 - **影响**: 任何有仓库访问权限的人都能看到发布签名凭据，应立即轮换密码并从 git 历史中移除。
+
+### CRITICAL 修复状态
+
+| 编号 | 状态 | 修复说明 |
+|------|------|---------|
+| C-01 | ✅ 已修复 | `minByOrNull` → `maxByOrNull` |
+| C-02 | ✅ 已修复 | `onFailure` 正确调用 `completeExceptionally` |
+| C-03 | ✅ 已修复 | 过滤所有字段的 `\r\n` 注入字符 |
+| C-04 | ✅ 已修复 | 枚举值改为实际存在的 `SIMPLE_LOOP`/`SEQUENTIAL`/`AUTO_SELECT_FOR_TASK` |
+| C-05 | ✅ 已修复 | `if (removed)` → `if (removed != null)` |
+| C-06 | ✅ 已修复 | 三个文件均已添加 `package` 声明 |
+| C-07 | ✅ 已修复 | `deserializeCheckpoint` 正确读取 `properties` map |
+| C-08 | ✅ 误报 | `keystore.properties` 在 `.gitignore` 中且从未被 git 追踪 |
 
 ---
 
@@ -300,5 +327,45 @@
 - **文件**: `jasmine-core/assistant/assistant-scheduler/.../TaskScheduler.kt` 第70-100行
 - **问题**: `imap.logout()` 仅在无异常时到达。catch 块吞掉所有异常但不调用 `imap.logout()`。此方法在60秒轮询循环中运行。
 - **影响**: IMAP 服务器间歇性故障时，每分钟泄漏一个 TCP/TLS 连接。
+
+### HIGH 修复状态
+
+| 编号 | 状态 | 修复说明 |
+|------|------|---------|
+| H-01 | ✅ 已修复 | `continuation.resume(Unit)` 前 `streamScope.cancel()`，4个客户端统一修复 |
+| H-02 | ✅ 已修复 | 所有 `resume`/`resumeWithException` 调用点添加 `isActive` 守卫 |
+| H-03 | ✅ 已修复 | `systemPrompt` 插入 JSON 前转义 `\ " \r \n \t` |
+| H-04 | ✅ 已修复 | `ensureSession` 添加 `@Synchronized` + `@Volatile` |
+| H-05 | ✅ 已修复 | `@Transaction` 移至 `@Dao` 接口的方法 |
+| H-06 | ✅ 已修复 | `emitJsEvent` 缓冲区满时已正确 `resumeWithException` |
+| H-07 | ✅ 已修复 | `validateUrl` 改为检查 `uri.path.startsWith("/android_asset/")` |
+| H-08 | ✅ 已修复 | `buildJsPollScript` 增加 `\r` `\n` 转义 |
+| H-09 | ✅ 已修复 | `executeSkill` 添加 `withContext(Dispatchers.Main)` |
+| H-10 | ✅ 已修复 | `mapIndexed` 正确使用原始 `call.id` |
+| H-11 | ✅ 已修复 | `exportSchema = true` + `ksp arg("room.schemaLocation")` |
+| H-12 | ✅ 已修复 | 所有方法用 `synchronized(lock)` 保护 `_providers` 访问 |
+| H-13 | ✅ 已修复 | `CompletableFuture.supplyAsync` 异步排空输出，`get(30s)` + 超时降级 |
+| H-14 | ⚠️ 已缓解 | 正则词边界匹配 + `blacklist` 参数生效 + 默认 `MANUAL` 策略 |
+| H-15 | ✅ 已修复 | `NetworkInterceptor` 验证每次请求（含重定向）的 host |
+| H-16 | ✅ 已修复 | 代码已重构为正确逗号位置，无 `deleteCharAt` 调用 |
+| H-17 | ✅ 已修复 | `reconnect()` 用 `mutex.withLock` 包裹 |
+| H-18 | ✅ 已修复 | MCP 禁用时 `connecting = false` 再返回 |
+| H-19 | ✅ 已修复 | 18个文件 `startsWith(base.path)` → `startsWith(base.path + File.separator) && resolved != base` |
+| H-20 | ✅ 已修复 | `writer` 写入操作包裹 `synchronized(writer)` |
+| H-21 | ✅ 已修复 | `timeFormat.format()` 用 `synchronized(timeFormat)` 保护 |
+| H-22 | ✅ 已修复 | 正确计数连续反斜杠：偶数=结束引号，奇数=转义引号 |
+| H-23 | ✅ 已修复 | `ensureVersionInitialized()` 从 `getLatestCheckpoint` 恢复版本号 |
+| H-24 | ✅ 已修复 | `uninstall()` 正确清理全部5个事件处理器 map |
+| H-25 | ✅ 已修复 | `AndroidSandboxController` 接受注入的 `LinuxSandboxManager` 单例 |
+| H-26 | ✅ 已修复 | 两个工具共享同一个 `ProcessManager` 实例 |
+| H-27 | ✅ 已修复 | `getExecutor()` 检测 `isShutdown` 并重建 |
+| H-28 | ✅ 已修复 | `exceptionCause().orElse(null)` 替代 `.get()` |
+| H-29 | ✅ 已修复 | 改用 `licenseBytes.copyOfRange()` byte索引替代 String char索引 |
+| H-30 | ✅ 已修复 | `loadLicenses()` 异常路径 emit `LicensesUiState(error=...)` |
+| H-31 | ✅ 已修复 | IO操作 `withContext(ioDispatcher)`，回调在 Main 线程执行 |
+| H-32 | ✅ 已修复 | 硬链接 `linkTarget.canonicalPath` 检查是否在 `targetDirCanonical` 内 |
+| H-33 | ✅ 已修复 | 移除所有 `TextDirection.Ltr` 和 `TextAlign.Left` 硬编码 |
+| H-34 | ✅ 已修复 | catch 块 emit `Success(UserData(...))` 使用默认值 |
+| H-35 | ✅ 已修复 | 嵌套 try-finally 确保 `imap.logout()` 始终执行 |
 
 <!-- PLACEHOLDER_MEDIUM -->
