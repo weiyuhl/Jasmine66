@@ -235,7 +235,8 @@ open class GeminiClient(
                 val requestBody = json.encodeToString(request)
                     .toRequestBody("application/json".toMediaType())
                 
-                val url = "${baseUrl}${streamPath.replace("{model}", model)}?alt=sse"
+                val encodedModel = java.net.URLEncoder.encode(model, "UTF-8")
+                val url = "${baseUrl}${streamPath.replace("{model}", encodedModel)}?alt=sse"
                 val httpRequest = Request.Builder()
                     .url(url)
                     .addHeader("Content-Type", "application/json")

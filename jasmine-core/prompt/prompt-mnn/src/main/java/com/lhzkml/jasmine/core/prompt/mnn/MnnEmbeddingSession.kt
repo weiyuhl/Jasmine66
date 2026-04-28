@@ -7,13 +7,14 @@ import android.util.Log
  */
 class MnnEmbeddingSession(private val modelPath: String) {
 
-    private var nativePtr: Long = 0
-    private var isInitialized = false
+    @Volatile private var nativePtr: Long = 0
+    @Volatile private var isInitialized = false
 
     companion object {
         private const val TAG = "MnnEmbeddingSession"
     }
 
+    @Synchronized
     fun init(): Boolean {
         if (!MnnBridge.isAvailable()) {
             Log.e(TAG, "MNN not available")
@@ -45,6 +46,7 @@ class MnnEmbeddingSession(private val modelPath: String) {
         }
     }
 
+    @Synchronized
     fun release() {
         if (nativePtr != 0L) {
             nativeRelease(nativePtr)

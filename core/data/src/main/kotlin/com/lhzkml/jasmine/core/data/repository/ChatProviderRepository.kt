@@ -43,9 +43,11 @@ class ChatProviderRepository @Inject constructor(
                     is Boolean -> editor.putBoolean(key, value as Boolean)
                 }
             }
-            editor.apply()
-            // Wipe old plaintext data after successful migration
-            oldPrefs.edit().clear().apply()
+            // commit() 同步写入，确保数据持久化后再清除旧数据
+            val success = editor.commit()
+            if (success) {
+                oldPrefs.edit().clear().commit()
+            }
         }
         encryptedPrefs
     }

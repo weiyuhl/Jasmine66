@@ -11,10 +11,10 @@
 | 严重程度 | 总数 | 已修复 | 已缓解 | 待修复 |
 |---------|------|--------|--------|--------|
 | CRITICAL | 12 | 7 | 2 | 3 |
-| HIGH | 27 | 10 | 0 | 17 |
+| HIGH | 27 | 18 | 1 | 8 |
 | MEDIUM | 31 | 1 | 0 | 30 |
 | LOW | 25 | 0 | 0 | 25 |
-| **合计** | **95** | **18** | **2** | **75** |
+| **合计** | **95** | **26** | **3** | **66** |
 
 ---
 
@@ -130,25 +130,25 @@
 
 - **文件**: `jasmine-core/prompt/prompt-executor/.../GeminiClient.kt` 第238行
 - **问题**: model 参数直接拼入 URL 路径，含 `/`、`..`、`?` 等字符可篡改请求。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — URLEncoder.encode 编码
 
 ### H-05: OpenRouterClient author/slug 未编码
 
 - **文件**: `jasmine-core/prompt/prompt-executor/.../OpenRouterClient.kt` 第55行
 - **问题**: author 和 slug 直接拼入 URL，未做 URL 编码。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — URLEncoder.encode 编码
 
 ### H-06: MnnLlmSession 原生指针 use-after-free 风险
 
 - **文件**: `jasmine-core/prompt/prompt-mnn/.../MnnLlmSession.kt` 第12-13行
 - **问题**: `nativePtr` 非 `@Volatile`，`release()` 非 `@Synchronized`，并发调用可导致 SIGSEGV 崩溃。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — @Volatile + @Synchronized
 
 ### H-07: MnnEmbeddingSession 原生指针 use-after-free 风险
 
 - **文件**: `jasmine-core/prompt/prompt-mnn/.../MnnEmbeddingSession.kt` 第10-11行
 - **问题**: 同 H-06。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — @Volatile + @Synchronized
 
 ### H-08: ChatClientRouter clients HashMap 无同步
 
@@ -166,13 +166,13 @@
 
 - **文件**: `jasmine-core/prompt/prompt-executor/.../VertexAIClient.kt` 第108-141行
 - **问题**: `@Volatile` 保证可见性但不保证原子性，并发过期时多个协程同时请求新 token。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — tokenMutex.withLock 序列化刷新
 
 ### H-11: MnnChatClient close() 与 chat() 竞态
 
 - **文件**: `jasmine-core/prompt/prompt-mnn/.../MnnChatClient.kt` 第199-207行
 - **问题**: `close()` 释放原生指针后 `chat()` 仍可能持有旧引用并调用 `generate()`。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — close() 添加 @Synchronized
 
 ### H-12: FetchUrlTool Response body 未关闭
 
@@ -220,13 +220,13 @@
 
 - **文件**: `core/data/.../util/ConnectivityManagerNetworkMonitor.kt` 第43-54行
 - **问题**: `mutableSetOf<Network>()` 在 NetworkCallback 中并发修改。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — Collections.synchronizedSet
 
 ### H-20: SkillManager importSkillFromUrl 无下载大小限制
 
 - **文件**: `core/domain/.../repository/SkillManager.kt` 第202-242行
 - **问题**: `URL(url).readText()` 无大小限制、无超时、无 Content-Type 验证。恶意服务器可发送超大响应导致 OOM。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 添加 1MB 大小限制 + 15s/30s 超时
 
 ### H-21: SkillManager importSkillFromUrl 并发竞态
 
@@ -250,25 +250,25 @@
 
 - **文件**: `core/data/.../repository/ChatProviderRepository.kt` 第34-49行
 - **问题**: `apply()` 异步写入旧 prefs，但 `clear().apply()` 可在写入完成前执行，进程被杀则数据丢失。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 改用 commit() 同步写入，成功后才清除旧数据
 
 ### H-25: RootfsDownloader.download() 阻塞调用线程
 
 - **文件**: `linux-sandbox/sandbox/.../RootfsDownloader.kt` 第23-51行
 - **问题**: 声明为 `suspend` 但同步调用 OkHttp `execute()`，未包裹 `withContext(Dispatchers.IO)`。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 包裹 withContext(Dispatchers.IO)
 
 ### H-26: MemoryStore getMemory() 重复声明
 
 - **文件**: `jasmine-core/assistant/assistant-memory/.../MemoryStore.kt` 第39, 43行
 - **问题**: `getMemory(key: String)` 声明了两次，Kotlin 编译错误。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 移除重复声明
 
 ### H-27: TaskStore updateTask() 未加锁
 
 - **文件**: `jasmine-core/assistant/assistant-scheduler/.../TaskStore.kt` 第65-67行
 - **问题**: 直接 put 到 ConcurrentHashMap，无 mutex 保护，并发更新可丢失。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 改为 suspend fun + mutex.withLock
 
 ---
 

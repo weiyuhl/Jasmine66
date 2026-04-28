@@ -40,7 +40,7 @@ internal class ConnectivityManagerNetworkMonitor @Inject constructor(
              */
             val callback = object : NetworkCallback() {
 
-                private val networks = mutableSetOf<Network>()
+                private val networks = java.util.Collections.synchronizedSet(mutableSetOf<Network>())
 
                 override fun onAvailable(network: Network) {
                     networks += network

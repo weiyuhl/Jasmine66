@@ -9,8 +9,8 @@ class MnnLlmSession(
     private val modelPath: String,
     private val config: MnnConfig = MnnConfig()
 ) {
-    private var nativePtr: Long = 0
-    private var isInitialized = false
+    @Volatile private var nativePtr: Long = 0
+    @Volatile private var isInitialized = false
     
     companion object {
         private const val TAG = "MnnLlmSession"
@@ -19,6 +19,7 @@ class MnnLlmSession(
     /**
      * 初始化 LLM 会话
      */
+    @Synchronized
     fun init(): Boolean {
         if (!MnnBridge.isAvailable()) {
             Log.e(TAG, "MNN not available")
@@ -73,6 +74,7 @@ class MnnLlmSession(
     /**
      * 释放资源
      */
+    @Synchronized
     fun release() {
         if (isInitialized && nativePtr != 0L) {
             nativeRelease(nativePtr)

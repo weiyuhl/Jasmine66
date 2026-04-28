@@ -215,7 +215,16 @@ class SkillManager @Inject constructor(
                 )
             }
 
-            val content = URL(url).readText()
+            // 限制下载大小防止 OOM（最大 1MB）
+            val connection = URL(url).openConnection()
+            connection.connectTimeout = 15_000
+            connection.readTimeout = 30_000
+            val inputStream = connection.getInputStream()
+            val bytes = inputStream.use { it.readBytes() }
+            if (bytes.size > 1_048_576) {
+                return@withContext Result.failure(Exception("技能文件过大（最大 1MB）"))
+            }
+            val content = String(bytes, Charsets.UTF_8)
             val (skillProto, errors) = convertSkillMdToProto(
                 content, builtIn = false, selected = true, skillUrl = url
             )

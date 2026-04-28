@@ -40,8 +40,6 @@ class MemoryStore {
 
     fun getAllMemories(): List<MemoryEntry> = memories.values.toList()
 
-    fun getMemory(key: String): MemoryEntry? = memories[key]
-
     /**
      * 获取推荐晋升的记忆（被多次强化过的模式）
      */

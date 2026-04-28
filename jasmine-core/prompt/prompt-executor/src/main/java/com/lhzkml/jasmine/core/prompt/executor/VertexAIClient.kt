@@ -89,6 +89,7 @@ class VertexAIClient(
 
     @Volatile private var cachedToken: String? = null
     @Volatile private var tokenExpiresAt: Long = 0L
+    private val tokenMutex = kotlinx.coroutines.sync.Mutex()
 
     private val serviceAccount: ServiceAccountInfo by lazy {
         parseServiceAccountJson(serviceAccountJson)
@@ -105,10 +106,10 @@ class VertexAIClient(
         return ServiceAccountInfo(clientEmail, privateKey)
     }
 
-    private suspend fun getAccessToken(): String {
+    private suspend fun getAccessToken(): String = tokenMutex.withLock {
         val now = System.currentTimeMillis() / 1000
         cachedToken?.let { token ->
-            if (now < tokenExpiresAt - 60) return token
+            if (now < tokenExpiresAt - 60) return@withLock token
         }
         val signedJwt = createSignedJwt(now)
         
@@ -137,7 +138,7 @@ class VertexAIClient(
             ?: throw ChatClientException(provider.name, "token 响应缺少 access_token", ErrorType.AUTHENTICATION)
         cachedToken = accessToken
         tokenExpiresAt = now + TOKEN_LIFETIME_SECS
-        return accessToken
+        accessToken
     }
 
     private fun createSignedJwt(nowSecs: Long): String {

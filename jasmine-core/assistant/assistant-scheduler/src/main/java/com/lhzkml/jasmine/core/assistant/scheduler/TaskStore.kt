@@ -1,7 +1,5 @@
 package com.lhzkml.jasmine.core.assistant.scheduler
 
-package com.lhzkml.jasmine.core.assistant.scheduler
-
 import java.util.concurrent.ConcurrentHashMap
 import java.util.UUID
 import kotlinx.coroutines.sync.Mutex
@@ -62,7 +60,7 @@ class TaskStore {
         return tasks.values.filter { it.scheduledAtEpochMs <= now && it.status == TaskStatus.PENDING }
     }
 
-    fun updateTask(task: ScheduledTask) {
+    suspend fun updateTask(task: ScheduledTask) = mutex.withLock {
         tasks[task.id] = task
     }
 

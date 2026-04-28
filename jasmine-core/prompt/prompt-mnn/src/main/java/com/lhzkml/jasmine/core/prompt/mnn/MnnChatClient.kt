@@ -196,6 +196,7 @@ class MnnChatClient(
         session?.updateThinking(thinking)
     }
 
+    @Synchronized
     override fun close() {
         try {
             session?.release()

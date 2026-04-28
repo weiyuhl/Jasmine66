@@ -51,8 +51,10 @@ class OpenRouterClient(
     suspend fun getModelEndpoints(author: String, slug: String): ModelEndpointsResponse {
         return executeWithRetry(retryConfig) {
             try {
+                val encodedAuthor = java.net.URLEncoder.encode(author, "UTF-8")
+                val encodedSlug = java.net.URLEncoder.encode(slug, "UTF-8")
                 val httpRequest = Request.Builder()
-                    .url("${baseUrl}/v1/models/$author/$slug/endpoints")
+                    .url("${baseUrl}/v1/models/$encodedAuthor/$encodedSlug/endpoints")
                     .addHeader("Authorization", "Bearer $apiKey")
                     .get()
                     .build()
