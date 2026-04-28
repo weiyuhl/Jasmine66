@@ -232,93 +232,98 @@ open class ClaudeClient(
                 withContext(Dispatchers.IO) {
                     suspendCancellableCoroutine<Unit> { continuation ->
                         val call = httpClient.newCall(httpRequest)
-                        
+                        val streamScope = kotlinx.coroutines.CoroutineScope(
+                            continuation.context + kotlinx.coroutines.CoroutineName("claude-stream")
+                        )
+
                         continuation.invokeOnCancellation {
                             call.cancel()
                         }
-                        
+
                         call.enqueue(object : Callback {
                             override fun onFailure(call: Call, e: IOException) {
                                 continuation.resumeWithException(e)
                             }
 
                             override fun onResponse(call: Call, response: Response) {
-                                try {
-                                    if (!response.isSuccessful) {
-                                        val body = response.body?.string()
-                                        continuation.resumeWithException(
-                                            ChatClientException.fromStatusCode(provider.name, response.code, body)
-                                        )
-                                        return
-                                    }
+                                response.use { resp ->
+                                    try {
+                                        if (!resp.isSuccessful) {
+                                            val body = resp.body?.string()
+                                            continuation.resumeWithException(
+                                                ChatClientException.fromStatusCode(provider.name, resp.code, body)
+                                            )
+                                            return
+                                        }
 
-                                    response.body?.charStream()?.buffered()?.use { reader ->
-                                        reader.lineSequence().forEach { line ->
-                                            if (line.startsWith("data: ")) {
-                                                val data = line.substring(6).trim()
-                                                if (data.isEmpty()) return@forEach
-                                                
-                                                try {
-                                                    val event = json.decodeFromString<ClaudeStreamEvent>(data)
-                                                    when (event.type) {
-                                                        "message_start" -> {
-                                                            event.message?.usage?.let { inputTokens = it.inputTokens }
-                                                        }
-                                                        "content_block_start" -> {
-                                                            val idx = event.index ?: 0
-                                                            currentBlockIndex = idx
-                                                            val block = event.contentBlock
-                                                            currentBlockType = block?.type ?: "text"
-                                                            if (currentBlockType == "tool_use") {
-                                                                toolCallAccumulator[idx] = Triple(
-                                                                    block?.id ?: "",
-                                                                    block?.name ?: "",
-                                                                    StringBuilder()
-                                                                )
+                                        resp.body?.charStream()?.buffered()?.use { reader ->
+                                            reader.lineSequence().forEach { line ->
+                                                if (line.startsWith("data: ")) {
+                                                    val data = line.substring(6).trim()
+                                                    if (data.isEmpty()) return@forEach
+
+                                                    try {
+                                                        val event = json.decodeFromString<ClaudeStreamEvent>(data)
+                                                        when (event.type) {
+                                                            "message_start" -> {
+                                                                event.message?.usage?.let { inputTokens = it.inputTokens }
                                                             }
-                                                        }
-                                                        "content_block_delta" -> {
-                                                            val delta = event.delta
-                                                            if (delta != null) {
-                                                                when (delta.type) {
-                                                                    "text_delta" -> {
-                                                                        val text = delta.text
-                                                                        if (!text.isNullOrEmpty()) {
-                                                                            fullContent.append(text)
-                                                                            kotlinx.coroutines.runBlocking { onChunk(text) }
+                                                            "content_block_start" -> {
+                                                                val idx = event.index ?: 0
+                                                                currentBlockIndex = idx
+                                                                val block = event.contentBlock
+                                                                currentBlockType = block?.type ?: "text"
+                                                                if (currentBlockType == "tool_use") {
+                                                                    toolCallAccumulator[idx] = Triple(
+                                                                        block?.id ?: "",
+                                                                        block?.name ?: "",
+                                                                        StringBuilder()
+                                                                    )
+                                                                }
+                                                            }
+                                                            "content_block_delta" -> {
+                                                                val delta = event.delta
+                                                                if (delta != null) {
+                                                                    when (delta.type) {
+                                                                        "text_delta" -> {
+                                                                            val text = delta.text
+                                                                            if (!text.isNullOrEmpty()) {
+                                                                                fullContent.append(text)
+                                                                                streamScope.launch(kotlinx.coroutines.Dispatchers.Main) { onChunk(text) }
+                                                                            }
                                                                         }
-                                                                    }
-                                                                    "thinking_delta" -> {
-                                                                        val text = delta.thinking
-                                                                        if (!text.isNullOrEmpty()) {
-                                                                            thinkingContent.append(text)
-                                                                            kotlinx.coroutines.runBlocking { onThinking(text) }
+                                                                        "thinking_delta" -> {
+                                                                            val text = delta.thinking
+                                                                            if (!text.isNullOrEmpty()) {
+                                                                                thinkingContent.append(text)
+                                                                                streamScope.launch(kotlinx.coroutines.Dispatchers.Main) { onThinking(text) }
+                                                                            }
                                                                         }
-                                                                    }
-                                                                    "input_json_delta" -> {
-                                                                        val partial = delta.partialJson
-                                                                        if (!partial.isNullOrEmpty()) {
-                                                                            toolCallAccumulator[currentBlockIndex]?.let { (_, _, args) ->
-                                                                                args.append(partial)
+                                                                        "input_json_delta" -> {
+                                                                            val partial = delta.partialJson
+                                                                            if (!partial.isNullOrEmpty()) {
+                                                                                toolCallAccumulator[currentBlockIndex]?.let { (_, _, args) ->
+                                                                                    args.append(partial)
+                                                                                }
                                                                             }
                                                                         }
                                                                     }
                                                                 }
                                                             }
+                                                            "message_delta" -> {
+                                                                event.usage?.let { outputTokens = it.outputTokens }
+                                                                event.delta?.stopReason?.let { stopReason = it }
+                                                            }
                                                         }
-                                                        "message_delta" -> {
-                                                            event.usage?.let { outputTokens = it.outputTokens }
-                                                            event.delta?.stopReason?.let { stopReason = it }
-                                                        }
-                                                    }
-                                                } catch (_: Exception) { }
+                                                    } catch (_: Exception) { }
+                                                }
                                             }
                                         }
+
+                                        continuation.resume(Unit)
+                                    } catch (e: Exception) {
+                                        continuation.resumeWithException(e)
                                     }
-                                    
-                                    continuation.resume(Unit)
-                                } catch (e: Exception) {
-                                    continuation.resumeWithException(e)
                                 }
                             }
                         })
@@ -394,6 +399,7 @@ open class ClaudeClient(
     }
 
     override fun close() {
+        httpClient.dispatcher.cancelAll()
         httpClient.dispatcher.executorService.shutdown()
         httpClient.connectionPool.evictAll()
     }

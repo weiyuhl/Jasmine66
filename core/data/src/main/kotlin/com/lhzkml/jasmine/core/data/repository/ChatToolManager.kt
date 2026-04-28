@@ -78,7 +78,7 @@ class ChatToolManager @Inject constructor(
         val sm = sandboxManager ?: return
         val pm = processManager ?: return
         registerTool(ExecuteShellCommandTool(sm, pm))
-        registerTool(ManageProcessTool(sm))
+        registerTool(ManageProcessTool(sm, pm))
     }
 
     private fun registerTool(tool: Tool) {

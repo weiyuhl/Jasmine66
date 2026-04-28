@@ -16,12 +16,19 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class ToolResultInfo(
+    val toolCallId: String,
+    val toolName: String,
+    val content: String,
+)
+
 data class UiChatMessage(
     val role: String,
     val content: String,
     val isStreaming: Boolean = false,
     val thinking: String? = null,
     val toolCalls: List<ToolCallInfo> = emptyList(),
+    val toolResults: List<ToolResultInfo> = emptyList(),
     // Image and Media attributes migrated natively from Gallery (IMAGE / IMAGE_WITH_HISTORY)
     val bitmaps: List<android.graphics.Bitmap> = emptyList(),
     val imageBitMaps: List<androidx.compose.ui.graphics.ImageBitmap> = emptyList(),
@@ -69,6 +76,7 @@ class ChatViewModel @Inject constructor(
     val providerSetupState: StateFlow<String> = clientManager.setupState
 
     private var streamJob: Job? = null
+    private var streamGeneration = 0
 
     init {
         viewModelScope.launch {
@@ -118,6 +126,7 @@ class ChatViewModel @Inject constructor(
         _toolCallEvents.value = emptyList()
 
         streamJob?.cancel()
+        val thisGen = ++streamGeneration
         streamJob = viewModelScope.launch {
             try {
                 val userData = userDataRepository.userData.first()
@@ -162,11 +171,13 @@ class ChatViewModel @Inject constructor(
                     uiEnabled = userData.uiEnabled,
                     webSearchEnabled = userData.webSearchEnabled,
                 )
+                val toolResults = buildToolResultsFromEvents(result.toolCalls)
                 updateLastAssistant {
                     it.copy(
                         isStreaming = false,
                         thinking = result.thinking ?: it.thinking,
                         toolCalls = result.toolCalls,
+                        toolResults = toolResults,
                     )
                 }
             } catch (e: CancellationException) {
@@ -177,7 +188,9 @@ class ChatViewModel @Inject constructor(
                 com.lhzkml.jasmine.core.data.log.FileLogger.logError("ChatViewModel", "UI callback failed: $errorMsg", e)
                 updateLastAssistant { it.copy(isStreaming = false) }
             } finally {
-                _isChatRunning.value = false
+                if (thisGen == streamGeneration) {
+                    _isChatRunning.value = false
+                }
             }
         }
     }
@@ -206,6 +219,7 @@ class ChatViewModel @Inject constructor(
         val history = buildApiMessages()
 
         streamJob?.cancel()
+        val thisGen = ++streamGeneration
         streamJob = viewModelScope.launch {
             try {
                 val userData = userDataRepository.userData.first()
@@ -250,11 +264,13 @@ class ChatViewModel @Inject constructor(
                     uiEnabled = userData.uiEnabled,
                     webSearchEnabled = userData.webSearchEnabled,
                 )
+                val toolResults = buildToolResultsFromEvents(result.toolCalls)
                 updateLastAssistant {
                     it.copy(
                         isStreaming = false,
                         thinking = result.thinking ?: it.thinking,
                         toolCalls = result.toolCalls,
+                        toolResults = toolResults,
                     )
                 }
                 if (_errorMessage.value?.contains("续传") == true) {
@@ -281,7 +297,9 @@ class ChatViewModel @Inject constructor(
                 }
                 com.lhzkml.jasmine.core.data.log.FileLogger.logError("ChatViewModel", "Chat request failed: $errorMsg\nFull exception: ${e}\nCause: ${e.cause}", e)
             } finally {
-                _isChatRunning.value = false
+                if (thisGen == streamGeneration) {
+                    _isChatRunning.value = false
+                }
             }
         }
     }
@@ -302,14 +320,16 @@ class ChatViewModel @Inject constructor(
     private fun buildApiMessages(): List<SimpleChatMessage> {
         val current = _messages.value
         if (current.isEmpty()) return emptyList()
-        
+
         val history = if (current.last().role == "assistant" && current.last().content.isEmpty()) {
             current.dropLast(1)
         } else {
             current
         }
-        
-        return history.map { msg ->
+
+        return history.flatMap { msg ->
+            val messages = mutableListOf<SimpleChatMessage>()
+
             val toolCalls = if (msg.toolCalls.isNotEmpty()) {
                 msg.toolCalls.map { tc ->
                     com.lhzkml.jasmine.core.data.model.ToolCallInfo(
@@ -321,10 +341,36 @@ class ChatViewModel @Inject constructor(
             } else {
                 null
             }
-            SimpleChatMessage(
+
+            messages.add(SimpleChatMessage(
                 role = msg.role,
                 content = msg.content,
                 toolCalls = toolCalls,
+            ))
+
+            // Emit tool result messages so the model sees what its tools returned.
+            for (tr in msg.toolResults) {
+                messages.add(SimpleChatMessage(
+                    role = "tool",
+                    content = tr.content,
+                    toolCallId = tr.toolCallId,
+                    toolName = tr.toolName,
+                ))
+            }
+
+            messages
+        }
+    }
+
+    private fun buildToolResultsFromEvents(toolCalls: List<ToolCallInfo>): List<ToolResultInfo> {
+        val events = _toolCallEvents.value
+        if (events.isEmpty()) return emptyList()
+        return events.filter { !it.isRunning && it.result != null }.map { event ->
+            val matchingCall = toolCalls.find { it.name == event.toolName }
+            ToolResultInfo(
+                toolCallId = matchingCall?.id ?: "unknown_${event.toolName}",
+                toolName = event.toolName,
+                content = event.result ?: "",
             )
         }
     }

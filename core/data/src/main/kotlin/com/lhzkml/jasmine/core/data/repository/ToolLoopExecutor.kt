@@ -13,8 +13,8 @@ import com.lhzkml.jasmine.core.prompt.model.ToolDescriptor
 import com.lhzkml.jasmine.core.prompt.model.ToolResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
@@ -150,19 +150,35 @@ class ToolLoopExecutor @Inject constructor(
         toolCalls: List<ToolCall>,
         onToolCallStart: suspend (String, String) -> Unit,
         onToolCallResult: suspend (String, String) -> Unit,
-    ): List<ToolResult> = coroutineScope {
+    ): List<ToolResult> = supervisorScope {
         toolCalls.map { call ->
             async {
                 onToolCallStart(call.name, call.arguments)
-                val result = withContext(Dispatchers.IO) {
-                    withTimeout(120.seconds) {
-                        toolManager.execute(call)
+                val result = try {
+                    withContext(Dispatchers.IO) {
+                        withTimeout(120.seconds) {
+                            toolManager.execute(call)
+                        }
                     }
+                } catch (e: Exception) {
+                    ToolResult(
+                        toolCallId = call.id,
+                        toolName = call.name,
+                        content = "Error: ${e.message}",
+                    )
                 }
                 onToolCallResult(call.name, result.content)
                 result
             }
-        }.awaitAll()
+        }.map { deferred ->
+            runCatching { deferred.await() }.getOrDefault(
+                ToolResult(
+                    toolCallId = "error",
+                    toolName = "unknown",
+                    content = "Tool execution failed",
+                )
+            )
+        }
     }
 
     suspend fun streamWithoutTools(

@@ -45,6 +45,17 @@ class ProotExecutor(
         private val ioExecutor: ExecutorService = Executors.newCachedThreadPool { r ->
             Thread(r, "proot-io").apply { isDaemon = true }
         }
+
+        fun shutdown() {
+            ioExecutor.shutdown()
+            try {
+                if (!ioExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    ioExecutor.shutdownNow()
+                }
+            } catch (_: InterruptedException) {
+                ioExecutor.shutdownNow()
+            }
+        }
     }
 
     fun execute(
@@ -92,10 +103,10 @@ class ProotExecutor(
             baseArgs.add("--bind=/dev/shm")
         }
 
-        // Host filesystem access — bind the Android root as /host-rootfs
+        // Host filesystem access — bind the Android root as /host-rootfs (read-only)
         // so users can access /sdcard, /data, etc. from inside the chroot.
         // e.g. `ls /host-rootfs/sdcard/` shows Android's shared storage.
-        baseArgs.add("--bind=/:/host-rootfs")
+        baseArgs.add("--bind=/:/host-rootfs:ro")
 
         // External storage — full read/write access when permission granted.
         if (hasExternalStorageAccess) {
@@ -131,8 +142,9 @@ class ProotExecutor(
 
         val envVars = (baseEnv + extraEnv.map { (k, v) -> "$k=$v" }).toTypedArray()
 
+        var process: Process? = null
         return try {
-            val process = Runtime.getRuntime().exec(processArgs, envVars, File(rootfsPath).parentFile)
+            process = Runtime.getRuntime().exec(processArgs, envVars, File(rootfsPath).parentFile)
 
             val stdoutFuture = CompletableFuture.supplyAsync({
                 readBounded(process.inputStream.bufferedReader())
@@ -145,10 +157,12 @@ class ProotExecutor(
 
             if (!completed) {
                 process.destroyForcibly()
+                val stdout = tryGet(stdoutFuture).smartTruncate(MAX_OUTPUT_LENGTH)
+                val stderr = tryGet(stderrFuture).smartTruncate(MAX_OUTPUT_LENGTH)
                 return mapOf(
                     "success" to false,
-                    "stdout" to stdoutFuture.get(1, TimeUnit.SECONDS).smartTruncate(MAX_OUTPUT_LENGTH),
-                    "stderr" to stderrFuture.get(1, TimeUnit.SECONDS).smartTruncate(MAX_OUTPUT_LENGTH),
+                    "stdout" to stdout,
+                    "stderr" to stderr,
                     "exit_code" to -1,
                     "timed_out" to true,
                 )
@@ -162,10 +176,19 @@ class ProotExecutor(
                 "timed_out" to false,
             )
         } catch (e: Exception) {
+            process?.destroyForcibly()
             mapOf(
                 "success" to false,
                 "error" to (e.message ?: "Failed to execute command in sandbox"),
             )
+        }
+    }
+
+    private fun tryGet(future: java.util.concurrent.Future<String>): String {
+        return try {
+            future.get(1, TimeUnit.SECONDS)
+        } catch (_: Exception) {
+            ""
         }
     }
 

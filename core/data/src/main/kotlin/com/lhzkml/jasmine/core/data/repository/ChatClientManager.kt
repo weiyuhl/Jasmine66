@@ -137,8 +137,9 @@ class ChatClientManager @Inject constructor(
         uiEnabled: Boolean = true,
         webSearchEnabled: Boolean = true,
     ): StreamChatResult {
-        val client = stateMutex.withLock {
-            chatClient ?: throw IllegalStateException("Send failed: ${_setupState.value}")
+        val (client, ctxManager) = stateMutex.withLock {
+            val c = chatClient ?: throw IllegalStateException("Send failed: ${_setupState.value}")
+            c to contextManager
         }
 
         val allTools = toolManager.descriptors()
@@ -161,7 +162,7 @@ class ChatClientManager @Inject constructor(
                 messages = apiMessages,
                 model = model,
                 samplingParams = samplingParams,
-                contextManager = contextManager,
+                contextManager = ctxManager,
                 onChunk = onChunk,
                 onThinking = onThinking,
                 onResumeAttempt = onResumeAttempt,
@@ -173,7 +174,7 @@ class ChatClientManager @Inject constructor(
                 model = model,
                 samplingParams = samplingParams,
                 tools = tools,
-                contextManager = contextManager,
+                contextManager = ctxManager,
                 onChunk = onChunk,
                 onThinking = onThinking,
                 onResumeAttempt = onResumeAttempt,

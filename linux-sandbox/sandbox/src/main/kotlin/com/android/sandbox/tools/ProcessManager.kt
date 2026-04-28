@@ -97,10 +97,12 @@ class ProcessManager(private val sandboxManager: LinuxSandboxManager) {
         session.exitCode = -1
         session.timedOut = true
 
-        // Attempt to kill the actual command via pkill inside the sandbox
+        // Attempt to kill the actual command via pkill inside the sandbox.
+        // Escape single quotes in the command to prevent shell injection.
+        val escaped = session.command.replace("'", "'\"'\"'").take(200)
         try {
             val exec = sandboxManager.createProotExecutor()
-            exec.execute("pkill -f '${session.command.take(80)}'", timeoutSeconds = 5L)
+            exec.execute("pkill -f '$escaped'", timeoutSeconds = 5L)
         } catch (_: Exception) { }
 
         return mapOf("success" to true, "message" to "Process terminated")

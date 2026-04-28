@@ -34,30 +34,53 @@ data class ShellPolicyConfig(
     val whitelist: List<String> = DEFAULT_WHITELIST
 ) {
     companion object {
+        // Blacklist uses word-boundary patterns to prevent bypass via
+        // path prefixes (e.g. /bin/rm) or alternative flags (e.g. chmod 0777).
+        private val BLACKLIST_PATTERNS = listOf(
+            Regex("\\brm\\b"),           // rm, /bin/rm, busybox rm
+            Regex("\\brmdir\\b"),        // rmdir
+            Regex("\\bdd\\b"),           // dd if=...
+            Regex("\\bshutdown\\b"),     // shutdown
+            Regex("\\breboot\\b"),       // reboot
+            Regex("\\bmkfs\\b"),         // mkfs
+            Regex("\\bformat\\b"),       // format
+            Regex("\\bchmod\\b.*\\b777\\b"),  // chmod 777 or chmod 0777
+            Regex("\\bchmod\\b.*\\ba\\+rwx\\b"), // chmod a+rwx
+            Regex("\\bchmod\\b.*ug\\+rw"),  // chmod ug+rw
+            Regex(">/dev/"),             // redirect to /dev/
+            Regex("\\bdangerous\\b"),    // dangerous (placeholder for future extension)
+        )
+
         val DEFAULT_BLACKLIST = listOf(
-            "rm ", "rm -", "rmdir", "del ", "format", "mkfs",
-            "dd ", "shutdown", "reboot", "> /dev/", "chmod 777"
+            "rm ", "rmdir", "dd ", "shutdown", "reboot", "mkfs", "format",
+            "chmod 777", "chmod 0777", "> /dev/"
         )
         val DEFAULT_WHITELIST = listOf(
-            "ls", "pwd", "cat ", "echo ", "git ", "find ",
+            "ls", "pwd", "cat ", "echo ", "git ",
             "grep ", "head ", "tail ", "wc ", "which ", "whoami"
         )
+        // Note: "find" intentionally excluded from whitelist because
+        // `find ... -exec` can execute arbitrary commands.
     }
 
     fun needsConfirmation(command: String): Boolean {
-        val cmdLower = command.lowercase(Locale.getDefault())
         return when (policy) {
             ShellPolicy.MANUAL -> true
-            ShellPolicy.BLACKLIST -> {
-                blacklist.any { keyword ->
-                    cmdLower.contains(keyword.lowercase(Locale.getDefault()))
-                }
-            }
-            ShellPolicy.WHITELIST -> {
-                !whitelist.any { keyword ->
-                    cmdLower.startsWith(keyword.lowercase(Locale.getDefault()))
-                }
-            }
+            ShellPolicy.BLACKLIST -> isBlacklisted(command)
+            ShellPolicy.WHITELIST -> !isWhitelisted(command)
+        }
+    }
+
+    private fun isBlacklisted(command: String): Boolean {
+        // Use regex-based patterns with word boundaries for robust matching.
+        val normalized = command.trim().lowercase(Locale.getDefault())
+        return BLACKLIST_PATTERNS.any { it.containsMatchIn(normalized) }
+    }
+
+    private fun isWhitelisted(command: String): Boolean {
+        val cmdLower = command.trim().lowercase(Locale.getDefault())
+        return whitelist.any { keyword ->
+            cmdLower.startsWith(keyword.lowercase(Locale.getDefault()))
         }
     }
 }

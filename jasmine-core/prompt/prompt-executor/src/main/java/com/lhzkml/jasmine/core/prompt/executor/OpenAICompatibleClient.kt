@@ -250,87 +250,78 @@ abstract class OpenAICompatibleClient(
                 withContext(Dispatchers.IO) {
                     suspendCancellableCoroutine<Unit> { continuation ->
                         val call = httpClient.newCall(httpRequest)
-                        
+                        val streamScope = kotlinx.coroutines.CoroutineScope(
+                            continuation.context + kotlinx.coroutines.CoroutineName("openai-stream")
+                        )
+
                         continuation.invokeOnCancellation {
                             call.cancel()
                         }
-                        
+
                         call.enqueue(object : Callback {
                             override fun onFailure(call: Call, e: IOException) {
                                 continuation.resumeWithException(e)
                             }
 
                             override fun onResponse(call: Call, response: Response) {
-                                try {
-                                    if (!response.isSuccessful) {
-                                        val body = response.body?.string() ?: ""
-                                        android.util.Log.e("OpenAICompat", "API error: code=${response.code}, body=$body")
-                                        val logMsg = buildString {
-                                            appendLine("=== API Error Response ===")
-                                            appendLine("URL: ${baseUrl}${chatPath}")
-                                            appendLine("Status: ${response.code}")
-                                            appendLine("Request model: $model")
-                                            appendLine("Stream: true")
-                                            if (tools.isNotEmpty()) {
-                                                appendLine("Tools: ${tools.map { it.name }}")
-                                            }
-                                            appendLine("Response Body:")
-                                            appendLine(body)
-                                            appendLine("=== End API Error Response ===")
+                                response.use { resp ->
+                                    try {
+                                        if (!resp.isSuccessful) {
+                                            val body = resp.body?.string() ?: ""
+                                            android.util.Log.e("OpenAICompat", "API error: code=${resp.code}, body=${safeLogTruncate(body)}")
+                                            continuation.resumeWithException(
+                                                ChatClientException.fromStatusCode(provider.name, resp.code, body)
+                                            )
+                                            return
                                         }
-                                        android.util.Log.e("API_Error_Log", logMsg)
-                                        continuation.resumeWithException(
-                                            ChatClientException.fromStatusCode(provider.name, response.code, body)
-                                        )
-                                        return
-                                    }
 
-                                    response.body?.charStream()?.buffered()?.use { reader ->
-                                        reader.lineSequence().forEach { line ->
-                                            if (line.startsWith("data: ")) {
-                                                val data = line.substring(6).trim()
-                                                if (data == "[DONE]") return@forEach
-                                                
-                                                try {
-                                                    val chunk = json.decodeFromString<ChatStreamResponse>(data)
-                                                    if (chunk.usage != null) lastUsage = chunk.usage
-                                                    val firstChoice = chunk.choices.firstOrNull()
-                                                    if (firstChoice?.finishReason != null) lastFinishReason = firstChoice.finishReason
-                                                    
-                                                    val content = firstChoice?.delta?.content
-                                                    if (!content.isNullOrEmpty()) {
-                                                        fullContent.append(content)
-                                                        kotlinx.coroutines.runBlocking { onChunk(content) }
-                                                    }
-                                                    
-                                                    val reasoning = firstChoice?.delta?.reasoningContent
-                                                    if (!reasoning.isNullOrEmpty()) {
-                                                        thinkingContent.append(reasoning)
-                                                        kotlinx.coroutines.runBlocking { onThinking(reasoning) }
-                                                    }
-                                                    
-                                                    firstChoice?.delta?.toolCalls?.forEach { stc ->
-                                                        val tcId = stc.id
-                                                        if (tcId != null) {
-                                                            toolCallAccumulator[stc.index] = Triple(
-                                                                tcId,
-                                                                stc.function?.name ?: "",
-                                                                StringBuilder(stc.function?.arguments ?: "")
-                                                            )
-                                                        } else {
-                                                            toolCallAccumulator[stc.index]?.let { (_, _, args) ->
-                                                                args.append(stc.function?.arguments ?: "")
+                                        resp.body?.charStream()?.buffered()?.use { reader ->
+                                            reader.lineSequence().forEach { line ->
+                                                if (line.startsWith("data: ")) {
+                                                    val data = line.substring(6).trim()
+                                                    if (data == "[DONE]") return@forEach
+
+                                                    try {
+                                                        val chunk = json.decodeFromString<ChatStreamResponse>(data)
+                                                        if (chunk.usage != null) lastUsage = chunk.usage
+                                                        val firstChoice = chunk.choices.firstOrNull()
+                                                        if (firstChoice?.finishReason != null) lastFinishReason = firstChoice.finishReason
+
+                                                        val content = firstChoice?.delta?.content
+                                                        if (!content.isNullOrEmpty()) {
+                                                            fullContent.append(content)
+                                                            streamScope.launch(kotlinx.coroutines.Dispatchers.Main) { onChunk(content) }
+                                                        }
+
+                                                        val reasoning = firstChoice?.delta?.reasoningContent
+                                                        if (!reasoning.isNullOrEmpty()) {
+                                                            thinkingContent.append(reasoning)
+                                                            streamScope.launch(kotlinx.coroutines.Dispatchers.Main) { onThinking(reasoning) }
+                                                        }
+
+                                                        firstChoice?.delta?.toolCalls?.forEach { stc ->
+                                                            val tcId = stc.id
+                                                            if (tcId != null) {
+                                                                toolCallAccumulator[stc.index] = Triple(
+                                                                    tcId,
+                                                                    stc.function?.name ?: "",
+                                                                    StringBuilder(stc.function?.arguments ?: "")
+                                                                )
+                                                            } else {
+                                                                toolCallAccumulator[stc.index]?.let { (_, _, args) ->
+                                                                    args.append(stc.function?.arguments ?: "")
+                                                                }
                                                             }
                                                         }
-                                                    }
-                                                } catch (_: Exception) { }
+                                                    } catch (_: Exception) { }
+                                                }
                                             }
                                         }
+
+                                        continuation.resume(Unit)
+                                    } catch (e: Exception) {
+                                        continuation.resumeWithException(e)
                                     }
-                                    
-                                    continuation.resume(Unit)
-                                } catch (e: Exception) {
-                                    continuation.resumeWithException(e)
                                 }
                             }
                         })
@@ -412,5 +403,14 @@ abstract class OpenAICompatibleClient(
     override fun close() {
         httpClient.dispatcher.cancelAll()
         httpClient.connectionPool.evictAll()
+    }
+
+    companion object {
+        private const val MAX_LOG_BODY_LENGTH = 500
+
+        private fun safeLogTruncate(body: String): String {
+            return if (body.length <= MAX_LOG_BODY_LENGTH) body
+            else body.take(MAX_LOG_BODY_LENGTH) + "... [truncated, total=${body.length}]"
+        }
     }
 }

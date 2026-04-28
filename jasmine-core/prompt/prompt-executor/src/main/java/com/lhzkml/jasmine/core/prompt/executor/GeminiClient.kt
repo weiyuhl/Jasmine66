@@ -164,7 +164,7 @@ open class GeminiClient(
         return parts.mapNotNull { part ->
             part.functionCall?.let { fc ->
                 ToolCall(
-                    id = "gemini_${fc.name}_${System.nanoTime()}",
+                    id = "gemini_${fc.name}_${java.util.UUID.randomUUID()}",
                     name = fc.name,
                     arguments = fc.args?.toString() ?: "{}"
                 )
@@ -248,67 +248,72 @@ open class GeminiClient(
                 withContext(Dispatchers.IO) {
                     suspendCancellableCoroutine<Unit> { continuation ->
                         val call = httpClient.newCall(httpRequest)
-                        
+                        val streamScope = kotlinx.coroutines.CoroutineScope(
+                            continuation.context + kotlinx.coroutines.CoroutineName("gemini-stream")
+                        )
+
                         continuation.invokeOnCancellation {
                             call.cancel()
                         }
-                        
+
                         call.enqueue(object : Callback {
                             override fun onFailure(call: Call, e: IOException) {
                                 continuation.resumeWithException(e)
                             }
 
                             override fun onResponse(call: Call, response: Response) {
-                                try {
-                                    if (!response.isSuccessful) {
-                                        val body = response.body?.string()
-                                        continuation.resumeWithException(
-                                            ChatClientException.fromStatusCode(provider.name, response.code, body)
-                                        )
-                                        return
-                                    }
+                                response.use { resp ->
+                                    try {
+                                        if (!resp.isSuccessful) {
+                                            val body = resp.body?.string()
+                                            continuation.resumeWithException(
+                                                ChatClientException.fromStatusCode(provider.name, resp.code, body)
+                                            )
+                                            return
+                                        }
 
-                                    response.body?.charStream()?.buffered()?.use { reader ->
-                                        reader.lineSequence().forEach { line ->
-                                            if (line.startsWith("data: ")) {
-                                                val data = line.substring(6).trim()
-                                                if (data.isEmpty()) return@forEach
-                                                
-                                                try {
-                                                    val chunk = json.decodeFromString<GeminiResponse>(data)
-                                                    chunk.usageMetadata?.let {
-                                                        lastUsage = Usage(
-                                                            promptTokens = it.promptTokenCount,
-                                                            completionTokens = it.candidatesTokenCount,
-                                                            totalTokens = it.totalTokenCount
-                                                        )
-                                                    }
-                                                    val firstCandidate = chunk.candidates?.firstOrNull()
-                                                    if (firstCandidate?.finishReason != null) {
-                                                        lastFinishReason = firstCandidate.finishReason
-                                                    }
-                                                    firstCandidate?.content?.parts?.forEach { part ->
-                                                        val text = part.text
-                                                        if (!text.isNullOrEmpty()) {
-                                                            fullContent.append(text)
-                                                            kotlinx.coroutines.runBlocking { onChunk(text) }
+                                        resp.body?.charStream()?.buffered()?.use { reader ->
+                                            reader.lineSequence().forEach { line ->
+                                                if (line.startsWith("data: ")) {
+                                                    val data = line.substring(6).trim()
+                                                    if (data.isEmpty()) return@forEach
+
+                                                    try {
+                                                        val chunk = json.decodeFromString<GeminiResponse>(data)
+                                                        chunk.usageMetadata?.let {
+                                                            lastUsage = Usage(
+                                                                promptTokens = it.promptTokenCount,
+                                                                completionTokens = it.candidatesTokenCount,
+                                                                totalTokens = it.totalTokenCount
+                                                            )
                                                         }
-                                                        part.functionCall?.let { fc ->
-                                                            toolCalls.add(ToolCall(
-                                                                id = "gemini_${fc.name}_${System.nanoTime()}",
-                                                                name = fc.name,
-                                                                arguments = fc.args?.toString() ?: "{}"
-                                                            ))
+                                                        val firstCandidate = chunk.candidates?.firstOrNull()
+                                                        if (firstCandidate?.finishReason != null) {
+                                                            lastFinishReason = firstCandidate.finishReason
                                                         }
-                                                    }
-                                                } catch (_: Exception) { }
+                                                        firstCandidate?.content?.parts?.forEach { part ->
+                                                            val text = part.text
+                                                            if (!text.isNullOrEmpty()) {
+                                                                fullContent.append(text)
+                                                                streamScope.launch(kotlinx.coroutines.Dispatchers.Main) { onChunk(text) }
+                                                            }
+                                                            part.functionCall?.let { fc ->
+                                                                toolCalls.add(ToolCall(
+                                                                    id = "gemini_${fc.name}_${java.util.UUID.randomUUID()}",
+                                                                    name = fc.name,
+                                                                    arguments = fc.args?.toString() ?: "{}"
+                                                                ))
+                                                            }
+                                                        }
+                                                    } catch (_: Exception) { }
+                                                }
                                             }
                                         }
+
+                                        continuation.resume(Unit)
+                                    } catch (e: Exception) {
+                                        continuation.resumeWithException(e)
                                     }
-                                    
-                                    continuation.resume(Unit)
-                                } catch (e: Exception) {
-                                    continuation.resumeWithException(e)
                                 }
                             }
                         })
@@ -383,6 +388,7 @@ open class GeminiClient(
     }
 
     override fun close() {
+        httpClient.dispatcher.cancelAll()
         httpClient.dispatcher.executorService.shutdown()
         httpClient.connectionPool.evictAll()
     }

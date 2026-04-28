@@ -24,6 +24,9 @@ class AgentEventBus @Inject constructor() {
     val jsEvents: SharedFlow<CallJsEvent> = _jsEvents.asSharedFlow()
 
     fun emitJsEvent(event: CallJsEvent) {
-        _jsEvents.tryEmit(event)
+        val accepted = _jsEvents.tryEmit(event)
+        if (!accepted) {
+            android.util.Log.w("AgentEventBus", "Dropping JS event - buffer full (64). url=${event.url}")
+        }
     }
 }

@@ -18,7 +18,7 @@ import java.io.File
 class LinuxSandboxManager(private val context: Context) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var currentJob: Job? = null
+    @Volatile private var currentJob: Job? = null
     private val _state = MutableStateFlow<SandboxState>(SandboxState.NotInstalled)
     val state: StateFlow<SandboxState> = _state
 
