@@ -116,4 +116,16 @@ class WriteFileTool(
         }
         return file
     }
+
+    /**
+     * 二次路径验证：在文件操作前调用，缩小 TOCTOU 窗口。
+     * 注意：路径遍历的完全防护需要操作系统级支持（如 O_NOFOLLOW），
+     * 此方法提供应用层的最佳努力防护。
+     */
+    protected fun revalidatePath(file: File, basePath: String): Boolean {
+        if (basePath.isBlank()) return true
+        val base = File(basePath).canonicalFile
+        val resolved = file.canonicalFile
+        return resolved.path.startsWith(base.path + File.separator) || resolved == base
+    }
 }

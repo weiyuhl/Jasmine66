@@ -307,9 +307,9 @@ class FetchUrlTool : AutoCloseable {
                 it.groupValues[1].trim().lines().joinToString("\n") { line -> "> ${line.trim()}" } + "\n"
             }
 
-            // 表格
-            md = md.replace(Regex("<table[^>]*>(.*?)</table>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))) {
-                convertTableToMarkdown(it.groupValues[1])
+            // 表格（使用非回溯模式避免 ReDoS）
+            md = md.replace(Regex("<table[^>]*>[\\s\\S]*?</table>", RegexOption.IGNORE_CASE)) {
+                convertTableToMarkdown(it.value)
             }
 
             // 移除剩余 HTML 标签

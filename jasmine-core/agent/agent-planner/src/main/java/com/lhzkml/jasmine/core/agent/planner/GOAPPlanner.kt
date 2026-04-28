@@ -146,7 +146,14 @@ class GOAPPlanner<State>(
         fScore[state] = goal.cost(state)
         openSet.add(state)
 
+        var statesExplored = 0
+        val maxStates = 1000  // 防止无限内存增长
+
         while (openSet.isNotEmpty()) {
+            if (++statesExplored > maxStates) {
+                android.util.Log.w("GOAPPlanner", "A* search exceeded $maxStates states, aborting")
+                return null
+            }
             val currentState = openSet.minBy { fScore.getValue(it) }
             openSet.remove(currentState)
 

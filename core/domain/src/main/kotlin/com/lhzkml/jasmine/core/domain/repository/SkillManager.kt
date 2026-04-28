@@ -232,13 +232,12 @@ class SkillManager @Inject constructor(
                 return@withContext Result.failure(Exception("解析失败: ${errors.joinToString()}"))
             }
 
-            // Save to internal storage
+            // Save to internal storage and update list atomically
             val importDir = File(context.filesDir, "skills/imported/${skillProto.name}")
-            importDir.mkdirs()
-            File(importDir, "SKILL.md").writeText(content)
-
             val skill = skillProto.copy(importDirName = importDir.absolutePath)
             mutex.withLock {
+                importDir.mkdirs()
+                File(importDir, "SKILL.md").writeText(content)
                 skills.add(skill)
                 persistSelections()
             }

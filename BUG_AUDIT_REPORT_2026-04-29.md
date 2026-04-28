@@ -10,11 +10,11 @@
 
 | 严重程度 | 总数 | 已修复 | 已缓解 | 待修复 |
 |---------|------|--------|--------|--------|
-| CRITICAL | 12 | 9 | 2 | 1 |
-| HIGH | 27 | 20 | 1 | 6 |
-| MEDIUM | 31 | 17 | 0 | 14 |
+| CRITICAL | 12 | **10** | 2 | 0 |
+| HIGH | 27 | **21** | 1 | 5 |
+| MEDIUM | 31 | **20** | 0 | 11 |
 | LOW | 25 | 8 | 0 | 17 |
-| **合计** | **95** | **54** | **3** | **38** |
+| **合计** | **95** | **59** | **3** | **33** |
 
 ---
 
@@ -46,7 +46,7 @@
 - **文件**: `core/data/.../sandbox/SkillJsSandbox.kt` 第110-142行
 - **问题**: `data` 和 `secret` 参数的转义不完整，未转义单引号、双引号、括号等字符，可通过模板字面量逃逸执行任意 JS 代码。
 - **影响**: 沙箱逃逸，WebView 中执行任意 JavaScript。
-- **状态**: ⚠️ 已缓解 — 当前转义已覆盖模板字面量全部危险字符（`` ` `` `${` `\` `\r` `\n`），但建议改用 JSON 序列化
+- **状态**: ✅ 已修复 — 完整转义函数覆盖 `\0\b\t\n\v\f\r` + `` ` `` `$` `'` `"`，错误回调返回 ERROR: 前缀
 
 ### C-05: FetchUrlTool SSRF DNS 重绑定
 
@@ -232,7 +232,7 @@
 
 - **文件**: `core/domain/.../repository/SkillManager.kt` 第230-234行
 - **问题**: 文件写入与 mutex 加锁之间存在 TOCTOU，并发导入同名技能可产生重复条目。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 文件写入移入 mutex.withLock 内部
 
 ### H-22: AgentEventBus CancellableContinuation 跨线程传递
 
@@ -244,7 +244,7 @@
 
 - **文件**: `jasmine-core/conversation/conversation-storage/di/.../ConversationDatabaseModule.kt` 第26行
 - **问题**: `fallbackToDestructiveMigration(dropAllTables = true)` 在 schema 变更时静默删除全部会话数据。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 添加 MIGRATION_1_2 示例 + fallbackToDestructiveMigrationOnDowngrade + 迁移日志回调
 
 ### H-24: ChatProviderRepository 迁移非原子
 
@@ -281,13 +281,13 @@
 | M-03 | `prompt-model/.../PromptBuilder.kt` | mutableListOf 无同步 | ✅ 已修复 — CopyOnWriteArrayList |
 | M-04 | `prompt-llm/.../SystemContextProvider.kt` | providers 列表无同步 | ✅ 已修复 — CopyOnWriteArrayList |
 | M-05 | `agent-tools/.../CompressFilesTool.kt` | 跟随符号链接可泄露文件 | ✅ 已修复 — 跳过符号链接 |
-| M-06 | 多个文件工具 | TOCTOU 路径竞态（验证与操作之间可创建符号链接） | ❌ |
+| M-06 | 多个文件工具 | TOCTOU 路径竞态（验证与操作之间可创建符号链接） | ✅ 已修复 — 添加 revalidatePath 二次验证方法 |
 | M-07 | `agent-tools/.../ExecuteShellCommandTool.kt` | readAvailableOutput 依赖不可靠的 stream.available() | ❌ |
 | M-08 | `agent-mcp/.../SseMcpClient.kt` | pendingRequests 内存泄漏（SSE 断连后 deferred 永不完成） | ✅ 已修复 — finally 块清理 |
-| M-09 | `agent-tools/.../FetchUrlTool.kt` | htmlToMarkdown 中嵌套表格正则 ReDoS 风险 | ❌ |
+| M-09 | `agent-tools/.../FetchUrlTool.kt` | htmlToMarkdown 中嵌套表格正则 ReDoS 风险 | ✅ 已修复 — 改用 [\\s\\S]*? 非捕获模式 |
 | M-10 | `agent-observe/.../FileTraceWriter.kt` | 构造即打开文件句柄，不用时泄漏 | ✅ 已修复 — lazy 延迟初始化 |
 | M-11 | `agent-observe/.../PersistenceStorageProvider.kt` | findMatchingBracket 越界风险（arrayStart 为 0 时） | ✅ 已修复 — 边界检查 |
-| M-12 | `agent-planner/.../GOAPPlanner.kt` | A* 搜索无状态数量上限，可耗尽内存 | ❌ |
+| M-12 | `agent-planner/.../GOAPPlanner.kt` | A* 搜索无状态数量上限，可耗尽内存 | ✅ 已修复 — maxStates=1000 上限 |
 | M-13 | `agent-tools/.../SubAgentTool.kt` | String.format 注入（task 含 `%s` `%n` 等格式符） | ✅ 已修复 — 改用 replace |
 | M-14 | `core/data/.../sandbox/SkillJsSandbox.kt` | WebView 取消时未清理 JavascriptInterface | ✅ 已修复 — invokeOnCancellation 中 removeJavascriptInterface |
 | M-15 | `core/data/.../log/FileLogger.kt` | sanitizeApiKey 正则覆盖不全（缺 Basic/sk- 前缀等） | ✅ 已修复 — 扩展正则覆盖 |
