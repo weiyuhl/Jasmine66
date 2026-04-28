@@ -2,14 +2,13 @@ package com.android.sandbox.core
 
 import android.content.Context
 import android.os.Build
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
-import io.ktor.client.plugins.HttpTimeout
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,13 +32,12 @@ class LinuxSandboxManager(private val context: Context) {
     val prootPath: String get() = File(context.applicationInfo.nativeLibraryDir, "libproot.so").absolutePath
     val nativeLibDir: String get() = context.applicationInfo.nativeLibraryDir
 
-    private val downloader = RootfsDownloader(HttpClient(Android) {
-        install(io.ktor.client.plugins.HttpTimeout) {
-            connectTimeoutMillis = 30_000
-            requestTimeoutMillis = 300_000 // 5 min for rootfs download
-            socketTimeoutMillis = 60_000
-        }
-    })
+    private val downloader = RootfsDownloader(OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(300, TimeUnit.SECONDS) // 5 min for rootfs download
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .callTimeout(300, TimeUnit.SECONDS)
+        .build())
 
     init {
         checkExistingInstallation()

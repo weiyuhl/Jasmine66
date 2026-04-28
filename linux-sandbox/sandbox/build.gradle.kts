@@ -41,8 +41,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
 
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.android)
+    implementation(libs.okhttp)
 
     implementation(libs.kotlinx.serialization.json)
 
