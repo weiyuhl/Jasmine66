@@ -48,7 +48,7 @@ class McpConnectionManager(private val configRepo: ConfigRepository) {
     private val mutex = Mutex()
     private val clients = mutableListOf<McpClient>()
     private val preloadedTools = mutableListOf<McpToolAdapter>()
-    private val connectionCache = mutableMapOf<String, McpServerStatus>()
+    private val connectionCache = java.util.concurrent.ConcurrentHashMap<String, McpServerStatus>()
     @Volatile private var preloaded = false
     @Volatile private var connecting = false
 

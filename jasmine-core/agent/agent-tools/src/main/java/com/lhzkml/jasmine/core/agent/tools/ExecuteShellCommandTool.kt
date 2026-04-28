@@ -107,6 +107,27 @@ class ExecuteShellCommandTool(
     private val basePath: String? = null
 ) : Tool() {
 
+    companion object {
+        /** 追踪后台进程，以便后续管理和清理 */
+        private val backgroundProcesses = java.util.concurrent.ConcurrentHashMap<String, Process>()
+
+        /** 获取所有后台进程 ID */
+        fun getBackgroundProcessIds(): Set<String> = backgroundProcesses.keys
+
+        /** 终止指定后台进程 */
+        fun killBackgroundProcess(pid: String): Boolean {
+            val process = backgroundProcesses.remove(pid) ?: return false
+            process.destroyForcibly()
+            return true
+        }
+
+        /** 终止所有后台进程 */
+        fun killAllBackgroundProcesses() {
+            backgroundProcesses.values.forEach { it.destroyForcibly() }
+            backgroundProcesses.clear()
+        }
+    }
+
     override val descriptor = ToolDescriptor(
         name = "execute_shell_command",
         description = "Executes a shell command with optional working directory and timeout. " +
@@ -180,6 +201,8 @@ class ExecuteShellCommandTool(
             if (background) {
                 val partialOutput = readPartialOutput(process, 1)
                 val pid = getProcessId(process)
+                // 追踪后台进程以便后续管理
+                backgroundProcesses[pid] = process
                 return buildString {
                     description?.let { appendLine("Description: $it") }
                     appendLine("Purpose: $purpose")

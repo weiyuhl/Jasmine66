@@ -90,7 +90,11 @@ class ApiEmbeddingService(
     )
 
     companion object {
-        private fun defaultClient() = OkHttpClient.Builder().build()
+        private fun defaultClient() = OkHttpClient.Builder()
+            .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
     }
 }
 

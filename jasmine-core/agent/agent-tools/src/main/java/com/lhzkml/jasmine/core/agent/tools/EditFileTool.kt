@@ -27,8 +27,8 @@ class EditFileTool(
 
     companion object {
         private const val DEFAULT_FUZZY_THRESHOLD = 0.9f
-        /** 按文件路径的重试计数 */
-        private val retryCount = mutableMapOf<String, Int>()
+        /** 按文件路径的重试计数（线程安全） */
+        private val retryCount = java.util.concurrent.ConcurrentHashMap<String, Int>()
     }
 
     override val descriptor = ToolDescriptor(

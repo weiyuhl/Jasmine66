@@ -13,14 +13,14 @@ import com.lhzkml.jasmine.core.prompt.llm.CompressionStrategyType
  */
 class InMemoryConfigRepository : ConfigRepository {
 
-    // Provider management
-    private var activeProviderId: String? = null
-    private val apiKeys = mutableMapOf<String, String>()
-    private val baseUrls = mutableMapOf<String, String>()
-    private val models = mutableMapOf<String, String>()
-    private val selectedModels = mutableMapOf<String, List<String>>()
-    private val chatPaths = mutableMapOf<String, String>()
-    private var customProviders = listOf<ProviderConfig>()
+    // Provider management (thread-safe: @Volatile + ConcurrentHashMap)
+    @Volatile private var activeProviderId: String? = null
+    private val apiKeys = java.util.concurrent.ConcurrentHashMap<String, String>()
+    private val baseUrls = java.util.concurrent.ConcurrentHashMap<String, String>()
+    private val models = java.util.concurrent.ConcurrentHashMap<String, String>()
+    private val selectedModels = java.util.concurrent.ConcurrentHashMap<String, List<String>>()
+    private val chatPaths = java.util.concurrent.ConcurrentHashMap<String, String>()
+    @Volatile private var customProviders = listOf<ProviderConfig>()
 
     override fun getActiveProviderId() = activeProviderId
     override fun setActiveProviderId(id: String) { activeProviderId = id }

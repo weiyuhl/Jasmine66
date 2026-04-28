@@ -60,7 +60,7 @@ class ChatClientRouter(
     private val fallback: FallbackConfig? = null
 ) : AutoCloseable {
 
-    private val clients = clients.toMutableMap()
+    private val clients = java.util.concurrent.ConcurrentHashMap<String, ChatClient>().apply { putAll(clients) }
 
     /**
      * vararg Pair 构造

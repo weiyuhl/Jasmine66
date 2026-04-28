@@ -232,9 +232,6 @@ abstract class OpenAICompatibleClient(
                 val requestBody = json.encodeToString(request)
                     .toRequestBody("application/json".toMediaType())
 
-                android.util.Log.d("OpenAICompat", "Request: POST ${baseUrl}${chatPath} model=$model tools=${tools.size}")
-                android.util.Log.d("OpenAICompat", "Messages count: ${request.messages.size}")
-                
                 val httpRequest = Request.Builder()
                     .url("${baseUrl}${chatPath}")
                     .addHeader("Authorization", "Bearer $apiKey")

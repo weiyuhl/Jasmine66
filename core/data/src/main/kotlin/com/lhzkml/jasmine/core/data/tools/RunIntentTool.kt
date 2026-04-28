@@ -1,5 +1,6 @@
 package com.lhzkml.jasmine.core.data.tools
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import com.lhzkml.jasmine.core.data.log.FileLogger
@@ -59,6 +60,18 @@ class RunIntentTool @Inject constructor(
                     val subject = paramsJson["extra_subject"]?.jsonPrimitive?.content ?: ""
                     val text = paramsJson["extra_text"]?.jsonPrimitive?.content ?: ""
 
+                    // 校验邮箱格式
+                    if (email.isBlank() || !email.contains("@") || email.length > 254) {
+                        return "❌ Error: Invalid email address"
+                    }
+                    // 校验主题和正文长度
+                    if (subject.length > 500) {
+                        return "❌ Error: Subject too long (max 500 chars)"
+                    }
+                    if (text.length > 10000) {
+                        return "❌ Error: Body too long (max 10000 chars)"
+                    }
+
                     val intent = Intent(Intent.ACTION_SEND).apply {
                         data = "mailto:".toUri()
                         type = "text/plain"
@@ -67,20 +80,38 @@ class RunIntentTool @Inject constructor(
                         putExtra(Intent.EXTRA_TEXT, text)
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
-                    context.startActivity(intent)
-                    "✅ Action send_email succeeded"
+                    try {
+                        context.startActivity(intent)
+                        "✅ Action send_email succeeded"
+                    } catch (e: ActivityNotFoundException) {
+                        "❌ Error: No email app found on device"
+                    }
                 }
 
                 "send_sms" -> {
                     val phone = paramsJson["phone_number"]?.jsonPrimitive?.content ?: ""
                     val body = paramsJson["sms_body"]?.jsonPrimitive?.content ?: ""
 
-                    val intent = Intent(Intent.ACTION_SENDTO, "smsto:$phone".toUri()).apply {
+                    // 校验手机号格式（只允许数字、+、-、空格、括号）
+                    val sanitizedPhone = phone.replace(Regex("[^0-9+\\-() ]"), "")
+                    if (sanitizedPhone.isBlank() || sanitizedPhone.length > 20) {
+                        return "❌ Error: Invalid phone number"
+                    }
+                    // 校验短信正文长度
+                    if (body.length > 5000) {
+                        return "❌ Error: SMS body too long (max 5000 chars)"
+                    }
+
+                    val intent = Intent(Intent.ACTION_SENDTO, "smsto:$sanitizedPhone".toUri()).apply {
                         putExtra("sms_body", body)
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
-                    context.startActivity(intent)
-                    "✅ Action send_sms succeeded"
+                    try {
+                        context.startActivity(intent)
+                        "✅ Action send_sms succeeded"
+                    } catch (e: ActivityNotFoundException) {
+                        "❌ Error: No SMS app found on device"
+                    }
                 }
 
                 else -> "❌ Error: Unknown action '$action'"

@@ -86,7 +86,7 @@ class OnDemandPromptTokenizer(private val tokenizer: Tokenizer) : PromptTokenize
  * 参考 koog 的 CachingTokenizer
  */
 class CachingPromptTokenizer(private val tokenizer: Tokenizer) : PromptTokenizer {
-    internal val cache = mutableMapOf<ChatMessage, Int>()
+    internal val cache = java.util.concurrent.ConcurrentHashMap<ChatMessage, Int>()
 
     override fun tokenCountFor(message: ChatMessage): Int =
         cache.getOrPut(message) { tokenizer.countTokens(message.content) }

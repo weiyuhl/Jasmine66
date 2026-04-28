@@ -39,7 +39,11 @@ class HttpMcpClient(
         encodeDefaults = true
     }
 
-    private val httpClient = OkHttpClient.Builder().build()
+    private val httpClient = OkHttpClient.Builder()
+        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .build()
 
     private val requestId = AtomicInteger(0)
     private var sessionId: String? = null

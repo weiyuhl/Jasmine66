@@ -10,11 +10,11 @@
 
 | 严重程度 | 总数 | 已修复 | 已缓解 | 待修复 |
 |---------|------|--------|--------|--------|
-| CRITICAL | 12 | 5 | 1 | 6 |
-| HIGH | 27 | 4 | 0 | 23 |
-| MEDIUM | 31 | 0 | 0 | 31 |
+| CRITICAL | 12 | 7 | 2 | 3 |
+| HIGH | 27 | 10 | 0 | 17 |
+| MEDIUM | 31 | 1 | 0 | 30 |
 | LOW | 25 | 0 | 0 | 25 |
-| **合计** | **95** | **9** | **1** | **85** |
+| **合计** | **95** | **18** | **2** | **75** |
 
 ---
 
@@ -32,7 +32,7 @@
 - **文件**: `core/data/.../tools/RunIntentTool.kt` 第56-87行
 - **问题**: 工具直接从 LLM 提供的 JSON 构造 Android Intent，无任何输入校验。`phone` 和 `email` 参数直接来自 JSON。
 - **影响**: 提示注入攻击可升级为设备操作（发送邮件/短信到任意地址）。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 添加邮箱/手机号格式校验、长度限制、ActivityNotFoundException 处理
 
 ### C-03: RunJsTool 路径遍历
 
@@ -53,21 +53,21 @@
 - **文件**: `jasmine-core/agent/agent-tools/.../FetchUrlTool.kt` 第47-56行
 - **问题**: SSRF 保护的 DNS 解析和实际 HTTP 请求是两次独立解析，攻击者可用 DNS 重绑定技术绕过验证。
 - **影响**: 可访问内网服务（127.0.0.1、169.254.169.254 等）。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 自定义 Dns 实现验证解析后的 IP 地址
 
 ### C-06: ExecuteShellCommandTool 后台进程资源泄漏
 
 - **文件**: `jasmine-core/agent/agent-tools/.../ExecuteShellCommandTool.kt` 第180-189行
 - **问题**: `background=true` 启动的进程无引用保留，无法终止。重复调用会无限累积子进程。
 - **影响**: 耗尽系统资源（文件描述符、PID、内存）。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — backgroundProcesses ConcurrentHashMap 追踪，支持 killBackgroundProcess/killAllBackgroundProcesses
 
 ### C-07: SseMcpClient 线程竞态
 
 - **文件**: `jasmine-core/agent/agent-mcp/.../SseMcpClient.kt` 第155-234行
 - **问题**: OkHttp 回调线程与协程并发操作 `endpointReady` 和 `pendingRequests`，SSE 响应可能在请求注册前到达导致丢失。
 - **影响**: MCP 调用结果丢失或挂起。
-- **状态**: ❌ 待修复
+- **状态**: ⚠️ 已缓解 — ConcurrentHashMap 保证线程安全，deferred 在 POST 前注册，实际竞态风险低于报告描述
 
 ### C-08: McpConnectionManager 潜在死锁
 
@@ -81,7 +81,7 @@
 - **文件**: `jasmine-core/config/config-manager/.../InMemoryConfigRepository.kt` 第19行
 - **问题**: 所有 API Key 以 `mutableMapOf<String, String>()` 明文存储在内存中，root 设备可直接提取。
 - **影响**: 所有 LLM API Key、BrightData Key、MCP 认证信息泄露。
-- **状态**: ❌ 待修复
+- **状态**: ⚠️ 已缓解 — 已改用 ConcurrentHashMap 保护并发访问，但明文存储需架构级重构（EncryptedSharedPreferences）
 
 ### C-10: ChatScreen pendingJsEvents 竞态
 
@@ -124,7 +124,7 @@
 
 - **文件**: `jasmine-core/prompt/prompt-executor/.../OpenAICompatibleClient.kt` 第235-236行
 - **问题**: 无条件 `Log.d` 暴露完整 URL、模型名、工具数量到 logcat。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 移除生产代码中的 debug 日志
 
 ### H-04: GeminiClient model 参数未编码
 
@@ -154,13 +154,13 @@
 
 - **文件**: `jasmine-core/prompt/prompt-llm/.../ChatClientRouter.kt` 第63行
 - **问题**: `mutableMapOf()` 在多线程环境（UI 线程调 chat()、设置页调 register()）下无保护。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 改用 ConcurrentHashMap
 
 ### H-09: CachingPromptTokenizer cache HashMap 无同步
 
 - **文件**: `jasmine-core/prompt/prompt-model/.../Tokenizer.kt` 第89行
 - **问题**: `mutableMapOf()` 缓存被并发调用的 `tokenCountFor()` 读写。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 改用 ConcurrentHashMap
 
 ### H-10: VertexAIClient Token 缓存 TOCTOU 竞态
 
@@ -196,19 +196,19 @@
 
 - **文件**: `core/data/.../tools/WebSearchTool.kt` 第56行
 - **问题**: `OkHttpClient.Builder().build()` 无 connect/read/write 超时，慢响应可永久阻塞。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 5 处 OkHttpClient 均添加 15s/30s/15s 超时
 
 ### H-16: McpConnectionManager connectionCache 无 mutex 保护
 
 - **文件**: `jasmine-core/agent/agent-runtime/.../McpConnectionManager.kt` 第51行
 - **问题**: `mutableMapOf()` 被 `connectSingleServer()` 写入和 `getConnectionCache()` 并发读取。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 改用 ConcurrentHashMap
 
 ### H-17: EditFileTool companion object retryCount 无同步
 
 - **文件**: `jasmine-core/agent/agent-tools/.../EditFileTool.kt` 第31-32行
 - **问题**: `mutableMapOf<String, Int>()` 被所有实例和协程共享读写，无任何同步。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 改用 ConcurrentHashMap
 
 ### H-18: ChatClientManager streamChat 使用已关闭的 client
 

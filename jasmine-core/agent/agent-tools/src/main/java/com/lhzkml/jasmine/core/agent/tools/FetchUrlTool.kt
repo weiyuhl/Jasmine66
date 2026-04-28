@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.Dns
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.InetAddress
@@ -25,10 +26,29 @@ class FetchUrlTool : AutoCloseable {
 
     private val httpClient = OkHttpClient.Builder()
         .followRedirects(true)
+        // 自定义 DNS 解析器：验证解析后的 IP 不是私有地址（防止 DNS 重绑定）
+        .dns(object : Dns {
+            override fun lookup(hostname: String): List<InetAddress> {
+                if (hostname in BLOCKED_HOSTS) {
+                    throw java.net.UnknownHostException("Blocked host: $hostname")
+                }
+                val addresses = Dns.SYSTEM.lookup(hostname)
+                for (addr in addresses) {
+                    if (addr.isSiteLocalAddress || addr.isLoopbackAddress ||
+                        addr.isLinkLocalAddress || addr.isMulticastAddress) {
+                        throw java.net.UnknownHostException(
+                            "Resolved address ${addr.hostAddress} for '$hostname' is a private/internal address"
+                        )
+                    }
+                }
+                return addresses
+            }
+        })
+        // Network interceptor 作为第二道防线（重定向后的 host 检查）
         .addNetworkInterceptor { chain ->
             val host = chain.request().url.host
-            if (isPrivateAddress(host) || host in BLOCKED_HOSTS) {
-                throw java.io.IOException("Access to internal address '$host' is blocked")
+            if (host in BLOCKED_HOSTS) {
+                throw java.io.IOException("Access to blocked host '$host'")
             }
             chain.proceed(chain.request())
         }

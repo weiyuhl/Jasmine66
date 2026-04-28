@@ -18,7 +18,11 @@ object EmbeddingApiClient {
     private val json = Json { ignoreUnknownKeys = true }
 
     private val httpClient by lazy {
-        OkHttpClient.Builder().build()
+        OkHttpClient.Builder()
+            .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
     }
 
     /**

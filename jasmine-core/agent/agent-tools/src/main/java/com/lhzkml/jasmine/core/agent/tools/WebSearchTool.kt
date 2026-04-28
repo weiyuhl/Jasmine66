@@ -52,7 +52,11 @@ class WebSearchTool(
     @Serializable
     data class BrightDataRequest(val zone: String, val url: String, val format: String, val dataFormat: String? = null)
 
-    private val httpClient = OkHttpClient.Builder().build()
+    private val httpClient = OkHttpClient.Builder()
+        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .build()
 
     val search = object : Tool() {
         override val descriptor = ToolDescriptor(
