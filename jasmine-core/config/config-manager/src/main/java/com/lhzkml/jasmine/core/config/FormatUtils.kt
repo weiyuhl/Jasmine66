@@ -9,8 +9,8 @@ object FormatUtils {
      * 将 token 数量格式化为简短形式（如 1000000 → "1M"，2048 → "2K"）
      */
     fun formatTokenCount(tokens: Int): String = when {
-        tokens >= 1_000_000 -> "${tokens / 1_000_000}M"
-        tokens >= 1_000 -> "${tokens / 1_000}K"
+        tokens >= 1_000_000 -> String.format("%.1fM", tokens / 1_000_000.0)
+        tokens >= 1_000 -> String.format("%.1fK", tokens / 1_000.0)
         else -> tokens.toString()
     }
 

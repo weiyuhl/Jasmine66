@@ -23,8 +23,12 @@ object MnnModelManager {
         return dir
     }
 
-    /** 将 modelId 转为安全的目录名 */
-    fun safeModelId(modelId: String): String = modelId.replace("/", "_")
+    /** 将 modelId 转为安全的目录名（过滤路径遍历字符） */
+    fun safeModelId(modelId: String): String = modelId
+        .replace("/", "_")
+        .replace("\\", "_")
+        .replace("..", "_")
+        .replace(" ", "_")
 
     /**
      * 获取本地已下载的模型列表

@@ -77,14 +77,7 @@ class DuckDuckGoSearchService(
 
             } catch (e: Exception) {
                 Log.e(TAG, "Search failed: $query", e)
-                listOf(
-                    WebSearchResult(
-                        title = "Search Error",
-                        snippet = "搜索失败: ${e.message}",
-                        url = "",
-                        source = "Error",
-                    ),
-                )
+                throw e
             }
         }
     }

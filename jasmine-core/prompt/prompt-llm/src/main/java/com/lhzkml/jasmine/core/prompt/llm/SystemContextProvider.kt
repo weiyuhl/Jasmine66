@@ -30,7 +30,7 @@ interface SystemContextProvider {
  * 调用方只需注册 Provider，不需要手动拼接字符串。
  */
 class SystemContextCollector {
-    private val providers = mutableListOf<SystemContextProvider>()
+    private val providers = java.util.concurrent.CopyOnWriteArrayList<SystemContextProvider>()
 
     /** 注册一个上下文提供者 */
     fun register(provider: SystemContextProvider) {

@@ -11,10 +11,10 @@
 | 严重程度 | 总数 | 已修复 | 已缓解 | 待修复 |
 |---------|------|--------|--------|--------|
 | CRITICAL | 12 | 7 | 2 | 3 |
-| HIGH | 27 | 19 | 1 | 7 |
-| MEDIUM | 31 | 15 | 0 | 16 |
-| LOW | 25 | 0 | 0 | 25 |
-| **合计** | **95** | **41** | **3** | **51** |
+| HIGH | 27 | 20 | 1 | 6 |
+| MEDIUM | 31 | 17 | 0 | 14 |
+| LOW | 25 | 8 | 0 | 17 |
+| **合计** | **95** | **52** | **3** | **40** |
 
 ---
 
@@ -278,19 +278,19 @@
 |---|------|------|------|
 | M-01 | 4个流式客户端 | `catch (_: Exception) {}` 静默吞掉所有异常 | ✅ 已修复 — 添加 Log.w 日志 |
 | M-02 | `prompt-mnn/.../MnnConfig.kt` | toJson() 手动 JSON 转义不完整（缺 `\b` `\f` 等） | ✅ 已修复 |
-| M-03 | `prompt-model/.../PromptBuilder.kt` | mutableListOf 无同步 | ❌ |
-| M-04 | `prompt-llm/.../SystemContextProvider.kt` | providers 列表无同步 | ❌ |
+| M-03 | `prompt-model/.../PromptBuilder.kt` | mutableListOf 无同步 | ✅ 已修复 — CopyOnWriteArrayList |
+| M-04 | `prompt-llm/.../SystemContextProvider.kt` | providers 列表无同步 | ✅ 已修复 — CopyOnWriteArrayList |
 | M-05 | `agent-tools/.../CompressFilesTool.kt` | 跟随符号链接可泄露文件 | ✅ 已修复 — 跳过符号链接 |
 | M-06 | 多个文件工具 | TOCTOU 路径竞态（验证与操作之间可创建符号链接） | ❌ |
 | M-07 | `agent-tools/.../ExecuteShellCommandTool.kt` | readAvailableOutput 依赖不可靠的 stream.available() | ❌ |
 | M-08 | `agent-mcp/.../SseMcpClient.kt` | pendingRequests 内存泄漏（SSE 断连后 deferred 永不完成） | ✅ 已修复 — finally 块清理 |
 | M-09 | `agent-tools/.../FetchUrlTool.kt` | htmlToMarkdown 中嵌套表格正则 ReDoS 风险 | ❌ |
-| M-10 | `agent-observe/.../FileTraceWriter.kt` | 构造即打开文件句柄，不用时泄漏 | ❌ |
+| M-10 | `agent-observe/.../FileTraceWriter.kt` | 构造即打开文件句柄，不用时泄漏 | ✅ 已修复 — lazy 延迟初始化 |
 | M-11 | `agent-observe/.../PersistenceStorageProvider.kt` | findMatchingBracket 越界风险（arrayStart 为 0 时） | ✅ 已修复 — 边界检查 |
 | M-12 | `agent-planner/.../GOAPPlanner.kt` | A* 搜索无状态数量上限，可耗尽内存 | ❌ |
 | M-13 | `agent-tools/.../SubAgentTool.kt` | String.format 注入（task 含 `%s` `%n` 等格式符） | ✅ 已修复 — 改用 replace |
 | M-14 | `core/data/.../sandbox/SkillJsSandbox.kt` | WebView 取消时未清理 JavascriptInterface | ✅ 已修复 — invokeOnCancellation 中 removeJavascriptInterface |
-| M-15 | `core/data/.../log/FileLogger.kt` | sanitizeApiKey 正则覆盖不全（缺 Basic/sk- 前缀等） | ❌ |
+| M-15 | `core/data/.../log/FileLogger.kt` | sanitizeApiKey 正则覆盖不全（缺 Basic/sk- 前缀等） | ✅ 已修复 — 扩展正则覆盖 |
 | M-16 | `core/data/.../tools/DeviceControlTool.kt` | startActivity 缺 ActivityNotFoundException 处理 | ✅ 已修复 — 3处 startActivity 添加 try-catch |
 | M-17 | `core/data/.../tools/RunIntentTool.kt` | startActivity 缺 ActivityNotFoundException 处理 | ❌ |
 | M-18 | `core/data/.../repository/ChatClientManager.kt` | getActiveModel() 无锁读取 | ❌ |
@@ -303,8 +303,8 @@
 | M-25 | `assistant-scheduler/.../CronExpression.kt` | `*/0` 死循环（step=0 时 while 永不退出） | ✅ 已修复 — 验证 step > 0 |
 | M-26 | `assistant-tools/.../SchedulingTools.kt` | JSON 注入（task.description 含 `"` `\` 时 JSON 畸形） | ✅ 已修复 — 转义 JSON 特殊字符 |
 | M-27 | `assistant-tools/.../Tools.kt` | OpenUrlTool 文档说支持 file:// 但实现阻止 | ✅ 已修复 — 文档与实现一致 |
-| M-28 | `assistant-tools/.../HeartbeatTools.kt` | promoteLearning 的 soul_addition 参数静默丢失 | ❌ |
-| M-29 | `assistant-runtime/.../Runtime.kt` | checkRepetition() 始终返回 false（桩实现，循环检测失效） | ❌ |
+| M-28 | `assistant-tools/.../HeartbeatTools.kt` | promoteLearning 的 soul_addition 参数静默丢失 | ✅ 已修复 — 持久化到 memoryStore |
+| M-29 | `assistant-runtime/.../Runtime.kt` | checkRepetition() 始终返回 false（桩实现，循环检测失效） | ✅ 已修复 — 连续重复调用检测 |
 | M-30 | `linux-sandbox/.../ShellCommandTool.kt` | env Map 允许设置 LD_PRELOAD 等危险环境变量 | ✅ 已修复 — 黑名单过滤 |
 | M-31 | `rag/rag-objectbox/.../ObjectBoxKnowledgeIndex.kt` | 不必要的 `!!` 断言（smart-cast 应足够） | ✅ 已修复 — 局部变量 smart-cast |
 
@@ -315,17 +315,17 @@
 | # | 文件 | 问题 | 状态 |
 |---|------|------|------|
 | L-01 | `prompt-executor/.../OpenAICompatibleClient.kt` | close() 未 shutdown dispatcher executor | ❌ |
-| L-02 | `prompt-mnn/.../MnnBridge.kt` | isLoaded 非 @Volatile | ❌ |
-| L-03 | `prompt-llm/.../RetryConfig.kt` | 指数退避 double→Long 截断（先 toLong 再乘） | ❌ |
+| L-02 | `prompt-mnn/.../MnnBridge.kt` | isLoaded 非 @Volatile | ✅ 已修复 |
+| L-03 | `prompt-llm/.../RetryConfig.kt` | 指数退避 double→Long 截断（先 toLong 再乘） | ✅ 已修复 |
 | L-04 | 4个客户端 | listModels() Response 未关闭 | ❌ |
-| L-05 | `prompt-mnn/.../MnnModelManager.kt` | safeModelId 未过滤 `..`（仅过滤 `/`） | ❌ |
+| L-05 | `prompt-mnn/.../MnnModelManager.kt` | safeModelId 未过滤 `..`（仅过滤 `/`） | ✅ 已修复 |
 | L-06 | `prompt-ui/.../UiParser.kt` | 正则 ReDoS 风险（`[\s\S]*?` 回溯） | ❌ |
 | L-07 | 16+ 个文件工具 | resolveFile() 代码重复（维护风险） | ❌ |
 | L-08 | `agent-tools/.../EditFileTool.kt` | 模糊匹配可能误替换代码段 | ❌ |
-| L-09 | `agent-tools/.../ToolRegistry.kt` | mutableMapOf 无同步（注册通常在执行前，风险低） | ❌ |
+| L-09 | `agent-tools/.../ToolRegistry.kt` | mutableMapOf 无同步（注册通常在执行前，风险低） | ✅ 已修复 — ConcurrentHashMap |
 | L-10 | `agent-planner/.../SimpleLLMWithCriticPlanner.kt` | 浅拷贝 prompt 可被 evaluatePlan 污染 | ❌ |
 | L-11 | `agent-graph/.../AgentStrategy.kt` | 异常重抛未发 StrategyFailed trace 事件 | ❌ |
-| L-12 | `config/.../FormatUtils.kt` | formatTokenCount 整数除法精度丢失（1500→"1K"） | ❌ |
+| L-12 | `config/.../FormatUtils.kt` | formatTokenCount 整数除法精度丢失（1500→"1K"） | ✅ 已修复 — 浮点除法 |
 | L-13 | `conversation-storage/.../ConversationRepository.kt` | addMessages 时间戳 +index 排序脆弱 | ❌ |
 | L-14 | `core/domain/.../repository/SkillManager.kt` | saveSecret DEBUG 日志泄露技能名 | ❌ |
 | L-15 | `core/data/.../repository/ToolLoopExecutor.kt` | maxIterations 硬编码 15，忽略配置值 | ❌ |
@@ -333,9 +333,9 @@
 | L-17 | `core/data/.../log/FileLogger.kt` | 日志明文存储，sanitize 不完整 | ❌ |
 | L-18 | `assistant-tools/.../Tools.kt` | IpLocationTool Response 未关闭 | ❌ |
 | L-19 | `assistant-tools/.../WebSearchTool.kt` | 每次调用创建新 OkHttpClient（连接池泄漏） | ❌ |
-| L-20 | `assistant-runtime/.../HeartbeatManager.kt` | lastHeartbeatEpochMs 非 @Volatile（32 位 ARM 非原子 Long） | ❌ |
+| L-20 | `assistant-runtime/.../HeartbeatManager.kt` | lastHeartbeatEpochMs 非 @Volatile（32 位 ARM 非原子 Long） | ✅ 已修复 |
 | L-21 | `assistant-tools/.../Tools.kt` | CalendarTool CALENDAR_ID 硬编码为 1 | ❌ |
-| L-22 | `websearch/.../DuckDuckGoSearchService.kt` | 错误结果返回为成功（title="Search Error"） | ❌ |
+| L-22 | `websearch/.../DuckDuckGoSearchService.kt` | 错误结果返回为成功（title="Search Error"） | ✅ 已修复 — 异常向上抛出 |
 | L-23 | `assistant-email/.../ImapClient.kt` | 标签匹配 off-by-one 风险（无空格时匹配失败） | ❌ |
 | L-24 | `assistant-email/.../EmailStore.kt` | 密码明文内存存储 | ❌ |
 | L-25 | `feature/sandbox/impl/.../SandboxViewModel.kt` | executeCommand 无取消处理 | ❌ |

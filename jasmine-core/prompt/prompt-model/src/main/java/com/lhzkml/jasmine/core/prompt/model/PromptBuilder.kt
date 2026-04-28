@@ -26,7 +26,7 @@ class PromptBuilder internal constructor(
     private val maxTokens: Int? = null,
     private val toolChoice: ToolChoice? = null
 ) {
-    private val messages = mutableListOf<ChatMessage>()
+    private val messages = java.util.concurrent.CopyOnWriteArrayList<ChatMessage>()
 
     internal companion object {
         fun from(prompt: Prompt): PromptBuilder = PromptBuilder(

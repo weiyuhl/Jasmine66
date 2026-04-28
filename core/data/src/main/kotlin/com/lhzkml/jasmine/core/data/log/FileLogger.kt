@@ -104,6 +104,10 @@ object FileLogger {
             .replace(Regex("""Bearer\s+[\w\-._~+/]+=*""", RegexOption.IGNORE_CASE), "Bearer [REDACTED]")
             .replace(Regex("""(?i)x-api-key:\s*[\w\-._~+/]+=*"""), "x-api-key: [REDACTED]")
             .replace(Regex("""[?&]key=[\w\-._~+/]+=*"""), "?key=[REDACTED]")
+            .replace(Regex("""(?i)api_key=[\w\-._~+/]+=*"""), "api_key=[REDACTED]")
+            .replace(Regex("""(?i)api_key:\s*[\w\-._~+/]+=*"""), "api_key: [REDACTED]")
+            .replace(Regex("""(?i)authorization:\s*Basic\s+[\w+/]+=*"""), "Authorization: Basic [REDACTED]")
+            .replace(Regex("""sk-[\w\-]{20,}"""), "sk-[REDACTED]")
         return result
     }
 

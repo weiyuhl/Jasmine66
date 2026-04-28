@@ -19,10 +19,11 @@ class FileTraceWriter(
     private val file: File,
     private val format: ((TraceEvent) -> String)? = null,
     private val filter: TraceEventFilter? = null,
-    append: Boolean = true
+    private val append: Boolean = true
 ) : TraceWriter {
 
-    private val writer: BufferedWriter = BufferedWriter(FileWriter(file, append))
+    // 延迟初始化：首次写入时才打开文件句柄
+    private val writer: BufferedWriter by lazy { BufferedWriter(FileWriter(file, append)) }
 
     override suspend fun write(event: TraceEvent) {
         if (filter != null && !filter.invoke(event)) return

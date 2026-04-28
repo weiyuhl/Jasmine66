@@ -55,7 +55,7 @@ suspend fun <T> executeWithRetry(
             
             // 计算延迟时间（指数退避）
             val delayMs = min(
-                config.initialDelayMs * config.backoffMultiplier.pow(attempt).toLong(),
+                (config.initialDelayMs * config.backoffMultiplier.pow(attempt)).toLong(),
                 config.maxDelayMs
             )
             
@@ -69,7 +69,7 @@ suspend fun <T> executeWithRetry(
             }
             
             val delayMs = min(
-                config.initialDelayMs * config.backoffMultiplier.pow(attempt).toLong(),
+                (config.initialDelayMs * config.backoffMultiplier.pow(attempt)).toLong(),
                 config.maxDelayMs
             )
             

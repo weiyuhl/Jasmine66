@@ -9,7 +9,7 @@ import com.lhzkml.jasmine.core.prompt.model.ToolResult
  * 参考 koog 的 ToolRegistry，管理可用工具集合
  */
 class ToolRegistry {
-    private val tools = mutableMapOf<String, Tool>()
+    private val tools = java.util.concurrent.ConcurrentHashMap<String, Tool>()
 
     fun register(tool: Tool) {
         tools[tool.name] = tool

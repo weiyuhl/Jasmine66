@@ -8,7 +8,7 @@ import android.util.Log
 object MnnBridge {
     private const val TAG = "MnnBridge"
     
-    private var isLoaded = false
+    @Volatile private var isLoaded = false
     
     init {
         try {

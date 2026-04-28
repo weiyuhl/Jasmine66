@@ -70,14 +70,21 @@ class HeartbeatTools(
             val args = Json.parseToJsonElement(arguments).jsonObject
             val key = args["memory_key"]?.jsonPrimitive?.content ?: return "Error: Missing memory_key"
             val addition = args["soul_addition"]?.jsonPrimitive?.content ?: return "Error: Missing soul_addition"
-            
+
             val memory = memoryStore.getMemory(key) ?: return "Error: Memory not found"
-            
+
             // 移除已晋升的记忆
             memoryStore.forget(key)
-            
-            // 注意：此处应持久化 soul_addition，目前仅返回成功以对齐逻辑
-            return "Success: Memory '$key' promoted to soul. It will now be part of your base behavior rules."
+
+            // 持久化 soul_addition 到记忆存储（使用特殊类别）
+            memoryStore.remember(
+                key = "soul_${key}",
+                value = addition,
+                category = "soul_rule",
+                emotionalWeight = 10
+            )
+
+            return "Success: Memory '$key' promoted to soul rule. Instruction '$addition' will now be part of base behavior rules."
         }
     }
 }

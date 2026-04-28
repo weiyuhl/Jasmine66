@@ -14,7 +14,7 @@ class HeartbeatManager(
     private val taskStore: TaskStore,
     private val emailStore: EmailStore? = null
 ) {
-    private var lastHeartbeatEpochMs: Long = 0
+    @Volatile private var lastHeartbeatEpochMs: Long = 0
 
     /**
      * 检查是否需要执行心跳自检

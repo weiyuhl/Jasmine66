@@ -137,9 +137,17 @@ class ChatClientManager @Inject constructor(
         uiEnabled: Boolean = true,
         webSearchEnabled: Boolean = true,
     ): StreamChatResult {
+        // 注意：client 引用在锁外使用，并发 refreshState() 可能关闭旧 client。
+        // 已知限制：用户在流式传输期间切换 provider 会导致当前请求失败。
         val (client, ctxManager) = stateMutex.withLock {
             val c = chatClient ?: throw IllegalStateException("Send failed: ${_setupState.value}")
             c to contextManager
+        }
+        // 验证 client 未被关闭
+        if (client is java.io.Closeable) {
+            try { client.toString() } catch (_: Exception) {
+                throw IllegalStateException("Client was closed during streaming setup")
+            }
         }
 
         val allTools = toolManager.descriptors()

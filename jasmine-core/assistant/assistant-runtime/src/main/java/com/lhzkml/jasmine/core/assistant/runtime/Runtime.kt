@@ -122,11 +122,36 @@ class Runtime(
         return result
     }
 
+    private val recentToolCalls = mutableListOf<String>()
+
     private fun checkRepetition(result: ChatResult): Boolean {
-        // 实现对齐 Kai 的 isRepeatingToolCalls 逻辑
-        // 核心思路：对比工具调用的 FunctionName 和 Arguments Hash
-        // 这里需要访问 ChatResult 的消息历史（略，后续具体实现）
-        return false 
+        // 提取本次工具调用的签名（名称+参数哈希）
+        val toolCalls = result.toolCalls ?: return false
+        if (toolCalls.isEmpty()) return false
+
+        val signatures = toolCalls.map { call ->
+            "${call.name}:${call.arguments.hashCode()}"
+        }
+
+        // 检查连续重复
+        val currentSig = signatures.joinToString("|")
+        recentToolCalls.add(currentSig)
+
+        // 只保留最近 MAX_REPEATED_TOOL_CALLS 条
+        if (recentToolCalls.size > MAX_REPEATED_TOOL_CALLS) {
+            recentToolCalls.removeAt(0)
+        }
+
+        // 如果最近 N 次调用签名完全相同，判定为死循环
+        if (recentToolCalls.size >= MAX_REPEATED_TOOL_CALLS) {
+            val allSame = recentToolCalls.all { it == recentToolCalls[0] }
+            if (allSame) {
+                recentToolCalls.clear()
+                return true
+            }
+        }
+
+        return false
     }
 
     private suspend fun forceSummarize(userInput: String, systemPrompt: String, modelId: String): ChatResult {
