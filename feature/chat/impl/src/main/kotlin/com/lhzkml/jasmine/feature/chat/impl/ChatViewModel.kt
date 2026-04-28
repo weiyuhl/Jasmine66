@@ -111,87 +111,8 @@ class ChatViewModel @Inject constructor(
         } else {
             "Pressed: $event"
         }
-        val userMsg = UiChatMessage(role = "user", content = message)
-        _messages.update { it + userMsg }
-
-        val assistantPlaceholder = UiChatMessage(role = "assistant", content = "", isStreaming = true)
-        _messages.update { it + assistantPlaceholder }
-
-        val model = clientManager.getActiveModel()
-        val history = buildApiMessages()
-
-        // Match onSendClick behavior: clear stale state
-        _isChatRunning.value = true
-        _errorMessage.value = null
-        _toolCallEvents.value = emptyList()
-
-        streamJob?.cancel()
-        val thisGen = ++streamGeneration
-        streamJob = viewModelScope.launch {
-            try {
-                val userData = userDataRepository.userData.first()
-                val result = clientManager.streamChat(
-                    messages = history,
-                    model = model,
-                    onChunk = { chunk ->
-                        updateLastAssistant { it.copy(content = it.content + chunk) }
-                    },
-                    onThinking = { thinkChunk ->
-                        updateLastAssistant {
-                            it.copy(thinking = (it.thinking ?: "") + thinkChunk)
-                        }
-                    },
-                    onToolCallStart = { toolName, toolArgs ->
-                        _toolCallEvents.update { it + ToolCallEvent(
-                            toolName = toolName,
-                            arguments = toolArgs,
-                            isRunning = true,
-                        )}
-                    },
-                    onToolCallResult = { toolName, resultContent ->
-                        _toolCallEvents.update { events ->
-                            val lastIdx = events.lastIndex
-                            if (lastIdx >= 0 && events[lastIdx].toolName == toolName && events[lastIdx].isRunning) {
-                                events.toMutableList().apply {
-                                    this[lastIdx] = this[lastIdx].copy(
-                                        result = resultContent,
-                                        isRunning = false,
-                                    )
-                                }
-                            } else {
-                                events + ToolCallEvent(
-                                    toolName = toolName,
-                                    arguments = "",
-                                    result = resultContent,
-                                    isRunning = false,
-                                )
-                            }
-                        }
-                    },
-                    uiEnabled = userData.uiEnabled,
-                    webSearchEnabled = userData.webSearchEnabled,
-                )
-                val toolResults = buildToolResultsFromEvents(result.toolCalls)
-                updateLastAssistant {
-                    it.copy(
-                        isStreaming = false,
-                        thinking = result.thinking ?: it.thinking,
-                        toolCalls = result.toolCalls,
-                        toolResults = toolResults,
-                    )
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                val errorMsg = e.message ?: "请求失败"
-                _errorMessage.value = errorMsg
-                com.lhzkml.jasmine.core.data.log.FileLogger.logError("ChatViewModel", "UI callback failed: $errorMsg", e)
-                updateLastAssistant { it.copy(isStreaming = false) }
-            } finally {
-                if (thisGen == streamGeneration) {
-                    _isChatRunning.value = false
-                }
-            }
+        addUserMessageAndStream(message, logTag = "UI callback") { errorMsg ->
+            _errorMessage.value = errorMsg
         }
     }
 
@@ -205,11 +126,28 @@ class ChatViewModel @Inject constructor(
         }
 
         _chatPrompt.value = ""
-        _isChatRunning.value = true
-        _errorMessage.value = null
-        _toolCallEvents.value = emptyList()
+        addUserMessageAndStream(prompt, logTag = "Chat request") { errorMsg ->
+            val cause = exceptionCause().get()
+            val isConnectionAbort = cause is java.net.SocketException ||
+                errorMsg.contains("connection abort", ignoreCase = true) ||
+                errorMsg.contains("Socket", ignoreCase = true)
+            if (isConnectionAbort) {
+                updateLastAssistant { it.copy(isStreaming = false) }
+            } else {
+                _errorMessage.value = errorMsg
+                updateLastAssistant { it.copy(isStreaming = false) }
+            }
+        }
+        if (_errorMessage.value?.contains("续传") == true) {
+            _errorMessage.value = null
+        }
+    }
 
-        val userMsg = UiChatMessage(role = "user", content = prompt)
+    private val _lastExceptionCause = kotlinx.coroutines.flow.MutableStateFlow<Throwable?>(null)
+    private fun exceptionCause() = java.util.Optional.ofNullable(_lastExceptionCause.value)
+
+    private fun addUserMessageAndStream(userContent: String, logTag: String, onError: (String) -> Unit) {
+        val userMsg = UiChatMessage(role = "user", content = userContent)
         _messages.update { it + userMsg }
 
         val assistantPlaceholder = UiChatMessage(role = "assistant", content = "", isStreaming = true)
@@ -217,6 +155,10 @@ class ChatViewModel @Inject constructor(
 
         val model = clientManager.getActiveModel()
         val history = buildApiMessages()
+
+        _isChatRunning.value = true
+        _errorMessage.value = null
+        _toolCallEvents.value = emptyList()
 
         streamJob?.cancel()
         val thisGen = ++streamGeneration
@@ -230,34 +172,18 @@ class ChatViewModel @Inject constructor(
                         updateLastAssistant { it.copy(content = it.content + chunk) }
                     },
                     onThinking = { thinkChunk ->
-                        updateLastAssistant {
-                            it.copy(thinking = (it.thinking ?: "") + thinkChunk)
-                        }
+                        updateLastAssistant { it.copy(thinking = (it.thinking ?: "") + thinkChunk) }
                     },
                     onToolCallStart = { toolName, toolArgs ->
-                        _toolCallEvents.update { it + ToolCallEvent(
-                            toolName = toolName,
-                            arguments = toolArgs,
-                            isRunning = true,
-                        )}
+                        _toolCallEvents.update { it + ToolCallEvent(toolName = toolName, arguments = toolArgs, isRunning = true) }
                     },
                     onToolCallResult = { toolName, resultContent ->
                         _toolCallEvents.update { events ->
                             val lastIdx = events.lastIndex
                             if (lastIdx >= 0 && events[lastIdx].toolName == toolName && events[lastIdx].isRunning) {
-                                events.toMutableList().apply {
-                                    this[lastIdx] = this[lastIdx].copy(
-                                        result = resultContent,
-                                        isRunning = false,
-                                    )
-                                }
+                                events.toMutableList().apply { this[lastIdx] = this[lastIdx].copy(result = resultContent, isRunning = false) }
                             } else {
-                                events + ToolCallEvent(
-                                    toolName = toolName,
-                                    arguments = "",
-                                    result = resultContent,
-                                    isRunning = false,
-                                )
+                                events + ToolCallEvent(toolName = toolName, arguments = "", result = resultContent, isRunning = false)
                             }
                         }
                     },
@@ -266,36 +192,15 @@ class ChatViewModel @Inject constructor(
                 )
                 val toolResults = buildToolResultsFromEvents(result.toolCalls)
                 updateLastAssistant {
-                    it.copy(
-                        isStreaming = false,
-                        thinking = result.thinking ?: it.thinking,
-                        toolCalls = result.toolCalls,
-                        toolResults = toolResults,
-                    )
-                }
-                if (_errorMessage.value?.contains("续传") == true) {
-                    _errorMessage.value = null
+                    it.copy(isStreaming = false, thinking = result.thinking ?: it.thinking, toolCalls = result.toolCalls, toolResults = toolResults)
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 val errorMsg = e.message ?: "请求失败"
-                val cause = e.cause
-                // When DeviceControlTool launches an external Activity (e.g. Maps),
-                // Android may background the app and kill the streaming socket.
-                // In this case we gracefully keep whatever partial response we got.
-                val isConnectionAbort = cause is java.net.SocketException ||
-                    errorMsg.contains("connection abort", ignoreCase = true) ||
-                    errorMsg.contains("Socket", ignoreCase = true)
-                if (isConnectionAbort) {
-                    // Tool executed successfully; silently close the stream
-                    updateLastAssistant { it.copy(isStreaming = false) }
-                } else {
-                    _errorMessage.value = errorMsg
-                    // Always end streaming so UI blocks render even on error
-                    updateLastAssistant { it.copy(isStreaming = false) }
-                }
-                com.lhzkml.jasmine.core.data.log.FileLogger.logError("ChatViewModel", "Chat request failed: $errorMsg\nFull exception: ${e}\nCause: ${e.cause}", e)
+                _lastExceptionCause.value = e.cause
+                onError(errorMsg)
+                com.lhzkml.jasmine.core.data.log.FileLogger.logError("ChatViewModel", "$logTag failed: $errorMsg", e)
             } finally {
                 if (thisGen == streamGeneration) {
                     _isChatRunning.value = false

@@ -50,7 +50,8 @@ class StreamResumeHelper(
         tools: List<ToolDescriptor> = emptyList(),
         onChunk: suspend (String) -> Unit,
         onThinking: suspend (String) -> Unit = {},
-        onResumeAttempt: suspend (Int) -> Unit = {}
+        onResumeAttempt: suspend (Int) -> Unit = {},
+        contextManager: ContextManager? = null,
     ): StreamResult {
         val fullContent = StringBuilder()
         var lastResult: StreamResult? = null
@@ -67,7 +68,6 @@ class StreamResumeHelper(
                     onThinking = onThinking
                 )
 
-                // 正常完成，合并内容返回
                 return StreamResult(
                     content = fullContent.toString(),
                     usage = result.usage,
@@ -77,24 +77,24 @@ class StreamResumeHelper(
                 )
             } catch (e: ChatClientException) {
                 if (e.errorType != ErrorType.NETWORK || attempt >= maxResumes) {
-                    // 非网络错误或已达最大续传次数，直接抛出
                     throw e
                 }
 
                 val partialContent = fullContent.toString()
                 if (partialContent.isEmpty()) {
-                    // 还没收到任何内容就超时了，直接抛出让上层重试机制处理
                     throw e
                 }
 
-                // 有部分内容，尝试续传
                 onResumeAttempt(attempt + 1)
 
-                // 构建续传消息：原始消息 + 已收到的部分内容作为 assistant 消息 + 续传指令
-                currentMessages = messages + listOf(
+                var resumeMessages = messages + listOf(
                     ChatMessage.assistant(partialContent),
                     ChatMessage.user(RESUME_PROMPT)
                 )
+                if (contextManager != null) {
+                    resumeMessages = contextManager.trimMessages(resumeMessages)
+                }
+                currentMessages = resumeMessages
             }
         }
 

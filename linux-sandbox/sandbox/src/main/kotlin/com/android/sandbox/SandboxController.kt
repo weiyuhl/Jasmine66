@@ -13,11 +13,12 @@ data class SandboxStatus(
     val error: Boolean = false,
 )
 
-interface SandboxController {
+interface SandboxController : java.io.Closeable {
     val status: StateFlow<SandboxStatus>
     fun setup()
     fun cancel()
     fun reset()
     fun installPackages()
     suspend fun executeCommand(command: String): String
+    override fun close()
 }

@@ -14,19 +14,19 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DuckDuckGoSearchService @Inject constructor() : WebSearchService {
+class DuckDuckGoSearchService @Inject constructor(
+    private val client: OkHttpClient = defaultClient(),
+    private val baseUrl: String = DEFAULT_BASE_URL,
+) : WebSearchService {
 
-    internal constructor(client: OkHttpClient, baseUrl: String) : this() {
-        this.client = client
-        this.baseUrl = baseUrl
+    companion object {
+        const val DEFAULT_BASE_URL = "https://api.duckduckgo.com/"
+
+        fun defaultClient(): OkHttpClient = OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .build()
     }
-
-    private var client = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(15, TimeUnit.SECONDS)
-        .build()
-
-    private var baseUrl = "https://api.duckduckgo.com/"
 
     private val json = Json {
         ignoreUnknownKeys = true

@@ -70,7 +70,7 @@ class AndroidSandboxController(context: Context) : SandboxController {
         }
     }
 
-    fun destroy() {
+    override fun close() {
         scope.cancel()
         sandboxManager.destroy()
     }

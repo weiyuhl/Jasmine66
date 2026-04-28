@@ -102,4 +102,9 @@ class SandboxViewModel @Inject constructor(
     fun getExecutor() = sandboxManager.createProotExecutor()
 
     suspend fun executeCommand(command: String): String = sandboxController.executeCommand(command)
+
+    override fun onCleared() {
+        super.onCleared()
+        sandboxController.close()
+    }
 }

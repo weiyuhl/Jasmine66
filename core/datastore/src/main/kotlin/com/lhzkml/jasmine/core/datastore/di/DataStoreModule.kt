@@ -30,7 +30,11 @@ object DataStoreModule {
         DataStoreFactory.create(
             serializer = userPreferencesSerializer,
             scope = scope,
-            migrations = listOf(), // Add DataMigration entries here when UserPreferences schema changes
+            // WARNING: When UserPreferences.proto schema changes (fields added/removed/renumbered),
+            // you MUST add a DataMigration here. Otherwise DataStore will crash on upgrade.
+            // Example: listOf(SharedPreferencesMigration(context, "old_prefs"))
+            // Test: increment UserPreferencesVersion in tests and verify migration succeeds.
+            migrations = listOf(),
         ) {
             context.dataStoreFile("user_preferences.pb")
         }

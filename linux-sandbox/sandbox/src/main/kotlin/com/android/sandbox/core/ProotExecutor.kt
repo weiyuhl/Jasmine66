@@ -147,10 +147,10 @@ class ProotExecutor(
             process = Runtime.getRuntime().exec(processArgs, envVars, File(rootfsPath).parentFile)
 
             val stdoutFuture = CompletableFuture.supplyAsync({
-                readBounded(process.inputStream.bufferedReader())
+                process.inputStream.bufferedReader().use { readBounded(it) }
             }, ioExecutor)
             val stderrFuture = CompletableFuture.supplyAsync({
-                readBounded(process.errorStream.bufferedReader())
+                process.errorStream.bufferedReader().use { readBounded(it) }
             }, ioExecutor)
 
             val completed = process.waitFor(effectiveTimeout, TimeUnit.SECONDS)

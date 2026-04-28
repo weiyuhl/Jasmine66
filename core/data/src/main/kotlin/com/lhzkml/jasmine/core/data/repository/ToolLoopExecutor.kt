@@ -65,6 +65,7 @@ class ToolLoopExecutor @Inject constructor(
                 onChunk = onChunk,
                 onThinking = onThinking,
                 onResumeAttempt = onResumeAttempt,
+                contextManager = contextManager,
             )
 
             finalFinishReason = result.finishReason
@@ -201,6 +202,7 @@ class ToolLoopExecutor @Inject constructor(
             onChunk = onChunk,
             onThinking = onThinking,
             onResumeAttempt = onResumeAttempt,
+            contextManager = contextManager,
         )
         return StreamChatResult(
             content = result.content,

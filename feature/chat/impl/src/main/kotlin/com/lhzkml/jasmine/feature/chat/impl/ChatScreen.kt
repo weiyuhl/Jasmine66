@@ -128,9 +128,35 @@ internal fun ChatScreen(
         )
     }
 
+    // Buffer JS events that arrive before the WebView is ready
+    val pendingJsEvents = remember { mutableListOf<com.lhzkml.jasmine.core.data.tools.CallJsEvent>() }
+
+    // Drain buffered events once the WebView becomes ready
+    LaunchedEffect(sandboxWebView) {
+        val wv = sandboxWebView ?: return@LaunchedEffect
+        if (pendingJsEvents.isNotEmpty()) {
+            val toProcess = pendingJsEvents.toList()
+            pendingJsEvents.clear()
+            for (event in toProcess) {
+                try {
+                    val result = sandbox.executeSkill(webView = wv, url = event.url, data = event.data, secret = event.secret)
+                    if (event.continuation.isActive) {
+                        event.continuation.resumeWith(Result.success(result))
+                    }
+                } catch (e: Exception) {
+                    event.continuation.resumeWith(Result.success(""))
+                }
+            }
+        }
+    }
+
     LaunchedEffect(viewModel.agentEventBus) {
         viewModel.agentEventBus.jsEvents.collect { event ->
-            val wv = sandboxWebView ?: return@collect
+            val wv = sandboxWebView
+            if (wv == null) {
+                pendingJsEvents.add(event)
+                return@collect
+            }
             val result = try {
                 sandbox.executeSkill(
                     webView = wv,

@@ -38,21 +38,21 @@ android {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
 
-    implementation("io.ktor:ktor-client-core:3.4.2")
-    implementation("io.ktor:ktor-client-android:3.4.2")
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.android)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+    implementation(libs.kotlinx.serialization.json)
 
     api(projects.jasmineCore.agent.agentTools)
     api(projects.jasmineCore.prompt.promptModel)
 
-    testImplementation(platform("org.junit:junit-bom:5.14.3"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
-    testImplementation("org.mockito:mockito-core:5.14.2")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.vintage)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
 }

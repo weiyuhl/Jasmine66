@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.HttpTimeout
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,13 @@ class LinuxSandboxManager(private val context: Context) {
     val prootPath: String get() = File(context.applicationInfo.nativeLibraryDir, "libproot.so").absolutePath
     val nativeLibDir: String get() = context.applicationInfo.nativeLibraryDir
 
-    private val downloader = RootfsDownloader(HttpClient(Android))
+    private val downloader = RootfsDownloader(HttpClient(Android) {
+        install(io.ktor.client.plugins.HttpTimeout) {
+            connectTimeoutMillis = 30_000
+            requestTimeoutMillis = 300_000 // 5 min for rootfs download
+            socketTimeoutMillis = 60_000
+        }
+    })
 
     init {
         checkExistingInstallation()
@@ -58,24 +65,28 @@ class LinuxSandboxManager(private val context: Context) {
     }
 
     fun setup() {
-        if (currentJob?.isActive == true) return
-        currentJob = scope.launch {
-            try {
-                setupInternal()
-            } catch (e: CancellationException) {
-                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
-                    checkExistingInstallation()
+        synchronized(this) {
+            if (currentJob?.isActive == true) return
+            currentJob = scope.launch {
+                try {
+                    setupInternal()
+                } catch (e: CancellationException) {
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                        checkExistingInstallation()
+                    }
+                    throw e
+                } catch (e: Exception) {
+                    _state.value = SandboxState.Error(e.message ?: "Setup failed")
                 }
-                throw e
-            } catch (e: Exception) {
-                _state.value = SandboxState.Error(e.message ?: "Setup failed")
             }
         }
     }
 
     fun cancel() {
-        currentJob?.cancel()
-        currentJob = null
+        synchronized(this) {
+            currentJob?.cancel()
+            currentJob = null
+        }
         File(sandboxDir, "rootfs.tar.gz").delete()
         if (File(rootfsPath).isDirectory && prootExists()) {
             _state.value = SandboxState.Ready
@@ -294,9 +305,20 @@ class LinuxSandboxManager(private val context: Context) {
         }
     }
 
+    @Volatile private var cachedDiskUsageMB = -1L
+
     fun getDiskUsageMB(): Long {
         if (!sandboxDir.exists()) return 0
-        return sandboxDir.walkTopDown().sumOf { it.length() } / (1024 * 1024)
+        val cached = cachedDiskUsageMB
+        if (cached >= 0) return cached
+        val computed = sandboxDir.walkTopDown().sumOf { it.length() } / (1024 * 1024)
+        cachedDiskUsageMB = computed
+        return computed
+    }
+
+    /** Call after sandbox state changes to force disk usage recalculation. */
+    fun invalidateDiskUsageCache() {
+        cachedDiskUsageMB = -1L
     }
 
     fun arePackagesInstalled(): Boolean {

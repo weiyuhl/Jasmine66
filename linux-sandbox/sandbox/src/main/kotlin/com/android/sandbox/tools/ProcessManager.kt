@@ -22,12 +22,40 @@ class ProcessManager(private val sandboxManager: LinuxSandboxManager) {
     private val sessions = ConcurrentHashMap<String, Session>()
     private val nextId = AtomicInteger(1)
 
+    companion object {
+        private const val FINISHED_SESSION_TTL_MS = 30 * 60 * 1000L // 30 min
+        private const val MAX_SESSIONS = 200
+        private val backgroundExecutor: java.util.concurrent.ExecutorService =
+            java.util.concurrent.Executors.newCachedThreadPool { r ->
+                Thread(r, "sandbox-bg").apply { isDaemon = true }
+            }
+    }
+
+    /** Evict finished sessions older than TTL, and trim oldest if over max. */
+    private fun evictIfNeeded() {
+        val now = System.currentTimeMillis()
+        val toRemove = sessions.entries.filter { (_, s) ->
+            s.finished && (now - s.startTime) > FINISHED_SESSION_TTL_MS
+        }
+        toRemove.forEach { sessions.remove(it.key) }
+
+        // Trim oldest finished sessions if still over limit
+        if (sessions.size > MAX_SESSIONS) {
+            val sorted = sessions.entries
+                .filter { it.value.finished }
+                .sortedBy { it.value.startTime }
+            val toDrop = sorted.take(sessions.size - MAX_SESSIONS)
+            toDrop.forEach { sessions.remove(it.key) }
+        }
+    }
+
     fun startBackground(
         command: String,
         timeoutSeconds: Long,
         workingDir: String,
         envMap: Map<String, String>,
     ): Map<String, Any> {
+        evictIfNeeded()
         val sessionId = "bg-${nextId.getAndIncrement()}"
         val session = Session(
             id = sessionId,
@@ -37,14 +65,14 @@ class ProcessManager(private val sandboxManager: LinuxSandboxManager) {
         sessions[sessionId] = session
 
         val executor = sandboxManager.createProotExecutor()
-        session.future = CompletableFuture.runAsync {
+        session.future = CompletableFuture.runAsync({
             val result = executor.execute(command, timeoutSeconds, workingDir, envMap)
             session.stdout = result["stdout"] as? String ?: ""
             session.stderr = result["stderr"] as? String ?: ""
             session.exitCode = result["exit_code"] as? Int ?: -1
             session.timedOut = result["timed_out"] as? Boolean ?: false
             session.finished = true
-        }
+        }, backgroundExecutor)
 
         return mapOf(
             "success" to true,
@@ -55,6 +83,7 @@ class ProcessManager(private val sandboxManager: LinuxSandboxManager) {
     }
 
     fun list(): Map<String, Any> {
+        evictIfNeeded()
         val running = sessions.values.filter { !it.finished }.map { it.toInfo() }
         val finished = sessions.values.filter { it.finished }.map { it.toInfo() }
         return mapOf(

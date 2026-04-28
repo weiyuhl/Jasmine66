@@ -57,8 +57,9 @@ class RunJsTool @Inject constructor(
         val scriptName = json["scriptName"]?.jsonPrimitive?.content?.trim() ?: "index.html"
         val data = json["data"]?.jsonPrimitive?.content?.trim()?.ifEmpty { "{}" } ?: "{}"
 
-        // Read the API key/secret from SkillManager preferences
-        val secret = skillManager.getSecret(skillName)
+        // Only pass secret if the skill's metadata declares it requires one
+        val skill = skillManager.getSkillByName(skillName)
+        val secret = if (skill?.requireSecret == true) skillManager.getSecret(skillName) else ""
 
         // Calculate the local asset path for the skill
         val url = "file:///android_asset/skills/${skillName}/scripts/${scriptName}"

@@ -4,4 +4,6 @@
     <exclude domain="sharedpref" path="jasmine_provider_encrypted.xml" />
     <exclude domain="sharedpref" path="jasmine_skills.xml" />
     <exclude domain="file" path="logs/" />
+    <exclude domain="database" path="jasmine.db" />
+    <exclude domain="file" path="linux-sandbox/" />
 </full-backup-content>
