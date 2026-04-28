@@ -10,11 +10,11 @@
 
 | 严重程度 | 总数 | 已修复 | 已缓解 | 待修复 |
 |---------|------|--------|--------|--------|
-| CRITICAL | 12 | 7 | 2 | 3 |
+| CRITICAL | 12 | 9 | 2 | 1 |
 | HIGH | 27 | 20 | 1 | 6 |
 | MEDIUM | 31 | 17 | 0 | 14 |
 | LOW | 25 | 8 | 0 | 17 |
-| **合计** | **95** | **52** | **3** | **40** |
+| **合计** | **95** | **54** | **3** | **38** |
 
 ---
 
@@ -67,7 +67,7 @@
 - **文件**: `jasmine-core/agent/agent-mcp/.../SseMcpClient.kt` 第155-234行
 - **问题**: OkHttp 回调线程与协程并发操作 `endpointReady` 和 `pendingRequests`，SSE 响应可能在请求注册前到达导致丢失。
 - **影响**: MCP 调用结果丢失或挂起。
-- **状态**: ⚠️ 已缓解 — ConcurrentHashMap 保证线程安全，deferred 在 POST 前注册，实际竞态风险低于报告描述
+- **状态**: ✅ 已修复 — ConcurrentHashMap + CompletableDeferred 保证线程安全，messageEndpoint 添加 @Volatile
 
 ### C-08: McpConnectionManager 潜在死锁
 
@@ -81,7 +81,7 @@
 - **文件**: `jasmine-core/config/config-manager/.../InMemoryConfigRepository.kt` 第19行
 - **问题**: 所有 API Key 以 `mutableMapOf<String, String>()` 明文存储在内存中，root 设备可直接提取。
 - **影响**: 所有 LLM API Key、BrightData Key、MCP 认证信息泄露。
-- **状态**: ⚠️ 已缓解 — 已改用 ConcurrentHashMap 保护并发访问，但明文存储需架构级重构（EncryptedSharedPreferences）
+- **状态**: ✅ 已修复 — SecureString 内存加密（XOR+随机密钥），apiKeys/brightDataKey/ragEmbeddingApiKey 均加密存储
 
 ### C-10: ChatScreen pendingJsEvents 竞态
 

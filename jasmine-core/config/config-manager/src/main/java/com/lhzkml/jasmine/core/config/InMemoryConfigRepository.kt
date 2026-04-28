@@ -8,14 +8,39 @@ import com.lhzkml.jasmine.core.agent.tools.ShellPolicyConfig
 import com.lhzkml.jasmine.core.prompt.llm.CompressionStrategyType
 
 /**
+ * 内存中加密存储敏感字符串的包装类。
+ * 使用 XOR + 随机密钥混淆，防止 heap dump 直接读取明文。
+ * 注意：这不是军用级加密，但能有效防止简单的字符串扫描。
+ */
+private class SecureString(value: String) {
+    private val key = ByteArray(32).apply { java.security.SecureRandom().nextBytes(this) }
+    private var encrypted: ByteArray = xorEncrypt(value.toByteArray(Charsets.UTF_8))
+
+    private fun xorEncrypt(data: ByteArray): ByteArray {
+        val result = ByteArray(data.size)
+        for (i in data.indices) {
+            result[i] = (data[i].toInt() xor key[i % key.size].toInt()).toByte()
+        }
+        return result
+    }
+
+    fun decrypt(): String = String(xorEncrypt(encrypted), Charsets.UTF_8)
+
+    fun clear() {
+        encrypted.fill(0)
+        key.fill(0)
+    }
+}
+
+/**
  * In-memory implementation of [ConfigRepository] with sensible defaults.
- * Replace with SharedPreferences-backed implementation when persistence is needed.
+ * 敏感字段（API Key、密钥等）使用内存加密存储。
  */
 class InMemoryConfigRepository : ConfigRepository {
 
     // Provider management (thread-safe: @Volatile + ConcurrentHashMap)
     @Volatile private var activeProviderId: String? = null
-    private val apiKeys = java.util.concurrent.ConcurrentHashMap<String, String>()
+    private val apiKeys = java.util.concurrent.ConcurrentHashMap<String, SecureString>()
     private val baseUrls = java.util.concurrent.ConcurrentHashMap<String, String>()
     private val models = java.util.concurrent.ConcurrentHashMap<String, String>()
     private val selectedModels = java.util.concurrent.ConcurrentHashMap<String, List<String>>()
@@ -24,9 +49,10 @@ class InMemoryConfigRepository : ConfigRepository {
 
     override fun getActiveProviderId() = activeProviderId
     override fun setActiveProviderId(id: String) { activeProviderId = id }
-    override fun getApiKey(providerId: String) = apiKeys[providerId]
+    override fun getApiKey(providerId: String) = apiKeys[providerId]?.decrypt()
     override fun saveProviderCredentials(providerId: String, apiKey: String, baseUrl: String?, model: String?) {
-        apiKeys[providerId] = apiKey
+        apiKeys[providerId]?.clear()  // 清除旧密钥
+        apiKeys[providerId] = SecureString(apiKey)
         if (baseUrl != null) this.baseUrls[providerId] = baseUrl
         if (model != null) this.models[providerId] = model
     }
@@ -88,15 +114,15 @@ class InMemoryConfigRepository : ConfigRepository {
     private var toolsEnabled = true
     private var enabledTools = emptySet<String>()
     private var agentToolPreset = emptySet<String>()
-    private var brightDataKey = ""
+    @Volatile private var brightDataKey: SecureString? = null
     override fun isToolsEnabled() = toolsEnabled
     override fun setToolsEnabled(enabled: Boolean) { toolsEnabled = enabled }
     override fun getEnabledTools() = enabledTools
     override fun setEnabledTools(tools: Set<String>) { enabledTools = tools }
     override fun getAgentToolPreset() = agentToolPreset
     override fun setAgentToolPreset(tools: Set<String>) { agentToolPreset = tools }
-    override fun getBrightDataKey() = brightDataKey
-    override fun setBrightDataKey(key: String) { brightDataKey = key }
+    override fun getBrightDataKey() = brightDataKey?.decrypt() ?: ""
+    override fun setBrightDataKey(key: String) { brightDataKey?.clear(); brightDataKey = SecureString(key) }
 
     // Shell
     private var shellPolicy = ShellPolicy.MANUAL
@@ -230,7 +256,7 @@ class InMemoryConfigRepository : ConfigRepository {
     private var ragEnabled = false
     private var ragTopK = 5
     private var ragEmbeddingBaseUrl = ""
-    private var ragEmbeddingApiKey = ""
+    @Volatile private var ragEmbeddingApiKey: SecureString? = null
     private var ragEmbeddingModel = ""
     private var ragEmbeddingUseLocal = false
     private var ragEmbeddingModelPath = ""
@@ -243,8 +269,8 @@ class InMemoryConfigRepository : ConfigRepository {
     override fun setRagTopK(value: Int) { ragTopK = value }
     override fun getRagEmbeddingBaseUrl() = ragEmbeddingBaseUrl
     override fun setRagEmbeddingBaseUrl(url: String) { ragEmbeddingBaseUrl = url }
-    override fun getRagEmbeddingApiKey() = ragEmbeddingApiKey
-    override fun setRagEmbeddingApiKey(key: String) { ragEmbeddingApiKey = key }
+    override fun getRagEmbeddingApiKey() = ragEmbeddingApiKey?.decrypt() ?: ""
+    override fun setRagEmbeddingApiKey(key: String) { ragEmbeddingApiKey?.clear(); ragEmbeddingApiKey = SecureString(key) }
     override fun getRagEmbeddingModel() = ragEmbeddingModel
     override fun setRagEmbeddingModel(model: String) { ragEmbeddingModel = model }
     override fun getRagEmbeddingUseLocal() = ragEmbeddingUseLocal

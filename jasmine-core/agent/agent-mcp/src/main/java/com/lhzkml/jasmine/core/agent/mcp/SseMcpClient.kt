@@ -63,7 +63,7 @@ class SseMcpClient(
 
     private val requestId = AtomicInteger(0)
     private val pendingRequests = ConcurrentHashMap<Int, CompletableDeferred<JsonObject?>>()
-    private var messageEndpoint: String? = null
+    @Volatile private var messageEndpoint: String? = null
     private var sseJob: Job? = null
     private val sseScope = CoroutineScope(Dispatchers.IO + Job())
     private val endpointReady = CompletableDeferred<Unit>()
