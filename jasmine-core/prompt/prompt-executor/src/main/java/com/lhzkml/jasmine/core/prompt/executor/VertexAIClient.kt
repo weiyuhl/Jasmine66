@@ -286,7 +286,7 @@ class VertexAIClient(
 
                         call.enqueue(object : Callback {
                             override fun onFailure(call: Call, e: IOException) {
-                                continuation.resumeWithException(e)
+                                if (continuation.isActive) continuation.resumeWithException(e)
                             }
 
                             override fun onResponse(call: Call, response: Response) {
@@ -294,7 +294,7 @@ class VertexAIClient(
                                     try {
                                         if (!resp.isSuccessful) {
                                             val body = resp.body?.string()
-                                            continuation.resumeWithException(
+                                            if (continuation.isActive) continuation.resumeWithException(
                                                 ChatClientException.fromStatusCode(provider.name, resp.code, body)
                                             )
                                             return
@@ -328,9 +328,10 @@ class VertexAIClient(
                                             }
                                         }
 
+                                        streamScope.cancel()
                                         continuation.resume(Unit)
                                     } catch (e: Exception) {
-                                        continuation.resumeWithException(e)
+                                        if (continuation.isActive) continuation.resumeWithException(e)
                                     }
                                 }
                             }

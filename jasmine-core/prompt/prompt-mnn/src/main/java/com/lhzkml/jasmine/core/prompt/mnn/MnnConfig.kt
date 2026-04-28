@@ -13,13 +13,19 @@ data class MnnConfig(
     val enableThinking: Boolean = true
 ) {
     fun toJson(): String {
+        val escapedPrompt = systemPrompt
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
         return """
             {
                 "max_new_tokens": $maxNewTokens,
                 "temperature": $temperature,
                 "top_p": $topP,
                 "top_k": $topK,
-                "system_prompt": "$systemPrompt",
+                "system_prompt": "$escapedPrompt",
                 "jinja": {
                     "context": {
                         "enable_thinking": $enableThinking

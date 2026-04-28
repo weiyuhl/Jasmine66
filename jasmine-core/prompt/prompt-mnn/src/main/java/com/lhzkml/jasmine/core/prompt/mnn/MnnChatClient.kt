@@ -36,8 +36,10 @@ class MnnChatClient(
 
     override val provider: LLMProvider = LLMProvider.Custom("MNN Local")
 
+    @Volatile
     private var session: MnnLlmSession? = null
 
+    @Synchronized
     private fun ensureSession(model: String): MnnLlmSession {
         session?.let { return it }
 

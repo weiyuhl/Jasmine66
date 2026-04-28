@@ -10,7 +10,7 @@ import com.lhzkml.jasmine.core.conversation.storage.entity.UsageEntity
 @Database(
     entities = [ConversationEntity::class, MessageEntity::class, UsageEntity::class],
     version = 1,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class ConversationDatabase : RoomDatabase() {
     abstract fun conversationDao(): ConversationDao

@@ -10,7 +10,6 @@ import com.lhzkml.jasmine.core.prompt.model.Message
 import com.lhzkml.jasmine.core.prompt.model.Usage
 import com.lhzkml.jasmine.core.prompt.model.toChatMessage
 import com.lhzkml.jasmine.core.prompt.model.toMessage
-import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -122,27 +121,25 @@ class ConversationRepository(private val dao: ConversationDao) {
     // ========== 消息管理 ==========
 
     /**
-     * 添加一条消息到对话
+     * 添加一条消息到对话（原子性：消息插入 + 对话时间更新）
      */
-    @Transaction
     suspend fun addMessage(conversationId: String, message: ChatMessage) {
-        dao.insertMessage(
-            MessageEntity(
+        val now = System.currentTimeMillis()
+        dao.insertMessageAndTouch(
+            conversationId = conversationId,
+            message = MessageEntity(
                 conversationId = conversationId,
                 role = message.role,
                 content = message.content,
-                createdAt = System.currentTimeMillis()
-            )
+                createdAt = now
+            ),
+            updatedAt = now
         )
-        // 更新对话的最后修改时间
-        val conversation = dao.getConversation(conversationId) ?: return
-        dao.updateConversation(conversation.copy(updatedAt = System.currentTimeMillis()))
     }
 
     /**
-     * 批量添加消息
+     * 批量添加消息（原子性：消息批量插入 + 对话时间更新）
      */
-    @Transaction
     suspend fun addMessages(conversationId: String, messages: List<ChatMessage>) {
         val now = System.currentTimeMillis()
         val entities = messages.mapIndexed { index, msg ->
@@ -153,9 +150,7 @@ class ConversationRepository(private val dao: ConversationDao) {
                 createdAt = now + index // 保证顺序
             )
         }
-        dao.insertMessages(entities)
-        val conversation = dao.getConversation(conversationId) ?: return
-        dao.updateConversation(conversation.copy(updatedAt = System.currentTimeMillis()))
+        dao.insertMessagesAndTouch(conversationId, entities, now)
     }
 
     /** 获取对话的所有消息（转为 ChatMessage） */

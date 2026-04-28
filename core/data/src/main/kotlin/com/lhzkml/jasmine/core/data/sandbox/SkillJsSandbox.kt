@@ -3,7 +3,9 @@ package com.lhzkml.jasmine.core.data.sandbox
 import com.lhzkml.jasmine.core.data.log.FileLogger
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.net.URI
 import kotlin.coroutines.resume
@@ -58,10 +60,10 @@ class SkillJsSandbox {
         data: String,
         secret: String,
         timeoutMs: Long = 30_000L,
-    ): String {
+    ): String = withContext(Dispatchers.Main) {
         validateUrl(url)
 
-        return withTimeout(timeoutMs) {
+        withTimeout(timeoutMs) {
             suspendCancellableCoroutine { continuation ->
                 webView.removeJavascriptInterface(JS_INTERFACE_NAME)
 
@@ -107,9 +109,13 @@ class SkillJsSandbox {
 
     private fun buildJsPollScript(data: String, secret: String): String {
         val escapedData = data.replace("\\", "\\\\")
+            .replace("\r", "\\r")
+            .replace("\n", "\\n")
             .replace("`", "\\`")
             .replace("\$", "\\\$")
         val escapedSecret = secret.replace("\\", "\\\\")
+            .replace("\r", "\\r")
+            .replace("\n", "\\n")
             .replace("`", "\\`")
             .replace("\$", "\\\$")
 
@@ -146,10 +152,13 @@ class SkillJsSandbox {
                     }
                 }
                 "file" -> {
-                    require(uri.authority == "android_asset") {
-                        "Only file:///android_asset/ URLs are allowed, got: $url"
+                    require(uri.authority == null || uri.authority.isEmpty()) {
+                        "File URLs must have empty authority, got: $url"
                     }
                     val decodedPath = java.net.URLDecoder.decode(uri.path, "UTF-8")
+                    require(decodedPath.startsWith("/android_asset/")) {
+                        "Only file:///android_asset/ URLs are allowed, got: $url"
+                    }
                     require(!decodedPath.contains("..")) {
                         "Path traversal not allowed: $url"
                     }

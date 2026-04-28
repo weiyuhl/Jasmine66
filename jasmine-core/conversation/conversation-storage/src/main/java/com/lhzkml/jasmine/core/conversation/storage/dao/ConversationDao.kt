@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.lhzkml.jasmine.core.conversation.storage.entity.ConversationEntity
 import com.lhzkml.jasmine.core.conversation.storage.entity.MessageEntity
@@ -101,6 +102,24 @@ interface ConversationDao {
     /** 删除所有用量记录 */
     @Query("DELETE FROM usage_records")
     suspend fun deleteAllUsage()
+
+    // ========== 事务操作 ==========
+
+    /** 原子性插入消息并更新对话时间 */
+    @Transaction
+    suspend fun insertMessageAndTouch(conversationId: String, message: MessageEntity, updatedAt: Long) {
+        insertMessage(message)
+        val conversation = getConversation(conversationId) ?: return
+        updateConversation(conversation.copy(updatedAt = updatedAt))
+    }
+
+    /** 原子性批量插入消息并更新对话时间 */
+    @Transaction
+    suspend fun insertMessagesAndTouch(conversationId: String, messages: List<MessageEntity>, updatedAt: Long) {
+        insertMessages(messages)
+        val conversation = getConversation(conversationId) ?: return
+        updateConversation(conversation.copy(updatedAt = updatedAt))
+    }
 }
 
 /** 用量汇总数据类（Room 查询结果映射） */

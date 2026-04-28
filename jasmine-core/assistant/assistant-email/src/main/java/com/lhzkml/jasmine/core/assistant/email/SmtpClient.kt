@@ -41,24 +41,32 @@ class SmtpClient(
 
     suspend fun sendReply(from: String, to: String, subject: String, body: String, inReplyTo: String? = null): Boolean {
         val conn = connection ?: throw IllegalStateException("Not connected")
-        conn.writeLine("MAIL FROM:<$from>")
+
+        // Sanitize all header values: strip CR/LF to prevent SMTP header injection.
+        val safeFrom = from.replace("\r", "").replace("\n", "")
+        val safeTo = to.replace("\r", "").replace("\n", "")
+        val safeSubject = subject.replace("\r", "").replace("\n", "")
+        val safeBody = body.replace("\r", "").replace("\n", "\r\n")
+        val safeInReplyTo = inReplyTo?.replace("\r", "")?.replace("\n", "")
+
+        conn.writeLine("MAIL FROM:<$safeFrom>")
         readResponse()
-        conn.writeLine("RCPT TO:<$to>")
+        conn.writeLine("RCPT TO:<$safeTo>")
         readResponse()
         conn.writeLine("DATA")
         readResponse()
-        
+
         val message = buildString {
-            appendLine("From: $from")
-            appendLine("To: $to")
-            appendLine("Subject: $subject")
-            if (inReplyTo != null) {
-                appendLine("In-Reply-To: $inReplyTo")
-                appendLine("References: $inReplyTo")
+            appendLine("From: $safeFrom")
+            appendLine("To: $safeTo")
+            appendLine("Subject: $safeSubject")
+            if (safeInReplyTo != null) {
+                appendLine("In-Reply-To: $safeInReplyTo")
+                appendLine("References: $safeInReplyTo")
             }
             appendLine("Content-Type: text/plain; charset=UTF-8")
             appendLine()
-            appendLine(body)
+            appendLine(safeBody)
             appendLine(".")
         }
         conn.writeLine(message)

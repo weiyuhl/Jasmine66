@@ -4,6 +4,10 @@ plugins {
     alias(libs.plugins.jasmine.hilt)
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 android {
     namespace = "com.lhzkml.jasmine.core.conversation.storage"
     compileSdk = 36

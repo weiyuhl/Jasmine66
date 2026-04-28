@@ -260,7 +260,7 @@ abstract class OpenAICompatibleClient(
 
                         call.enqueue(object : Callback {
                             override fun onFailure(call: Call, e: IOException) {
-                                continuation.resumeWithException(e)
+                                if (continuation.isActive) continuation.resumeWithException(e)
                             }
 
                             override fun onResponse(call: Call, response: Response) {
@@ -269,7 +269,7 @@ abstract class OpenAICompatibleClient(
                                         if (!resp.isSuccessful) {
                                             val body = resp.body?.string() ?: ""
                                             android.util.Log.e("OpenAICompat", "API error: code=${resp.code}, body=${safeLogTruncate(body)}")
-                                            continuation.resumeWithException(
+                                            if (continuation.isActive) continuation.resumeWithException(
                                                 ChatClientException.fromStatusCode(provider.name, resp.code, body)
                                             )
                                             return
@@ -318,9 +318,10 @@ abstract class OpenAICompatibleClient(
                                             }
                                         }
 
+                                        streamScope.cancel()
                                         continuation.resume(Unit)
                                     } catch (e: Exception) {
-                                        continuation.resumeWithException(e)
+                                        if (continuation.isActive) continuation.resumeWithException(e)
                                     }
                                 }
                             }

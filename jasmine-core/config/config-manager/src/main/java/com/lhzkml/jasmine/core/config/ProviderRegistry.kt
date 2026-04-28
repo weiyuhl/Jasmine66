@@ -10,6 +10,8 @@ import com.lhzkml.jasmine.core.prompt.executor.ApiType
  */
 class ProviderRegistry(private val configRepo: ConfigRepository) {
 
+    private val lock = Any()
+
     private val _providers = mutableListOf(
         ProviderConfig("openai", "OpenAI", "https://api.openai.com", "", ApiType.OPENAI),
         ProviderConfig("claude", "Claude", "https://api.anthropic.com", "", ApiType.CLAUDE),
@@ -22,23 +24,26 @@ class ProviderRegistry(private val configRepo: ConfigRepository) {
     @Volatile private var isInitialized = false
 
     val providers: List<ProviderConfig>
-        get() = _providers.toList()
+        get() = synchronized(lock) { _providers.toList() }
 
     fun initialize() {
         if (isInitialized) return
-        isInitialized = true
-        val custom = configRepo.loadCustomProviders()
-        custom.forEach { p ->
-            if (_providers.none { it.id == p.id }) {
-                _providers.add(p)
+        synchronized(lock) {
+            if (isInitialized) return
+            isInitialized = true
+            val custom = configRepo.loadCustomProviders()
+            custom.forEach { p ->
+                if (_providers.none { it.id == p.id }) {
+                    _providers.add(p)
+                }
             }
         }
     }
 
-    fun registerProvider(provider: ProviderConfig): Boolean {
+    fun registerProvider(provider: ProviderConfig): Boolean = synchronized(lock) {
         if (_providers.any { it.id == provider.id }) return false
         _providers.add(provider)
-        return true
+        true
     }
 
     fun registerProviderPersistent(provider: ProviderConfig): Boolean {
@@ -47,8 +52,8 @@ class ProviderRegistry(private val configRepo: ConfigRepository) {
         return true
     }
 
-    fun unregisterProvider(id: String): Boolean {
-        return _providers.removeAll { it.id == id }
+    fun unregisterProvider(id: String): Boolean = synchronized(lock) {
+        _providers.removeAll { it.id == id }
     }
 
     fun unregisterProviderPersistent(id: String): Boolean {
@@ -57,8 +62,8 @@ class ProviderRegistry(private val configRepo: ConfigRepository) {
         return true
     }
 
-    fun getProvider(id: String): ProviderConfig? {
-        return _providers.find { it.id == id }
+    fun getProvider(id: String): ProviderConfig? = synchronized(lock) {
+        _providers.find { it.id == id }
     }
 
     /**
@@ -67,8 +72,9 @@ class ProviderRegistry(private val configRepo: ConfigRepository) {
     fun getBaseUrl(id: String): String {
         val saved = configRepo.getBaseUrl(id)
         if (saved.isNotEmpty()) return saved
-        val provider = _providers.find { it.id == id }
-        return provider?.defaultBaseUrl ?: ""
+        return synchronized(lock) {
+            _providers.find { it.id == id }?.defaultBaseUrl ?: ""
+        }
     }
 
     /**
@@ -77,12 +83,14 @@ class ProviderRegistry(private val configRepo: ConfigRepository) {
     fun getModel(id: String): String {
         val saved = configRepo.getModel(id)
         if (saved.isNotEmpty()) return saved
-        val provider = _providers.find { it.id == id }
-        return provider?.defaultModel ?: ""
+        return synchronized(lock) {
+            _providers.find { it.id == id }?.defaultModel ?: ""
+        }
     }
 
     private fun saveCustomProviders() {
-        configRepo.saveCustomProviders(_providers.filter { it.isCustom })
+        val custom = synchronized(lock) { _providers.filter { it.isCustom } }
+        configRepo.saveCustomProviders(custom)
     }
 
     /**
@@ -90,7 +98,7 @@ class ProviderRegistry(private val configRepo: ConfigRepository) {
      */
     fun getActiveConfig(): ActiveProviderConfig? {
         val id = configRepo.getActiveProviderId() ?: return null
-        val provider = _providers.find { it.id == id } ?: return null
+        val provider = synchronized(lock) { _providers.find { it.id == id } } ?: return null
 
         if (provider.apiType == ApiType.LOCAL) {
             val model = getModel(id)
