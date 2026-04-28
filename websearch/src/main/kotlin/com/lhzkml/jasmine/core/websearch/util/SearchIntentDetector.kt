@@ -201,10 +201,12 @@ object SearchIntentDetector {
             "how do", "how does", "why is", "why does", "define", "explain",
         )
 
+        val currentYear = java.time.Year.now().value
+        val recentYears = (currentYear - 2..currentYear).map { it.toString() }
         val isBasic = basicPatterns.any { pattern ->
             query.startsWith(pattern) && !query.contains("today") && !query.contains("now") &&
-                    !query.contains("current") && !query.contains("latest") && !query.contains("2024") &&
-                    !query.contains("2025") && !query.contains("2026") && !query.contains("recent")
+                    !query.contains("current") && !query.contains("latest") &&
+                    !recentYears.any { query.contains(it) } && !query.contains("recent")
         }
 
         if (isBasic) {
@@ -219,7 +221,8 @@ object SearchIntentDetector {
         return trimmedQuery.startsWith("http://") ||
                 trimmedQuery.startsWith("https://") ||
                 trimmedQuery.startsWith("www.") ||
-                (trimmedQuery.contains(".") && !trimmedQuery.contains(" ") && trimmedQuery.length > 4)
+                (trimmedQuery.contains(".") && !trimmedQuery.contains(" ") &&
+                 trimmedQuery.length > 4 && trimmedQuery.matches(Regex(".*\\.[a-zA-Z]{2,}$")))
     }
 
     fun extractSearchQuery(prompt: String): String {

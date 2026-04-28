@@ -10,6 +10,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
 
 /**
  * 基于远程 API 的 Embedding 服务
@@ -40,7 +41,7 @@ class ApiEmbeddingService(
         } else {
             Json.encodeToString(EmbeddingReqBatch(config.model, input, dims))
         }
-        
+
         return try {
             val request = Request.Builder()
                 .url(url)
@@ -48,14 +49,18 @@ class ApiEmbeddingService(
                 .addHeader("Content-Type", "application/json")
                 .post(body.toRequestBody("application/json".toMediaType()))
                 .build()
-            
+
             withContext(Dispatchers.IO) {
                 val response = httpClient.newCall(request).execute()
                 if (!response.isSuccessful) return@withContext null
                 val responseBody = response.body?.string() ?: return@withContext null
                 Json.decodeFromString<EmbeddingResponse>(responseBody)
             }
+        } catch (e: IOException) {
+            android.util.Log.w("ApiEmbedding", "Embedding request failed: ${e.message}")
+            null
         } catch (e: Exception) {
+            android.util.Log.e("ApiEmbedding", "Embedding error", e)
             null
         }
     }

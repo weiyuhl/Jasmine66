@@ -59,7 +59,8 @@ class LicensesViewModel @Inject constructor(
         )
 
         if (licenseIds == 0 || metadataIds == 0) {
-            throw IllegalStateException("许可证资源未生成，请重新构建")
+            _state.value = LicensesUiState(loading = false, error = "许可证信息暂不可用")
+            return emptyList()
         }
 
         // Parse unique license names from the licenses file

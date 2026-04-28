@@ -1,7 +1,7 @@
 # Jasmine 项目问题分析报告
 
 > 生成日期: 2026-04-28 | 总计: 100+ 问题 | 范围: 全项目 41 个模块严格分析
-> 上次修复: 2026-04-28 | 已修复: 33 项 | 新发现: 68 项
+> 本次修复: 2026-04-28 | 本轮修复: 23 项 | 累计已修复: 56 项 | 排除误报: 2 项 (CE7 KSP版本, CE8 XML标签)
 
 ---
 
@@ -36,50 +36,48 @@ DI: H11(@Singleton), M4(ProcessManager共享)
 
 ### CE1. ToolRegistry.createEmpty() 方法不存在
 - **文件**: `jasmine-core/assistant/assistant-runtime/.../Runtime.kt:137`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复
 - **描述**: `Runtime.kt` 调用 `ToolRegistry.createEmpty()`，但 `ToolRegistry` 类只有 `build {}` 伴生工厂方法，无 `createEmpty()`。编译必失败。
 - **修复方案**: 在 `ToolRegistry.companion` 中添加 `fun createEmpty() = ToolRegistry()`。
 
 ### CE2. Navigation.kt 缺少 `remember` 导入
 - **文件**: `core/designsystem/.../component/Navigation.kt:210`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复
 - **描述**: 第 210 行使用了 `remember(this, navigationSuiteItemColors) { ... }`，但仅导入了 `Composable`，未导入 `androidx.compose.runtime.remember`。
 - **修复方案**: 添加 `import androidx.compose.runtime.remember`。
 
 ### CE3. DuckDuckGoSearchService 两个 companion object
 - **文件**: `websearch/.../DuckDuckGoSearchService.kt:22,36`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复
 - **描述**: 类中有两个 `companion object` 块（第22行和36行），Kotlin只允许一个。编译必失败。
 - **修复方案**: 合并为一个 companion object，或将 TAG 移到类顶层。
 
 ### CE4. core/database 测试引用不存在的 TopicDao/TopicEntity
 - **文件**: `core/database/src/androidTest/.../dao/TopicDaoTest.kt`、`DatabaseTest.kt`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (删除过时测试文件)
 - **描述**: 测试引用了 `TopicDao`, `TopicEntity`, `db.topicDao()` 等，但 `JasmineDatabase` 主代码中只声明了 `RecentSearchQueryDao`。编译必失败。
 - **修复方案**: 删除 `TopicDaoTest.kt` 和 `DatabaseTest.kt`，或将它们改为测试 `RecentSearchQueryDao`。
 
 ### CE5. core/datastore 测试调用不存在的方法
 - **文件**: `core/datastore/src/test/.../JasminePreferencesDataSourceTest.kt:40,44,54,58`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (移除过时测试用例和空@Test方法)
 - **描述**: 测试调用 `subject.setTopicIdFollowed()` 和 `subject.setFollowedTopicIds()`，但 `JasminePreferencesDataSource` 中没有这些方法。编译必失败。
 - **修复方案**: 删除这些测试用例，或实现对应方法。
 
 ### CE6. core/domain 测试引用7个不存在的类
 - **文件**: `core/domain/src/test/.../GetFollowableTopicsUseCaseTest.kt`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (删除过时测试文件)
 - **描述**: 测试引用 `TopicSortField`, `GetFollowableTopicsUseCase`, `FollowableTopic`, `Topic`, `TestTopicsRepository`, `TestUserDataRepository`, `MainDispatcherRule` — 均不在主源码中。编译必失败。
 - **修复方案**: 删除此文件，或实现对应的主源码。
 
-### CE7. KSP 版本格式无效
+### ~~CE7. KSP 版本格式无效~~ (误报)
 - **文件**: `gradle/libs.versions.toml:40`
-- **状态**: [ ] 待修复
-- **描述**: `ksp = "2.3.4"` 不符合 KSP 版本号规范。KSP 版本格式应为 `2.3.0-1.0.x`（对应 Kotlin 2.3.0）。Gradle 依赖解析将失败。
+- **状态**: 排除 - KSP2 使用独立版本号 `2.3.4` 不再使用旧格式 `kotlinVersion-1.0.x`KSP 版本格式应为 `2.3.0-1.0.x`（对应 Kotlin 2.3.0）。Gradle 依赖解析将失败。
 - **修复方案**: 改为正确的 KSP 版本，如 `2.3.0-1.0.3`。
 
-### CE8. 重复的 `</resources>` 标签
-- **文件**: `feature/search/api/src/main/res/values/strings.xml:15-16`
-- **状态**: [ ] 待修复
-- **描述**: strings.xml 第15-16行有重复的 `</resources>` 闭合标签。XML 解析将失败。
+### ~~CE8. 重复的 `</resources>` 标签~~ (误报)
+- **文件**: `feature/search/api/src/main/res/values/strings.xml`
+- **状态**: 排除 - 验证确认仅一个 `</resources>` 标签，文件正常XML 解析将失败。
 - **修复方案**: 删除多余的 `</resources>`。
 
 ---
@@ -88,7 +86,7 @@ DI: H11(@Singleton), M4(ProcessManager共享)
 
 ### B1. ConversationRepository.addMessage 非事务性
 - **文件**: `jasmine-core/conversation/conversation-storage/.../ConversationRepository.kt:126-138,143-156`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复
 - **描述**: `addMessage()` 先 `insertMessage` 再 `updateConversation`，两个操作无 `@Transaction` 保护。如果第二个操作失败，消息已插入但对话时间戳未更新，数据不一致。
 - **修复方案**: 在两方法上加 `@Transaction` 注解。
 
@@ -100,25 +98,25 @@ DI: H11(@Singleton), M4(ProcessManager共享)
 
 ### B3. MnnChatClient.runBlocking 阻塞 IO 线程
 - **文件**: `jasmine-core/prompt/prompt-mnn/.../MnnChatClient.kt:164`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (改用 coroutineScope + launch)
 - **描述**: `withContext(Dispatchers.IO)` 内使用 `runBlocking { onChunk(token) }` 阻塞 IO 调度器线程。线程池耗尽时导致死锁。
 - **修复方案**: 使用 `CoroutineScope.launch` 替代 `runBlocking`。
 
 ### B4. Gemini 流式响应产生重复工具调用
 - **文件**: `jasmine-core/prompt/prompt-executor/.../GeminiClient.kt:300-306`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (添加 name+args 去重)
 - **描述**: 每个 SSE chunk 事件创建新的 `ToolCall`（带随机 UUID）。Claude 实现有 `toolCallAccumulator` 按 index 累积增量 JSON，但 Gemini 未实现类似机制，同一函数调用跨多个 SSE 事件时产生重复。
 - **修复方案**: 参考 Claude 实现添加 accumulator。
 
 ### B5. GOAPPlanner 动作匹配使用引用相等
 - **文件**: `jasmine-core/agent/agent-planner/.../GOAPPlanner.kt:111-113`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (改用 action.name 比较)
 - **描述**: `if (action === firstAction)` 使用 `===`（引用相等）。如果 `GOAPAction` 对象被重建（如从缓存/序列化恢复），引用不匹配将抛出 `IllegalStateException`。
 - **修复方案**: 改用 `action.name == firstAction.name` 或基于 ID 的比较。
 
 ### B6. AgentStrategy 双重记录失败事件
 - **文件**: `jasmine-core/agent/agent-graph/.../AgentStrategy.kt:57-63`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (移除 catch 中的 StrategyCompleted emit)
 - **描述**: 异常时先 emit `StrategyCompleted`（带 ERROR 结果），再重新抛出。外层 `AgentSubgraph` 捕获后 emit `SubgraphFailed`。每次失败产生两个冲突的追踪事件。
 - **修复方案**: 移除 catch 块中的 `StrategyCompleted` emit，只重新抛出。
 
@@ -148,25 +146,25 @@ DI: H11(@Singleton), M4(ProcessManager共享)
 
 ### B11. SkillManagerViewModel.skillLoaded 线程不安全
 - **文件**: `feature/skills/impl/.../SkillManagerViewModel.kt:30`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (改用 AtomicBoolean.compareAndSet)
 - **描述**: `skillLoaded` 是纯 `var Boolean`，在协程上下文中无同步保护。多个并发 `loadSkills()` 可能同时通过 `if (!skillLoaded)` 检查。
 - **修复方案**: 使用 `AtomicBoolean` 或 `Mutex`。
 
 ### B12. 沙盒 installPackages() 无同步保护
 - **文件**: `linux-sandbox/sandbox/.../LinuxSandboxManager.kt:267`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (添加 synchronized 保护)
 - **描述**: `setup()` 有 `synchronized(this)` 保护，但 `installPackages()` 只有非原子的 `if (currentJob?.isActive) return` 检查。两个线程可同时启动重复协程。
 - **修复方案**: 添加 `synchronized(this)` 保护 installPackages。
 
 ### B13. 沙盒 reset() 不取消运行中的 Job
 - **文件**: `linux-sandbox/sandbox/.../LinuxSandboxManager.kt:299-304`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (先 cancel currentJob 再删除)
 - **描述**: `reset()` 启动协程递归删除沙盒目录但不先取消 `currentJob`。若 `setup()`/`installPackages()` 正在运行，将并发读写被删除的文件。
 - **修复方案**: 在删除前调用 `currentJob?.cancel()`。
 
 ### B14. ProcessManager.evictIfNeeded 非原子操作
 - **文件**: `linux-sandbox/sandbox/.../ProcessManager.kt:35-49`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (添加 @Synchronized)
 - **描述**: 在 `ConcurrentHashMap` 上执行 "读取-过滤-排序-删除" 复合操作，整体非原子。两个线程可能同时驱逐过多条目。
 - **修复方案**: 整个方法加 `synchronized` 或使用 `computeIfAbsent` 模式。
 
@@ -184,7 +182,7 @@ DI: H11(@Singleton), M4(ProcessManager共享)
 
 ### B17. pkill 转义被截断可破坏转义
 - **文件**: `linux-sandbox/sandbox/.../ProcessManager.kt:131-134`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (先 take 再 escape，添加 -x 精确匹配)
 - **描述**: `.take(200)` 在转义 AFTER 应用。若转义后字符串超 200 字符，将在转义序列中间截断，破坏单引号转义导致命令注入。
 - **修复方案**: 先 `.take()` 再 escape，或使用 `--signal` + PID 精确杀进程。
 
@@ -202,19 +200,19 @@ DI: H11(@Singleton), M4(ProcessManager共享)
 
 ### B20. isDirectUrl 过于激进
 - **文件**: `websearch/.../SearchIntentDetector.kt:217-223`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (添加 TLD 模式匹配 `\.[a-zA-Z]{2,}$`)
 - **描述**: `trimmedQuery.contains(".") && !trimmedQuery.contains(" ") && trimmedQuery.length > 4` 几乎任何带点号的文本（如 "hello.world"）都触发"直接URL"分类。
 - **修复方案**: 使用正规 URL/域名正则匹配。
 
 ### B21. 硬编码年份检查
 - **文件**: `websearch/.../SearchIntentDetector.kt:207`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (使用 java.time.Year.now() + 前两年)
 - **描述**: 检查 `"2024"`/`"2025"`/`"2026"` 判断是否为"事实性查询"。2027年后无法识别新年份查询。
 - **修复方案**: 使用当前年份计算动态范围。
 
 ### B22. Response body consumed before isSuccessful check
 - **文件**: `websearch/.../DuckDuckGoSearchService.kt:61-68`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (先检查 isSuccessful 再消费 body)
 - **描述**: `response.use { resp -> resp.body?.string() }` 先消费响应体，再检查 `response.isSuccessful`。虽 OkHttp 缓存状态码通常正常，但顺序错误。
 - **修复方案**: 先检查 `isSuccessful` 再消费 body。
 
@@ -224,15 +222,13 @@ DI: H11(@Singleton), M4(ProcessManager共享)
 
 ### R1. OkHttpClient 永不关闭
 - **文件**: `linux-sandbox/sandbox/.../RootfsDownloader.kt:204-206`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复
 - **描述**: `close()` 方法明确注释"no-op here"。`LinuxSandboxManager.destroy()` 调用它但连接池、分发器线程、空闲 socket 永不被释放。
 - **修复方案**: 调用 `dispatcher().executorService().shutdown()` 和 `connectionPool().evictAll()`。
 
 ### R2. ProotExecutor.ioExecutor 线程池永不关闭
 - **文件**: `linux-sandbox/sandbox/.../ProotExecutor.kt:44-58`
-- **状态**: [ ] 待修复
-- **描述**: `Companion.shutdown()` 存在但未在 `LinuxSandboxManager.destroy()` 中调用。
-- **修复方案**: 在 destroy() 中调用 `ProotExecutor.shutdown()`。
+- **状态**: [x] 已修复 (destroy() 中调用 ProotExecutor.shutdown())
 
 ### R3. ProcessManager.backgroundExecutor 永不关闭
 - **文件**: `linux-sandbox/sandbox/.../ProcessManager.kt:28-31`
@@ -242,7 +238,7 @@ DI: H11(@Singleton), M4(ProcessManager共享)
 
 ### R4. ProcessManager.Session.future 引用永不清理
 - **文件**: `linux-sandbox/sandbox/.../ProcessManager.kt:68-75`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (完成后设为 null)
 - **描述**: 后台任务完成后 `finished = true` 但 `future` 保留对 `CompletableFuture` 的引用，阻止 GC 直到 session 被驱逐（最多30分钟）。
 - **修复方案**: 完成后设为 `null`。
 
@@ -410,7 +406,7 @@ DI: H11(@Singleton), M4(ProcessManager共享)
 
 ### Q3. API EmbeddingService 吞掉所有错误
 - **文件**: `jasmine-core/rag/rag-embedding-api/.../ApiEmbeddingService.kt:58`
-- **状态**: [ ] 待修复
+- **状态**: [x] 已修复 (添加 IOException 和 Exception 分层日志)
 - **描述**: `catch (e: Exception) { null }` 使嵌入失败和有效空结果无法区分。
 - **修复方案**: 至少记录日志或返回 Result 类型。
 
@@ -428,9 +424,7 @@ DI: H11(@Singleton), M4(ProcessManager共享)
 
 ### Q6. LicensesViewModel 使用脆弱的资源查找
 - **文件**: `feature/settings/impl/.../LicensesViewModel.kt`
-- **状态**: [ ] 待修复
-- **描述**: `context.resources.getIdentifier("third_party_licenses", "raw", context.packageName)` 用字符串查找而非 `R.raw.third_party_licenses`。若资源不存在抛出 `IllegalStateException`。
-- **修复方案**: 添加空检查或降级处理。
+- **状态**: [x] 已修复 (改为优雅降级，返回错误状态而非崩溃)
 
 ### Q7. RenderChip 选中态闪烁
 - **文件**: `jasmine-core/prompt/prompt-ui/.../UiRenderer.kt:637-644`
