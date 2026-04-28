@@ -187,6 +187,9 @@ class ExecuteShellCommandTool(
                 }.trimEnd()
             }
 
+            val outputFuture = java.util.concurrent.CompletableFuture.supplyAsync {
+                process.inputStream.bufferedReader().readText()
+            }
             val finished = process.waitFor(timeoutSeconds.toLong(), TimeUnit.SECONDS)
 
             if (!finished) {
@@ -200,7 +203,7 @@ class ExecuteShellCommandTool(
                     if (partialOutput.isNotEmpty()) appendLine(partialOutput) else appendLine("(no output yet)")
                 }.trimEnd()
             } else {
-                val output = process.inputStream.bufferedReader().readText()
+                val output = outputFuture.get(2, TimeUnit.SECONDS)
                 buildString {
                     appendLine("Purpose: $purpose")
                     appendLine("Command: $command")
