@@ -264,39 +264,45 @@ class LinuxSandboxManager(private val context: Context) {
     }
 
     fun installPackages() {
-        if (currentJob?.isActive == true) return
-        val packages = AlpineInfo.DEFAULT_PACKAGES
-        currentJob = scope.launch {
-            try {
-                val executor = createProotExecutor()
-                ensureActive()
-                _state.value = SandboxState.Installing("Updating package list...")
-                executor.execute(AlpineInfo.getUpdateCommand(), timeoutSeconds = 60)
+        synchronized(this) {
+            if (currentJob?.isActive == true) return
+            val packages = AlpineInfo.DEFAULT_PACKAGES
+            currentJob = scope.launch {
+                try {
+                    val executor = createProotExecutor()
+                    ensureActive()
+                    _state.value = SandboxState.Installing("Updating package list...")
+                    executor.execute(AlpineInfo.getUpdateCommand(), timeoutSeconds = 60)
 
-                for (pkg in packages) {
-                    ensureActive()
-                    _state.value = SandboxState.Installing("Installing $pkg...")
-                    val result = executor.execute("apk add --no-cache $pkg", timeoutSeconds = 120)
-                    ensureActive()
-                    val success = result["success"] as? Boolean ?: false
-                    if (!success) {
-                        val stderr = result["stderr"] as? String ?: ""
-                        val stdout = result["stdout"] as? String ?: ""
-                        val error = result["error"] as? String ?: ""
-                        _state.value = SandboxState.Error("Failed to install $pkg: ${stderr.ifEmpty { error }.ifEmpty { stdout }.take(200)}")
-                        return@launch
+                    for (pkg in packages) {
+                        ensureActive()
+                        _state.value = SandboxState.Installing("Installing $pkg...")
+                        val result = executor.execute("apk add --no-cache $pkg", timeoutSeconds = 120)
+                        ensureActive()
+                        val success = result["success"] as? Boolean ?: false
+                        if (!success) {
+                            val stderr = result["stderr"] as? String ?: ""
+                            val stdout = result["stdout"] as? String ?: ""
+                            val error = result["error"] as? String ?: ""
+                            _state.value = SandboxState.Error("Failed to install $pkg: ${stderr.ifEmpty { error }.ifEmpty { stdout }.take(200)}")
+                            return@launch
+                        }
                     }
+                    _state.value = SandboxState.Ready
+                } catch (_: CancellationException) {
+                    _state.value = SandboxState.Ready
+                } catch (e: Exception) {
+                    _state.value = SandboxState.Error("Install failed: ${e.message}")
                 }
-                _state.value = SandboxState.Ready
-            } catch (_: CancellationException) {
-                _state.value = SandboxState.Ready
-            } catch (e: Exception) {
-                _state.value = SandboxState.Error("Install failed: ${e.message}")
             }
         }
     }
 
     fun reset() {
+        synchronized(this) {
+            currentJob?.cancel()
+            currentJob = null
+        }
         scope.launch {
             sandboxDir.deleteRecursively()
             _state.value = SandboxState.NotInstalled
@@ -333,5 +339,6 @@ class LinuxSandboxManager(private val context: Context) {
         currentJob?.cancel()
         scope.cancel()
         downloader.close()
+        ProotExecutor.shutdown()
     }
 }

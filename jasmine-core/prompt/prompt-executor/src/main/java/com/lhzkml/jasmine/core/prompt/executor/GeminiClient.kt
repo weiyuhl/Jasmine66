@@ -298,11 +298,14 @@ open class GeminiClient(
                                                                 streamScope.launch(kotlinx.coroutines.Dispatchers.Main) { onChunk(text) }
                                                             }
                                                             part.functionCall?.let { fc ->
-                                                                toolCalls.add(ToolCall(
-                                                                    id = "gemini_${fc.name}_${java.util.UUID.randomUUID()}",
-                                                                    name = fc.name,
-                                                                    arguments = fc.args?.toString() ?: "{}"
-                                                                ))
+                                                                val key = "${fc.name}:${fc.args}"
+                                                                if (toolCalls.none { "${it.name}:${it.arguments}" == key }) {
+                                                                    toolCalls.add(ToolCall(
+                                                                        id = "gemini_${fc.name}_${java.util.UUID.randomUUID()}",
+                                                                        name = fc.name,
+                                                                        arguments = fc.args?.toString() ?: "{}"
+                                                                    ))
+                                                                }
                                                             }
                                                         }
                                                     } catch (_: Exception) { }

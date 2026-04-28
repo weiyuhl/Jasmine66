@@ -158,11 +158,13 @@ class MnnChatClient(
         val s = withContext(Dispatchers.IO) { ensureSession(model) }
         val prompt = buildPrompt(messages)
         val fullResult = StringBuilder()
-        withContext(Dispatchers.IO) {
-            s.generate(prompt) { token ->
-                fullResult.append(token)
-                kotlinx.coroutines.runBlocking { onChunk(token) }
-                stopSignalProvider?.invoke() ?: false
+        kotlinx.coroutines.coroutineScope {
+            launch(Dispatchers.IO) {
+                s.generate(prompt) { token ->
+                    fullResult.append(token)
+                    launch { onChunk(token) }
+                    stopSignalProvider?.invoke() ?: false
+                }
             }
         }
         return StreamResult(

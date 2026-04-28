@@ -32,6 +32,7 @@ class ProcessManager(private val sandboxManager: LinuxSandboxManager) {
     }
 
     /** Evict finished sessions older than TTL, and trim oldest if over max. */
+    @Synchronized
     private fun evictIfNeeded() {
         val now = System.currentTimeMillis()
         val toRemove = sessions.entries.filter { (_, s) ->
@@ -72,6 +73,7 @@ class ProcessManager(private val sandboxManager: LinuxSandboxManager) {
             session.exitCode = result["exit_code"] as? Int ?: -1
             session.timedOut = result["timed_out"] as? Boolean ?: false
             session.finished = true
+            session.future = null
         }, backgroundExecutor)
 
         return mapOf(

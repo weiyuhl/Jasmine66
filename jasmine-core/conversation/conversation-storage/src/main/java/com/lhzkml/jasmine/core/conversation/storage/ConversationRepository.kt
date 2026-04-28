@@ -10,6 +10,7 @@ import com.lhzkml.jasmine.core.prompt.model.Message
 import com.lhzkml.jasmine.core.prompt.model.Usage
 import com.lhzkml.jasmine.core.prompt.model.toChatMessage
 import com.lhzkml.jasmine.core.prompt.model.toMessage
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -123,6 +124,7 @@ class ConversationRepository(private val dao: ConversationDao) {
     /**
      * 添加一条消息到对话
      */
+    @Transaction
     suspend fun addMessage(conversationId: String, message: ChatMessage) {
         dao.insertMessage(
             MessageEntity(
@@ -140,6 +142,7 @@ class ConversationRepository(private val dao: ConversationDao) {
     /**
      * 批量添加消息
      */
+    @Transaction
     suspend fun addMessages(conversationId: String, messages: List<ChatMessage>) {
         val now = System.currentTimeMillis()
         val entities = messages.mapIndexed { index, msg ->

@@ -3,15 +3,15 @@ package com.lhzkml.jasmine.core.agent.planner
 import com.lhzkml.jasmine.core.agent.graph.graph.AgentGraphContext
 
 /**
- * GOAP (Goal-Oriented Action Planning) 规划�?
- * 完整移植 koog �?GOAPPlanner，使�?A* 搜索算法找到最优动作序列�?
+ * GOAP (Goal-Oriented Action Planning) 规划�?
+ * 完整移植 koog �?GOAPPlanner，使�?A* 搜索算法找到最优动作序列�?
  *
- * GOAP 核心概念�?
- * - Action（动作）：有前置条件、效果（belief）、成本、执行函�?
- * - Goal（目标）：有完成条件、成本估算、价值函�?
- * - Plan（计划）：一系列动作，从当前状态到达目标状�?
+ * GOAP 核心概念�?
+ * - Action（动作）：有前置条件、效果（belief）、成本、执行函�?
+ * - Goal（目标）：有完成条件、成本估算、价值函�?
+ * - Plan（计划）：一系列动作，从当前状态到达目标状�?
  *
- * 使用方式�?
+ * 使用方式�?
  * ```kotlin
  * val planner = goap<MyState> {
  *     action(
@@ -34,11 +34,11 @@ import com.lhzkml.jasmine.core.agent.graph.graph.AgentGraphContext
 
 /**
  * GOAP 动作
- * 参�?koog �?Action
+ * 参�?koog �?Action
  *
  * @param name 动作名称
  * @param description 动作描述
- * @param precondition 前置条件（返�?true 表示可执行）
+ * @param precondition 前置条件（返�?true 表示可执行）
  * @param belief 乐观估计：执行后状态会变成什么样
  * @param cost 执行成本估算
  * @param execute 实际执行函数
@@ -54,7 +54,7 @@ class GOAPAction<State>(
 
 /**
  * GOAP 目标
- * 参�?koog �?Goal
+ * 参�?koog �?Goal
  *
  * @param name 目标名称
  * @param description 目标描述
@@ -72,7 +72,7 @@ class GOAPGoal<State>(
 
 /**
  * GOAP 计划
- * 参�?koog �?GOAPPlan
+ * 参�?koog �?GOAPPlan
  */
 class GOAPPlan<State>(
     val goal: GOAPGoal<State>,
@@ -80,11 +80,11 @@ class GOAPPlan<State>(
     val value: Double
 )
 
-// ========== 规划器实�?==========
+// ========== 规划器实�?==========
 
 /**
- * GOAP 规划�?
- * 完整移植 koog �?GOAPPlanner，包�?A* 搜索算法�?
+ * GOAP 规划�?
+ * 完整移植 koog �?GOAPPlanner，包�?A* 搜索算法�?
  */
 class GOAPPlanner<State>(
     private val actions: List<GOAPAction<State>>,
@@ -109,7 +109,7 @@ class GOAPPlanner<State>(
         val firstAction = plan.actions.firstOrNull()
             ?: throw IllegalStateException("Plan has no actions")
         for (action in actions) {
-            if (action === firstAction) return action.execute(context, state)
+            if (action.name == firstAction.name) return action.execute(context, state)
         }
         throw IllegalStateException("Action not available: ${firstAction.name}")
     }
@@ -129,8 +129,8 @@ class GOAPPlanner<State>(
     )
 
     /**
-     * A* 搜索算法：为给定目标找到最优动作序�?
-     * 完整移植 koog �?buildPlanForGoal
+     * A* 搜索算法：为给定目标找到最优动作序�?
+     * 完整移植 koog �?buildPlanForGoal
      */
     private fun buildPlanForGoal(
         state: State,

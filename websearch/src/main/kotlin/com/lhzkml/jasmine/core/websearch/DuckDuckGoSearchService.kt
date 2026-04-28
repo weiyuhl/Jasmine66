@@ -21,6 +21,7 @@ class DuckDuckGoSearchService @Inject constructor(
 
     companion object {
         const val DEFAULT_BASE_URL = "https://api.duckduckgo.com/"
+        private const val TAG = "DuckDuckGoSearch"
 
         fun defaultClient(): OkHttpClient = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
@@ -31,10 +32,6 @@ class DuckDuckGoSearchService @Inject constructor(
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
-    }
-
-    companion object {
-        private const val TAG = "DuckDuckGoSearch"
     }
 
     override suspend fun search(
@@ -59,24 +56,24 @@ class DuckDuckGoSearchService @Inject constructor(
                     .build()
 
                 val response = client.newCall(request).execute()
-                val body = response.use { resp ->
-                    resp.body?.string() ?: return@withContext emptyList()
-                }
+                response.use { resp ->
+                    if (!resp.isSuccessful) {
+                        Log.w(TAG, "API returned ${resp.code}")
+                        return@withContext emptyList()
+                    }
 
-                if (!response.isSuccessful) {
-                    Log.w(TAG, "API returned ${response.code}")
-                    return@withContext emptyList()
-                }
+                    val body = resp.body?.string() ?: return@withContext emptyList()
 
-                if (body.trim().startsWith("<!DOCTYPE") || body.trim().startsWith("<html")) {
-                    Log.w(TAG, "Received HTML instead of JSON")
-                    return@withContext emptyList()
-                }
+                    if (body.trim().startsWith("<!DOCTYPE") || body.trim().startsWith("<html")) {
+                        Log.w(TAG, "Received HTML instead of JSON")
+                        return@withContext emptyList()
+                    }
 
-                val duckResponse = json.decodeFromString<DuckDuckGoResponse>(body)
-                val results = parseResponse(duckResponse, maxResults)
-                Log.d(TAG, "Found ${results.size} results")
-                results
+                    val duckResponse = json.decodeFromString<DuckDuckGoResponse>(body)
+                    val results = parseResponse(duckResponse, maxResults)
+                    Log.d(TAG, "Found ${results.size} results")
+                    results
+                }
 
             } catch (e: Exception) {
                 Log.e(TAG, "Search failed: $query", e)

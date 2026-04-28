@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 private const val TAG = "SkillManagerVM"
@@ -27,14 +28,14 @@ class SkillManagerViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SkillManagerUiState())
     val uiState = _uiState.asStateFlow()
-    var skillLoaded = false
+    private val skillLoaded = AtomicBoolean(false)
 
     fun loadSkills(onDone: () -> Unit = {}) {
-        if (!skillLoaded) {
+        if (skillLoaded.compareAndSet(false, true)) {
             setLoading(true)
             viewModelScope.launch(ioDispatcher) {
                 Log.d(TAG, "加载技能列表...")
-                
+
                 // Directly fetch from the Singleton manager instead of reinventing local asset parsing
                 val skills = skillManager.loadSkills()
 
@@ -43,7 +44,6 @@ class SkillManagerViewModel @Inject constructor(
                 }
 
                 setLoading(false)
-                skillLoaded = true
                 withContext(ioDispatcher) { onDone() }
             }
         } else {

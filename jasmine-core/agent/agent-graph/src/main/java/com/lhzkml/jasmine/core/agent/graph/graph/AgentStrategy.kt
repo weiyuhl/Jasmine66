@@ -55,10 +55,6 @@ class AgentStrategy<TInput, TOutput>(
             ))
             result
         } catch (e: Exception) {
-            tracing?.emit(TraceEvent.StrategyCompleted(
-                eventId = tracing.newEventId(), runId = context.runId,
-                strategyName = name, result = "ERROR: ${e.message}"
-            ))
             throw e
         }
     }
