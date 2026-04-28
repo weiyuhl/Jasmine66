@@ -1,5 +1,6 @@
 package com.lhzkml.jasmine.core.data.tools
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -146,7 +147,11 @@ class DeviceControlTool @Inject constructor(
             putExtra(ContactsContract.Intents.Insert.PHONE_TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_WORK)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        context.startActivity(intent)
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            return "❌ Error: No contacts app found on device"
+        }
         return "✅ Creating contact: $firstName $lastName"
     }
 
@@ -156,7 +161,11 @@ class DeviceControlTool @Inject constructor(
         val intent = Intent(Intent.ACTION_VIEW, "geo:0,0?q=$encoded".toUri()).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        context.startActivity(intent)
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            return "❌ Error: No maps app found on device"
+        }
         return "✅ Showing '$location' on map"
     }
 
@@ -185,7 +194,11 @@ class DeviceControlTool @Inject constructor(
             putExtra(CalendarContract.EXTRA_EVENT_END_TIME, ms + 3600000)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        context.startActivity(intent)
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            return "❌ Error: No calendar app found on device"
+        }
         return "✅ Created calendar event: '$title'"
     }
 }

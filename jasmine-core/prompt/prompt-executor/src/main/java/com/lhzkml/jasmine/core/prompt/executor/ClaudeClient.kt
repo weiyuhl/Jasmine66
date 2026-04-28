@@ -317,7 +317,7 @@ open class ClaudeClient(
                                                                 event.delta?.stopReason?.let { stopReason = it }
                                                             }
                                                         }
-                                                    } catch (_: Exception) { }
+                                                    } catch (e: Exception) { android.util.Log.w("ClaudeClient", "SSE parse error", e) }
                                                 }
                                             }
                                         }

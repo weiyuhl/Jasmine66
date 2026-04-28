@@ -311,7 +311,7 @@ abstract class OpenAICompatibleClient(
                                                                 }
                                                             }
                                                         }
-                                                    } catch (_: Exception) { }
+                                                    } catch (e: Exception) { android.util.Log.w("OpenAICompat", "SSE parse error", e) }
                                                 }
                                             }
                                         }

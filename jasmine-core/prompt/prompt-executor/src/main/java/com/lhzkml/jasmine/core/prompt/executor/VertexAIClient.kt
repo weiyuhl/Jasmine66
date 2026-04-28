@@ -326,7 +326,7 @@ class VertexAIClient(
                                                                 toolCalls.add(ToolCall(id = "vertex_${fc.name}_${java.util.UUID.randomUUID()}", name = fc.name, arguments = fc.args?.toString() ?: "{}"))
                                                             }
                                                         }
-                                                    } catch (_: Exception) { }
+                                                    } catch (e: Exception) { android.util.Log.w("VertexAIClient", "SSE parse error", e) }
                                                 }
                                             }
                                         }

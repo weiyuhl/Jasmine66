@@ -100,6 +100,7 @@ class SkillJsSandbox {
 
                 continuation.invokeOnCancellation {
                     webView.stopLoading()
+                    webView.removeJavascriptInterface(JS_INTERFACE_NAME)
                 }
 
                 webView.loadUrl(url)

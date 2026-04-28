@@ -92,7 +92,8 @@ class CronExpression(expression: String) {
                 when {
                     part == "*" -> result.addAll(min..max)
                     part.startsWith("*/") -> {
-                        val step = part.substringAfter("*/").toInt()
+                        val step = part.substringAfter("*/").toIntOrNull() ?: 1
+                        if (step <= 0) throw IllegalArgumentException("Cron step must be > 0, got: $step")
                         var i = min
                         while (i <= max) {
                             result.add(i)

@@ -62,11 +62,18 @@ class SchedulingTools(private val taskStore: TaskStore) {
                 cron = cron
             )
 
+            // 转义 JSON 特殊字符防止注入
+            val safeDescription = task.description
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t")
             return """
                 {
                     "success": true,
                     "task_id": "${task.id}",
-                    "description": "${task.description}",
+                    "description": "$safeDescription",
                     "scheduled_at": "${executeAt ?: "recurring"}",
                     "cron": "${cron ?: "none"}"
                 }

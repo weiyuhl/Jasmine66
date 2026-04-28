@@ -11,10 +11,10 @@
 | 严重程度 | 总数 | 已修复 | 已缓解 | 待修复 |
 |---------|------|--------|--------|--------|
 | CRITICAL | 12 | 7 | 2 | 3 |
-| HIGH | 27 | 18 | 1 | 8 |
-| MEDIUM | 31 | 1 | 0 | 30 |
+| HIGH | 27 | 19 | 1 | 7 |
+| MEDIUM | 31 | 6 | 0 | 25 |
 | LOW | 25 | 0 | 0 | 25 |
-| **合计** | **95** | **26** | **3** | **66** |
+| **合计** | **95** | **32** | **3** | **60** |
 
 ---
 
@@ -184,7 +184,7 @@
 
 - **文件**: `core/data/.../tools/WebSearchTool.kt` 第88-96, 126-133行
 - **问题**: search 和 scrape 两个方法的 Response 均未关闭。
-- **状态**: ❌ 待修复
+- **状态**: ✅ 已修复 — 两处均包裹 response.use {}
 
 ### H-14: HttpMcpClient Response body 未关闭
 
@@ -276,7 +276,7 @@
 
 | # | 文件 | 问题 | 状态 |
 |---|------|------|------|
-| M-01 | 4个流式客户端 | `catch (_: Exception) {}` 静默吞掉所有异常 | ❌ |
+| M-01 | 4个流式客户端 | `catch (_: Exception) {}` 静默吞掉所有异常 | ✅ 已修复 — 添加 Log.w 日志 |
 | M-02 | `prompt-mnn/.../MnnConfig.kt` | toJson() 手动 JSON 转义不完整（缺 `\b` `\f` 等） | ❌ |
 | M-03 | `prompt-model/.../PromptBuilder.kt` | mutableListOf 无同步 | ❌ |
 | M-04 | `prompt-llm/.../SystemContextProvider.kt` | providers 列表无同步 | ❌ |
@@ -289,9 +289,9 @@
 | M-11 | `agent-observe/.../PersistenceStorageProvider.kt` | findMatchingBracket 越界风险（arrayStart 为 0 时） | ❌ |
 | M-12 | `agent-planner/.../GOAPPlanner.kt` | A* 搜索无状态数量上限，可耗尽内存 | ❌ |
 | M-13 | `agent-tools/.../SubAgentTool.kt` | String.format 注入（task 含 `%s` `%n` 等格式符） | ❌ |
-| M-14 | `core/data/.../sandbox/SkillJsSandbox.kt` | WebView 取消时未清理 JavascriptInterface | ❌ |
+| M-14 | `core/data/.../sandbox/SkillJsSandbox.kt` | WebView 取消时未清理 JavascriptInterface | ✅ 已修复 — invokeOnCancellation 中 removeJavascriptInterface |
 | M-15 | `core/data/.../log/FileLogger.kt` | sanitizeApiKey 正则覆盖不全（缺 Basic/sk- 前缀等） | ❌ |
-| M-16 | `core/data/.../tools/DeviceControlTool.kt` | startActivity 缺 ActivityNotFoundException 处理 | ❌ |
+| M-16 | `core/data/.../tools/DeviceControlTool.kt` | startActivity 缺 ActivityNotFoundException 处理 | ✅ 已修复 — 3处 startActivity 添加 try-catch |
 | M-17 | `core/data/.../tools/RunIntentTool.kt` | startActivity 缺 ActivityNotFoundException 处理 | ❌ |
 | M-18 | `core/data/.../repository/ChatClientManager.kt` | getActiveModel() 无锁读取 | ❌ |
 | M-19 | `config/.../InMemoryConfigRepository.kt` | 全类无任何同步保护（@Singleton 多线程访问） | ❌ |
@@ -300,8 +300,8 @@
 | M-22 | `core/domain/.../repository/SkillManager.kt` | convertSkillMdToProto 解析脆弱（`---` 分割不安全） | ❌ |
 | M-23 | `core/network/.../di/NetworkModule.kt` | debug 模式记录完整 HTTP body（含 API Key） | ❌ |
 | M-24 | `core/designsystem/.../DynamicAsyncImage.kt` | 未校验 URL scheme（file:// 可加载本地资源） | ❌ |
-| M-25 | `assistant-scheduler/.../CronExpression.kt` | `*/0` 死循环（step=0 时 while 永不退出） | ❌ |
-| M-26 | `assistant-tools/.../SchedulingTools.kt` | JSON 注入（task.description 含 `"` `\` 时 JSON 畸形） | ❌ |
+| M-25 | `assistant-scheduler/.../CronExpression.kt` | `*/0` 死循环（step=0 时 while 永不退出） | ✅ 已修复 — 验证 step > 0 |
+| M-26 | `assistant-tools/.../SchedulingTools.kt` | JSON 注入（task.description 含 `"` `\` 时 JSON 畸形） | ✅ 已修复 — 转义 JSON 特殊字符 |
 | M-27 | `assistant-tools/.../Tools.kt` | OpenUrlTool 文档说支持 file:// 但实现阻止 | ❌ |
 | M-28 | `assistant-tools/.../HeartbeatTools.kt` | promoteLearning 的 soul_addition 参数静默丢失 | ❌ |
 | M-29 | `assistant-runtime/.../Runtime.kt` | checkRepetition() 始终返回 false（桩实现，循环检测失效） | ❌ |

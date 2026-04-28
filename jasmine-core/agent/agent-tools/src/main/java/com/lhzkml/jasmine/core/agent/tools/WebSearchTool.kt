@@ -91,12 +91,14 @@ class WebSearchTool(
                 
                 withContext(Dispatchers.IO) {
                     val response = httpClient.newCall(httpRequest).execute()
-                    if (!response.isSuccessful) return@withContext "Error: HTTP ${response.code}"
-                    
-                    val responseBody = response.body?.string() ?: return@withContext "Error: Empty response"
-                    val result = jsonParser.decodeFromString<WebSearchResult>(responseBody)
-                    result.organic.joinToString("\n\n") { "[${it.rank}] ${it.title}\n${it.link}\n${it.description}" }
-                        .ifEmpty { "No results found." }
+                    response.use { resp ->
+                        if (!resp.isSuccessful) return@withContext "Error: HTTP ${resp.code}"
+
+                        val responseBody = resp.body?.string() ?: return@withContext "Error: Empty response"
+                        val result = jsonParser.decodeFromString<WebSearchResult>(responseBody)
+                        result.organic.joinToString("\n\n") { "[${it.rank}] ${it.title}\n${it.link}\n${it.description}" }
+                            .ifEmpty { "No results found." }
+                    }
                 }
             } catch (e: Exception) { "Error: ${e.message}" }
         }
@@ -129,10 +131,12 @@ class WebSearchTool(
                 
                 withContext(Dispatchers.IO) {
                     val response = httpClient.newCall(httpRequest).execute()
-                    if (!response.isSuccessful) return@withContext "Error: HTTP ${response.code}"
-                    
-                    val responseBody = response.body?.string() ?: return@withContext "Error: Empty response"
-                    jsonParser.decodeFromString<WebPageScrapingResult>(responseBody).body.ifEmpty { "No content found." }
+                    response.use { resp ->
+                        if (!resp.isSuccessful) return@withContext "Error: HTTP ${resp.code}"
+
+                        val responseBody = resp.body?.string() ?: return@withContext "Error: Empty response"
+                        jsonParser.decodeFromString<WebPageScrapingResult>(responseBody).body.ifEmpty { "No content found." }
+                    }
                 }
             } catch (e: Exception) { "Error: ${e.message}" }
         }

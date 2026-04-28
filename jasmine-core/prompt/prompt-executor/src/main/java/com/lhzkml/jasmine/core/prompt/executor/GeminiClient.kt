@@ -312,7 +312,7 @@ open class GeminiClient(
                                                                 }
                                                             }
                                                         }
-                                                    } catch (_: Exception) { }
+                                                    } catch (e: Exception) { android.util.Log.w("GeminiClient", "SSE parse error", e) }
                                                 }
                                             }
                                         }
