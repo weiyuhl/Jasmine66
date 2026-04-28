@@ -153,12 +153,20 @@ class SseMcpClient(
                 
                 call.enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
-                        // SSE 连接失败
+                        if (!endpointReady.isCompleted) {
+                            endpointReady.completeExceptionally(
+                                IOException("SSE connection failed: ${e.message}", e)
+                            )
+                        }
                     }
 
                     override fun onResponse(call: Call, response: Response) {
                         if (!response.isSuccessful) {
-                            android.util.Log.w("SseMcpClient", "SSE endpoint returned ${response.code}")
+                            val msg = "SSE endpoint returned ${response.code}"
+                            android.util.Log.w("SseMcpClient", msg)
+                            if (!endpointReady.isCompleted) {
+                                endpointReady.completeExceptionally(IOException(msg))
+                            }
                             return
                         }
 

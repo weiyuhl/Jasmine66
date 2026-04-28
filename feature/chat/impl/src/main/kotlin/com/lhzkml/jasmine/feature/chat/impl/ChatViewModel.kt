@@ -127,7 +127,7 @@ class ChatViewModel @Inject constructor(
 
         _chatPrompt.value = ""
         addUserMessageAndStream(prompt, logTag = "Chat request") { errorMsg ->
-            val cause = exceptionCause().get()
+            val cause = exceptionCause().orElse(null)
             val isConnectionAbort = cause is java.net.SocketException ||
                 errorMsg.contains("connection abort", ignoreCase = true) ||
                 errorMsg.contains("Socket", ignoreCase = true)

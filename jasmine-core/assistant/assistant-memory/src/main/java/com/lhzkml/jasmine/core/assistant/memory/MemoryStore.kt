@@ -1,3 +1,5 @@
+package com.lhzkml.jasmine.core.assistant.memory
+
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -34,7 +36,11 @@ class MemoryStore {
     /**
      * 获取所有记忆条目
      */
+    fun getMemory(key: String): MemoryEntry? = memories[key]
+
     fun getAllMemories(): List<MemoryEntry> = memories.values.toList()
+
+    fun getMemory(key: String): MemoryEntry? = memories[key]
 
     /**
      * 获取推荐晋升的记忆（被多次强化过的模式）

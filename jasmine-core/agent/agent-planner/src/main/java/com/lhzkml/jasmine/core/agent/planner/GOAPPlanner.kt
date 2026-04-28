@@ -98,7 +98,7 @@ class GOAPPlanner<State>(
         plan: GOAPPlan<State>?
     ): GOAPPlan<State> = goals
         .mapNotNull { goal -> buildPlanForGoal(state, goal, actions) }
-        .minByOrNull { it.value }
+        .maxByOrNull { it.value }
         ?: throw IllegalStateException("No valid plan found for state: $state")
 
     override suspend fun executeStep(

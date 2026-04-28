@@ -223,13 +223,42 @@ class FilePersistenceStorageProvider(
             }
         }
 
+        var properties: Map<String, String>? = null
+        val propsKey = "\"properties\":{"
+        val propsStart = json.indexOf(propsKey)
+        if (propsStart >= 0) {
+            val braceStart = propsStart + propsKey.length - 1
+            val braceEnd = findMatchingBrace(json, braceStart)
+            if (braceEnd > braceStart) {
+                val propsContent = json.substring(braceStart + 1, braceEnd)
+                val propsMap = mutableMapOf<String, String>()
+                var pPos = 0
+                while (pPos < propsContent.length) {
+                    val kStart = propsContent.indexOf('"', pPos)
+                    if (kStart < 0) break
+                    val kEnd = findClosingQuote(propsContent, kStart + 1)
+                    if (kEnd < 0) break
+                    val key = jsonUnescape(propsContent.substring(kStart + 1, kEnd))
+                    val vStart = propsContent.indexOf('"', kEnd + 1)
+                    if (vStart < 0) break
+                    val vEnd = findClosingQuote(propsContent, vStart + 1)
+                    if (vEnd < 0) break
+                    val value = jsonUnescape(propsContent.substring(vStart + 1, vEnd))
+                    propsMap[key] = value
+                    pPos = vEnd + 1
+                }
+                if (propsMap.isNotEmpty()) properties = propsMap
+            }
+        }
+
         return AgentCheckpoint(
             checkpointId = checkpointId,
             createdAt = createdAt,
             nodePath = nodePath,
             lastInput = lastInput,
             messageHistory = messages,
-            version = version
+            version = version,
+            properties = properties
         )
     }
 

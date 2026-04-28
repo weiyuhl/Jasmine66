@@ -45,6 +45,28 @@ class Persistence(
     }
 
     private var currentVersion: Long = 0
+    private var versionInitialized = false
+
+    private suspend fun ensureVersionInitialized(agentId: String) {
+        if (!versionInitialized) {
+            val latest = provider.getLatestCheckpoint(agentId)
+            if (latest != null && latest.version > currentVersion) {
+                currentVersion = latest.version
+            }
+            versionInitialized = true
+        }
+    }
+    private var versionInitialized = false
+
+    private suspend fun ensureVersionInitialized(agentId: String) {
+        if (!versionInitialized) {
+            val latest = provider.getLatestCheckpoint(agentId)
+            if (latest != null && latest.version > currentVersion) {
+                currentVersion = latest.version
+            }
+            versionInitialized = true
+        }
+    }
 
     /**
      * 回滚策略
@@ -71,6 +93,7 @@ class Persistence(
         lastInput: String?,
         messageHistory: List<ChatMessage>
     ): AgentCheckpoint {
+        ensureVersionInitialized(agentId)
         currentVersion++
         val checkpoint = AgentCheckpoint(
             checkpointId = java.util.UUID.randomUUID().toString(),
@@ -109,6 +132,7 @@ class Persistence(
      * 标记 Agent 执行结束（创建墓碑检查点）
      */
     suspend fun markCompleted(agentId: String) {
+        ensureVersionInitialized(agentId)
         currentVersion++
         provider.saveCheckpoint(agentId, AgentCheckpoint.tombstone(currentVersion))
     }

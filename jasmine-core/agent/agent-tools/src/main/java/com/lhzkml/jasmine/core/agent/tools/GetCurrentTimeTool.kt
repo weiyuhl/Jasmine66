@@ -72,14 +72,12 @@ object GetCurrentTimeTool : Tool() {
             appendLine("  \"weekday\": \"${now.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.CHINESE)}\",")
             appendLine("  \"hour\": ${now.hour},")
             appendLine("  \"minute\": ${now.minute},")
-            appendLine("  \"second\": ${now.second}")
             if (format == "timestamp") {
-                // 移除最后的换行和末尾，追加额外字段
-                deleteCharAt(length - 1) // 去掉换行
-                deleteCharAt(length - 1) // 去掉换行
-                appendLine(",")
+                appendLine("  \"second\": ${now.second},")
                 appendLine("  \"milliseconds\": ${now.toInstant().toEpochMilli()},")
                 appendLine("  \"seconds\": ${now.toInstant().epochSecond}")
+            } else {
+                appendLine("  \"second\": ${now.second}")
             }
             append("}")
         }

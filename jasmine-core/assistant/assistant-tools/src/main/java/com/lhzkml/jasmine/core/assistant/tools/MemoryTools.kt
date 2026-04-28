@@ -111,7 +111,7 @@ class MemoryTools(private val memoryStore: MemoryStore) {
             val key = args["key"]?.jsonPrimitive?.content ?: return "Error: Missing key"
             
             val removed = memoryStore.forget(key)
-            return if (removed) "Success: Memory '$key' forgotten." else "Error: Memory not found."
+            return if (removed != null) "Success: Memory '$key' forgotten." else "Error: Memory not found."
         }
     }
 }

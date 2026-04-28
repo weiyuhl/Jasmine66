@@ -171,11 +171,12 @@ class ToolLoopExecutor @Inject constructor(
                 onToolCallResult(call.name, result.content)
                 result
             }
-        }.map { deferred ->
+        }.mapIndexed { index, deferred ->
+            val call = toolCalls[index]
             runCatching { deferred.await() }.getOrDefault(
                 ToolResult(
-                    toolCallId = "error",
-                    toolName = "unknown",
+                    toolCallId = call.id,
+                    toolName = call.name,
                     content = "Tool execution failed",
                 )
             )

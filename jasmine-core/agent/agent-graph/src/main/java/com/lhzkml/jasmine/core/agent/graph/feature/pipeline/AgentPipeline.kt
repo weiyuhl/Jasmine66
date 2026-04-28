@@ -10,18 +10,18 @@ import com.lhzkml.jasmine.core.agent.graph.graph.AgentGraphContext
 
 /**
  * Agent Pipeline 抽象基类
- * 移植�?koog �?AIAgentPipeline�?
+ * 移植�?koog �?AIAgentPipeline�?
  *
- * Pipeline �?Feature 系统的核心，提供�?
+ * Pipeline �?Feature 系统的核心，提供�?
  * - Feature 安装/卸载
- * - 事件拦截器注�?
+ * - 事件拦截器注�?
  * - 生命周期事件触发
  *
- * 所�?Agent/Strategy/LLM/Tool/Streaming 事件都通过 Pipeline 分发给已注册�?handler�?
+ * 所�?Agent/Strategy/LLM/Tool/Streaming 事件都通过 Pipeline 分发给已注册�?handler�?
  */
 abstract class AgentPipeline {
 
-    // ========== 已注�?Feature ==========
+    // ========== 已注�?Feature ==========
 
     private class RegisteredFeature(
         val featureImpl: Any,
@@ -30,7 +30,7 @@ abstract class AgentPipeline {
 
     private val registeredFeatures: MutableMap<FeatureKey<*>, RegisteredFeature> = mutableMapOf()
 
-    // ========== 事件处理�?Map ==========
+    // ========== 事件处理�?Map ==========
 
     protected val agentEventHandlers: MutableMap<FeatureKey<*>, AgentEventHandler> = mutableMapOf()
     protected val strategyEventHandlers: MutableMap<FeatureKey<*>, StrategyEventHandler> = mutableMapOf()
@@ -55,6 +55,11 @@ abstract class AgentPipeline {
                 registered.featureConfig.messageProcessors.forEach { it.close() }
                 registeredFeatures.remove(key)
             }
+        agentEventHandlers.remove(featureKey)
+        strategyEventHandlers.remove(featureKey)
+        toolCallEventHandlers.remove(featureKey)
+        llmCallEventHandlers.remove(featureKey)
+        llmStreamingEventHandlers.remove(featureKey)
     }
 
     /** 获取已安装的 Feature 实现 */
@@ -237,7 +242,7 @@ abstract class AgentPipeline {
         llmStreamingEventHandlers.values.forEach { it.llmStreamingCompletedHandler.handle(eventContext) }
     }
 
-    // ========== 拦截器注�?==========
+    // ========== 拦截器注�?==========
 
     fun interceptAgentStarting(
         feature: AgentFeature<*, *>, handle: suspend (AgentStartingContext) -> Unit
@@ -351,7 +356,7 @@ abstract class AgentPipeline {
         handler.llmStreamingCompletedHandler = LLMStreamingCompletedHandler(createConditionalHandler(feature, handle))
     }
 
-    // ========== 条件处理�?==========
+    // ========== 条件处理�?==========
 
     protected fun <TContext : AgentLifecycleEventContext> createConditionalHandler(
         feature: AgentFeature<*, *>,

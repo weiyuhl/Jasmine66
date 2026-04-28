@@ -59,17 +59,14 @@ class LicensesViewModel @Inject constructor(
         )
 
         if (licenseIds == 0 || metadataIds == 0) {
-            _state.value = LicensesUiState(loading = false, error = "许可证信息暂不可用")
-            return emptyList()
+            throw IllegalStateException("许可证信息暂不可用")
         }
 
-        // Parse unique license names from the licenses file
-        val licenseNames = context.resources.openRawResource(licenseIds)
-            .bufferedReader().use { it.readLines() }
-            .map { line -> extractLicenseName(line) }
+        val licensesText = context.resources.openRawResource(licenseIds)
+            .bufferedReader().use { it.readText() }
 
         // Parse library entries from metadata file
-        // Format: "index:length library_name"
+        // Format: "offset:length library_name"
         val results = mutableListOf<LicenseInfo>()
         context.resources.openRawResource(metadataIds)
             .bufferedReader().use { reader ->
@@ -77,9 +74,13 @@ class LicensesViewModel @Inject constructor(
                     val parts = line.split(" ", limit = 2)
                     if (parts.size >= 2) {
                         val headerParts = parts[0].split(":")
-                        val licenseIndex = headerParts.getOrNull(0)?.toIntOrNull() ?: 0
+                        val offset = headerParts.getOrNull(0)?.toIntOrNull() ?: 0
+                        val length = headerParts.getOrNull(1)?.toIntOrNull() ?: 0
                         val libName = parts[1].trim()
-                        val licenseName = licenseNames.getOrElse(licenseIndex) { "" }
+                        val licenseText = if (offset + length <= licensesText.length) {
+                            licensesText.substring(offset, offset + length).trim()
+                        } else ""
+                        val licenseName = extractLicenseName(licenseText)
                         results.add(LicenseInfo(name = libName, licenseName = licenseName))
                     }
                 }

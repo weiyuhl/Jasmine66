@@ -122,9 +122,9 @@ class InMemoryConfigRepository : ConfigRepository {
     }
 
     // Agent
-    private var agentStrategy = AgentStrategyType.AUTO
-    private var graphToolCallMode = GraphToolCallMode.AUTO
-    private var toolSelectionStrategy = ToolSelectionStrategyType.AUTO
+    private var agentStrategy = AgentStrategyType.SIMPLE_LOOP
+    private var graphToolCallMode = GraphToolCallMode.SEQUENTIAL
+    private var toolSelectionStrategy = ToolSelectionStrategyType.AUTO_SELECT_FOR_TASK
     private var toolSelectionNames = emptySet<String>()
     private var toolSelectionTaskDesc = ""
     private var toolChoiceMode = ToolChoiceMode.AUTO
@@ -176,7 +176,7 @@ class InMemoryConfigRepository : ConfigRepository {
     private var snapshotEnabled = false
     private var snapshotStorage = SnapshotStorageType.MEMORY
     private var snapshotAutoCheckpoint = false
-    private var rollbackStrategy = RollbackStrategy.MANUAL
+    private var rollbackStrategy = RollbackStrategy.SKIP_NODE
     override fun isSnapshotEnabled() = snapshotEnabled
     override fun setSnapshotEnabled(enabled: Boolean) { snapshotEnabled = enabled }
     override fun getSnapshotStorage() = snapshotStorage

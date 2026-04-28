@@ -25,7 +25,11 @@
       "Bash(rm -rf .gradle/configuration-cache build-logic/convention/build)",
       "Bash(./gradlew :core:designsystem:compileDebugKotlin)",
       "Bash(echo \"EXIT: $?\")",
-      "Bash(find *)"
+      "Bash(find *)",
+      "Bash(awk -F/ '{dir=\"\"; for\\(i=1;i<NF;i++\\){dir=dir\"/\"$i}; print dir}')",
+      "Bash(awk -F'/' '{print $1}')",
+      "Bash(awk -F'/' '{print $1\"/\"$2\"/\"$3}')",
+      "Bash(awk -F'/' '{print $1\"/\"$2}')"
     ]
   }
 }

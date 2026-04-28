@@ -1,5 +1,7 @@
 package com.lhzkml.jasmine.core.assistant.email
 
+import kotlinx.serialization.Serializable
+
 /**
  * 邮件服务器配置自动检测逻辑
  */
