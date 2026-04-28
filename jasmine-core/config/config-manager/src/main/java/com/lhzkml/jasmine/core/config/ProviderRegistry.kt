@@ -19,7 +19,7 @@ class ProviderRegistry(private val configRepo: ConfigRepository) {
         ProviderConfig("mnn_local", "MNN 本地模型", "", "", ApiType.LOCAL),
     )
 
-    private var isInitialized = false
+    @Volatile private var isInitialized = false
 
     val providers: List<ProviderConfig>
         get() = _providers.toList()

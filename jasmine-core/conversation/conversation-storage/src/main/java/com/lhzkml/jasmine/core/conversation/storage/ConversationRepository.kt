@@ -1,6 +1,6 @@
 package com.lhzkml.jasmine.core.conversation.storage
 
-import android.content.Context
+import com.lhzkml.jasmine.core.conversation.storage.dao.ConversationDao
 import com.lhzkml.jasmine.core.conversation.storage.dao.UsageSummary
 import com.lhzkml.jasmine.core.conversation.storage.entity.ConversationEntity
 import com.lhzkml.jasmine.core.conversation.storage.entity.MessageEntity
@@ -41,9 +41,7 @@ data class TimedMessage(
  * 对话仓库，提供对话和消息的增删改查
  * 这是框架层对外暴露的主要 API
  */
-class ConversationRepository(context: Context) {
-
-    private val dao = JasmineDatabase.getInstance(context).conversationDao()
+class ConversationRepository(private val dao: ConversationDao) {
 
     // ========== 对话管理 ==========
 

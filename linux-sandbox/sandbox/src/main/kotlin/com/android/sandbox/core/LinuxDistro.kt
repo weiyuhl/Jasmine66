@@ -12,6 +12,11 @@ data object AlpineInfo {
         return "https://dl-cdn.alpinelinux.org/alpine/v$branch/releases/$arch/alpine-minirootfs-$VERSION-$arch.tar.gz"
     }
 
+    fun getChecksumUrl(arch: String): String {
+        val branch = VERSION.substringBeforeLast('.')
+        return "https://dl-cdn.alpinelinux.org/alpine/v$branch/releases/$arch/alpine-minirootfs-$VERSION-$arch.tar.gz.sha256"
+    }
+
     const val PACKAGE_MANAGER = "apk"
     const val DEFAULT_SHELL = "/bin/sh"
 

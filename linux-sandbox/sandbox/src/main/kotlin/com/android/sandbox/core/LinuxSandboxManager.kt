@@ -113,6 +113,9 @@ class LinuxSandboxManager(private val context: Context) {
                     onProgress = { progress -> _state.value = SandboxState.Downloading(progress) }
                 )
 
+                _state.value = SandboxState.Installing("Verifying checksum...")
+                verifyRootfsChecksum(tarGzFile, arch)
+
                 _state.value = SandboxState.Extracting
                 downloader.extractTarGz(tarGzFile, rootfsDir)
 
@@ -158,6 +161,29 @@ class LinuxSandboxManager(private val context: Context) {
         _state.value = SandboxState.Ready
     }
 
+    private fun verifyRootfsChecksum(tarGzFile: File, arch: String) {
+        try {
+            val checksumUrl = AlpineInfo.getChecksumUrl(arch)
+            val expectedSha256 = downloader.downloadText(checksumUrl).trim().substringBefore(' ')
+            if (expectedSha256.length < 64) {
+                android.util.Log.w("LinuxSandbox", "Checksum file malformed, skipping verification")
+                return
+            }
+            val actualSha256 = java.security.MessageDigest.getInstance("SHA-256")
+                .digest(tarGzFile.readBytes())
+                .joinToString("") { "%02x".format(it) }
+            if (!expectedSha256.equals(actualSha256, ignoreCase = true)) {
+                android.util.Log.e("LinuxSandbox", "SHA256 mismatch!\nExpected: $expectedSha256\nActual: $actualSha256")
+                throw IllegalStateException("Rootfs checksum verification failed")
+            }
+            android.util.Log.i("LinuxSandbox", "SHA256 checksum verified OK")
+        } catch (e: IllegalStateException) {
+            throw e
+        } catch (e: Exception) {
+            android.util.Log.w("LinuxSandbox", "Checksum verification skipped: ${e.message}")
+        }
+    }
+
     private fun unwrapSingleSubdir(rootfsDir: File) {
         val children = rootfsDir.listFiles() ?: return
         if (children.size != 1) return
@@ -190,7 +216,9 @@ class LinuxSandboxManager(private val context: Context) {
             resolvConf.delete()
             resolvConf.parentFile?.mkdirs()
             resolvConf.writeText("nameserver 8.8.8.8\nnameserver 8.8.4.4\n")
-        } catch (_: Exception) { }
+        } catch (e: Exception) {
+            android.util.Log.w("LinuxSandbox", "Failed to write resolv.conf", e)
+        }
     }
 
     private fun writeInitFiles(rootfsDir: File) {
@@ -199,7 +227,9 @@ class LinuxSandboxManager(private val context: Context) {
                 val file = File(rootfsDir, relPath)
                 file.parentFile?.mkdirs()
                 if (!file.exists()) file.writeText(content)
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                android.util.Log.w("LinuxSandbox", "Failed to write init file: $relPath", e)
+            }
         }
     }
 
