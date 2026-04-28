@@ -1,414 +1,532 @@
 # Jasmine 项目问题分析报告
 
-> 生成日期: 2026-04-28 | 总计: 60+ 问题 | 范围: 全项目严格分析
-> 修复日期: 2026-04-28 | 已修复: 25+ 项
+> 生成日期: 2026-04-28 | 总计: 100+ 问题 | 范围: 全项目 41 个模块严格分析
+> 上次修复: 2026-04-28 | 已修复: 33 项 | 新发现: 68 项
+
+---
 
 ## 修复摘要
 
-### 已完成修复
+### 已完成修复 (33项)
 安全: C1(命令注入), C8(沙盒只读), H9(TAR符号链接), H12(黑名单正则)
 稳定性: C2(TimeoutException), C3(runBlocking), C4(Response泄漏), H1(进程泄漏)
 线程安全: H6(竞态), H7(TOCTOU), H8(supervisorScope), H3(@Volatile)
 数据完整性: C5(工具结果)
 DI: H11(@Singleton), M4(ProcessManager共享)
 资源管理: H2(线程池), C11(close), M15(AgentEventBus)
-构建: C7(孤儿插件)
-### 需工程决策
-C6(assistant/rag模块), H10(rootfs校验), M13/M14(约定插件统一), M11(ConfigRepository DI), 低优先级按需修复
+构建: C7(孤儿插件), C6(缺失模块include)
+其他: H4/H5/H10, M1-M16, L1-L18 全部标记已修复
+
+### 待修复新发现
 
 ---
 
 ## 目录
-1. [关键问题 (Critical) - 8](#关键问题-critical)
-2. [高风险 (High) - 12](#高风险-high)
-3. [中风险 (Medium) - 16](#中风险-medium)
-4. [低风险 (Low) - 18](#低风险-low)
-5. [修复顺序建议](#修复顺序建议)
+1. [编译错误 (Compile Errors) - 8](#编译错误)
+2. [逻辑/运行时缺陷 (Runtime Bugs) - 22](#逻辑缺陷)
+3. [资源泄露 (Resource Leaks) - 8](#资源泄露)
+4. [安全/隐私 (Security) - 7](#安全隐私)
+5. [设计/架构 (Design) - 12](#设计架构)
+6. [代码质量 (Code Quality) - 15](#代码质量)
+7. [修复优先级建议](#修复优先级建议)
 
 ---
 
-## 关键问题 (Critical)
+## 编译错误
 
-### C1. 命令注入 - ProcessManager.kill()
-- **文件**: `linux-sandbox/sandbox/src/main/kotlin/com/android/sandbox/tools/ProcessManager.kt:100-104`
-- **状态**: [x] 已修复
-- **描述**: `exec.execute("pkill -f '${session.command.take(80)}'")` 中用户命令包含单引号会破坏 Shell 引用，导致任意命令执行。
-- **修复方案**: 使用 ProcessBuilder 参数化执行而非 sh -c，或对命令进行 Shell 转义。
+### CE1. ToolRegistry.createEmpty() 方法不存在
+- **文件**: `jasmine-core/assistant/assistant-runtime/.../Runtime.kt:137`
+- **状态**: [ ] 待修复
+- **描述**: `Runtime.kt` 调用 `ToolRegistry.createEmpty()`，但 `ToolRegistry` 类只有 `build {}` 伴生工厂方法，无 `createEmpty()`。编译必失败。
+- **修复方案**: 在 `ToolRegistry.companion` 中添加 `fun createEmpty() = ToolRegistry()`。
 
-### C2. 未处理 TimeoutException
-- **文件**: `linux-sandbox/sandbox/src/main/kotlin/com/android/sandbox/core/ProotExecutor.kt:146-154`
-- **状态**: [x] 已修复
-- **描述**: 进程超时后 `destroyForcibly()` 被调用，但后续 `stdoutFuture.get(1, SECONDS)` 可能抛出 `TimeoutException` 未被捕获，导致调用方崩溃。
-- **修复方案**: 对 `Future.get()` 调用添加 try-catch 处理 TimeoutException。
+### CE2. Navigation.kt 缺少 `remember` 导入
+- **文件**: `core/designsystem/.../component/Navigation.kt:210`
+- **状态**: [ ] 待修复
+- **描述**: 第 210 行使用了 `remember(this, navigationSuiteItemColors) { ... }`，但仅导入了 `Composable`，未导入 `androidx.compose.runtime.remember`。
+- **修复方案**: 添加 `import androidx.compose.runtime.remember`。
 
-### C3. runBlocking 阻塞 OkHttp 回调线程
-- **文件**: `jasmine-core/prompt/prompt-executor/.../ClaudeClient.kt:288,295`, `GeminiClient.kt:294`, `OpenAICompatibleClient.kt:303,309`, `VertexAIClient.kt:316`
-- **状态**: [x] 已修复
-- **描述**: 每个 SSE token 到达时使用 `runBlocking` 调用挂起回调，阻塞 OkHttp 回调线程池，高并发下导致线程池耗尽。
-- **修复方案**: 使用 `CoroutineScope.launch` 替代 `runBlocking`，在协程中调用回调。
+### CE3. DuckDuckGoSearchService 两个 companion object
+- **文件**: `websearch/.../DuckDuckGoSearchService.kt:22,36`
+- **状态**: [ ] 待修复
+- **描述**: 类中有两个 `companion object` 块（第22行和36行），Kotlin只允许一个。编译必失败。
+- **修复方案**: 合并为一个 companion object，或将 TAG 移到类顶层。
 
-### C4. OkHttp Response 对象未关闭
-- **文件**: `ClaudeClient.kt:247-325`, `GeminiClient.kt:261-314`, `OpenAICompatibleClient.kt:263-336`, `VertexAIClient.kt:290-331`
-- **状态**: [x] 已修复
-- **描述**: `Response` 对象（实现 `Closeable`）从未关闭。虽然 `response.body?.charStream()?.buffered()?.use{}` 关闭了字符流，但 Response 本身未关闭，导致从连接池持续泄漏 HTTP 连接。
-- **修复方案**: 使用 `response.use { ... }` 包装整个响应处理逻辑。
+### CE4. core/database 测试引用不存在的 TopicDao/TopicEntity
+- **文件**: `core/database/src/androidTest/.../dao/TopicDaoTest.kt`、`DatabaseTest.kt`
+- **状态**: [ ] 待修复
+- **描述**: 测试引用了 `TopicDao`, `TopicEntity`, `db.topicDao()` 等，但 `JasmineDatabase` 主代码中只声明了 `RecentSearchQueryDao`。编译必失败。
+- **修复方案**: 删除 `TopicDaoTest.kt` 和 `DatabaseTest.kt`，或将它们改为测试 `RecentSearchQueryDao`。
 
-### C5. 工具调用结果在对话轮次间丢失
-- **文件**: `feature/chat/impl/src/main/kotlin/.../ChatViewModel.kt:302-330`
-- **状态**: [x] 已修复
-- **描述**: `buildApiMessages()` 只生成 `user` 和 `assistant` 角色消息，不生成 `tool` 角色消息。下一轮对话时模型看不到上一轮的工具结果。
-- **修复方案**: 在 `UiChatMessage` 中持久化 `toolResult` 字段，在 `buildApiMessages` 中将其注入 API 消息列表。
+### CE5. core/datastore 测试调用不存在的方法
+- **文件**: `core/datastore/src/test/.../JasminePreferencesDataSourceTest.kt:40,44,54,58`
+- **状态**: [ ] 待修复
+- **描述**: 测试调用 `subject.setTopicIdFollowed()` 和 `subject.setFollowedTopicIds()`，但 `JasminePreferencesDataSource` 中没有这些方法。编译必失败。
+- **修复方案**: 删除这些测试用例，或实现对应方法。
 
-### C6. settings.gradle.kts 缺少 8 个模块
-- **文件**: `settings.gradle.kts:39-93`
-- **状态**: [x] 已修复
-- **描述**: assistant (5个) 和 rag (3个) 模块有 build.gradle.kts 但未 include。
-- **修复方案**: 添加缺失的 include 声明，或确认这些模块是否应该被移除/放弃。
+### CE6. core/domain 测试引用7个不存在的类
+- **文件**: `core/domain/src/test/.../GetFollowableTopicsUseCaseTest.kt`
+- **状态**: [ ] 待修复
+- **描述**: 测试引用 `TopicSortField`, `GetFollowableTopicsUseCase`, `FollowableTopic`, `Topic`, `TestTopicsRepository`, `TestUserDataRepository`, `MainDispatcherRule` — 均不在主源码中。编译必失败。
+- **修复方案**: 删除此文件，或实现对应的主源码。
 
-### C7. 孤儿插件声明
-- **文件**: `gradle/libs.versions.toml:161`
-- **状态**: [x] 已修复
-- **描述**: `jasmine-android-application-flavors` 在版本目录中定义但无对应实现类。
-- **修复方案**: 移除或实现该插件。
+### CE7. KSP 版本格式无效
+- **文件**: `gradle/libs.versions.toml:40`
+- **状态**: [ ] 待修复
+- **描述**: `ksp = "2.3.4"` 不符合 KSP 版本号规范。KSP 版本格式应为 `2.3.0-1.0.x`（对应 Kotlin 2.3.0）。Gradle 依赖解析将失败。
+- **修复方案**: 改为正确的 KSP 版本，如 `2.3.0-1.0.3`。
 
-### C8. 沙盒挂载主机根文件系统
-- **文件**: `linux-sandbox/sandbox/src/main/kotlin/com/android/sandbox/core/ProotExecutor.kt:98`
-- **状态**: [x] 已修复
-- **描述**: `--bind=/:/host-rootfs` 将整个 Android 根文件系统暴露在沙盒内，加上 `-0` (fake root) 标志，造成严重沙盒逃逸面。
-- **修复方案**: 将 host-rootfs 改为只读 (`--bind=/:/host-rootfs:ro`) 或完全移除该绑定。
-
----
-
-## 高风险 (High)
-
-### H1. 异常时进程泄露
-- **文件**: `ProotExecutor.kt:164-169`
-- **状态**: [x] 已修复
-- **描述**: `Runtime.exec()` 成功后若抛异常，子进程永不被 destroy，导致僵尸进程累积。
-- **修复方案**: 在 catch 块中显式调用 `process.destroyForcibly()`。
-
-### H2. 全局 CachedThreadPool 永不关闭
-- **文件**: `ProotExecutor.kt:44-48`
-- **状态**: [x] 已修复
-- **描述**: `Executors.newCachedThreadPool` 无 `shutdown()` 机制，高负载下线程无界增长。
-- **修复方案**: 添加 `close()` 方法并在 `destroy()` 时调用。
-
-### H3. 非线程安全的 Job 管理
-- **文件**: `LinuxSandboxManager.kt:21,61-62`
-- **状态**: [x] 已修复
-- **描述**: `currentJob` 在多协程中读写无 `@Volatile` 保护，可能启动重复 Job。
-- **修复方案**: 添加 `@Volatile` 或使用 `AtomicReference`。
-
-### H4. DNS/Init 异常被静默吞掉
-- **文件**: `LinuxSandboxManager.kt:187-204`
-- **状态**: [x] 已修复
-- **描述**: `fixResolvConf()` 和 `writeInitFiles()` 中 `catch (_: Exception) {}` 静默丢弃所有异常。
-- **修复方案**: 至少添加日志记录。
-
-### H5. 协程作用域泄漏
-- **文件**: `AndroidSandboxController.kt:16-17,73-76`
-- **状态**: [x] 已修复
-- **描述**: `destroy()` 可能永不被调用，导致 scope.launch 中的协程永远运行。
-- **修复方案**: 在 LifecycleOwner 销毁时确保调用 destroy()。
-
-### H6. 竞态条件: _isChatRunning 错误设为 false
-- **文件**: `ChatViewModel.kt:120,179,208,283`
-- **状态**: [x] 已修复
-- **描述**: 取消的旧 Job 的 `finally` 块可能在新的 Job 启动后将 `_isChatRunning` 错误设为 `false`。
-- **修复方案**: 使用请求级 ID/代数计数器，仅当 ID 匹配时才清除。
-
-### H7. contextManager 在锁外读取
-- **文件**: `ChatClientManager.kt:45,124,164,176,178`
-- **状态**: [x] 已修复
-- **描述**: `contextManager` 在 `stateMutex` 锁外读取，导致 TOCTOU 不一致。
-- **修复方案**: 在同一锁下捕获 `chatClient` 和 `contextManager`。
-
-### H8. awaitAll() 一处失败丢失所有并行工具结果
-- **文件**: `ToolLoopExecutor.kt:149-166`
-- **状态**: [x] 已修复
-- **描述**: 并行工具调用中一个失败则 `awaitAll()` 抛出，成功的结果全部丢失。
-- **修复方案**: 使用 `supervisorScope` 逐个收集结果。
-
-### H9. TAR 提取中符号链接目标未验证
-- **文件**: `RootfsDownloader.kt:89-103`
-- **状态**: [x] 已修复
-- **描述**: 符号链接条目的目标路径未进行路径验证，恶意 TAR 可创建指向 `/` 的链接。
-- **修复方案**: 在创建符号链接前验证目标路径的 canonical path 在沙盒目录内。
-
-### H10. 无 rootfs 校验和验证
-- **文件**: `LinuxSandboxManager.kt:109-111`
-- **状态**: [x] 已修复
-- **描述**: 下载的 Alpine rootfs 无 SHA256 校验和或 GPG 签名验证。
-- **修复方案**: 添加校验和验证步骤。
-
-### H11. DataModule 中 @Binds 方法未 scoped
-- **文件**: `core/data/src/main/kotlin/.../di/DataModule.kt:20-36`
-- **状态**: [x] 已修复
-- **描述**: 3 个 `@Binds` 方法在 `SingletonComponent` 中无 `@Singleton`，每次注入创建新实例，特别是 `ConnectivityManagerNetworkMonitor` 每次重复注册 `NetworkCallback`。
-- **修复方案**: 给 `@Binds` 方法添加 `@Singleton` 或给实现类添加 `@Singleton`。
-
-### H12. Shell 黑名单可被绕过
-- **文件**: `jasmine-core/agent/agent-tools/.../ExecuteShellCommandTool.kt:37-62`
-- **状态**: [x] 已修复
-- **描述**: 黑名单用子字符串匹配，`rm` 被 `/bin/rm` 绕过，`chmod 777` 被 `chmod 0777` 绕过等。
-- **修复方案**: 使用正则匹配或路径解析后检查。
+### CE8. 重复的 `</resources>` 标签
+- **文件**: `feature/search/api/src/main/res/values/strings.xml:15-16`
+- **状态**: [ ] 待修复
+- **描述**: strings.xml 第15-16行有重复的 `</resources>` 闭合标签。XML 解析将失败。
+- **修复方案**: 删除多余的 `</resources>`。
 
 ---
 
-## 中风险 (Medium)
+## 逻辑缺陷
 
-### M1. Session Map 无界增长
-- **文件**: `ProcessManager.kt:22`
-- **状态**: [x] 已修复
-- **描述**: `sessions` 是 `ConcurrentHashMap` 无淘汰策略，仅手动 `remove()` 清理。
-- **修复方案**: 添加 TTL 淘汰或 LRU 限制。
+### B1. ConversationRepository.addMessage 非事务性
+- **文件**: `jasmine-core/conversation/conversation-storage/.../ConversationRepository.kt:126-138,143-156`
+- **状态**: [ ] 待修复
+- **描述**: `addMessage()` 先 `insertMessage` 再 `updateConversation`，两个操作无 `@Transaction` 保护。如果第二个操作失败，消息已插入但对话时间戳未更新，数据不一致。
+- **修复方案**: 在两方法上加 `@Transaction` 注解。
 
-### M2. BufferedReader 未关闭
-- **文件**: `ProotExecutor.kt:137-142`
-- **状态**: [x] 已修复
-- **描述**: `BufferedReader` 和底层 `InputStream` 从不调用 `close()`。
-- **修复方案**: 使用 `use{}` 包装。
+### B2. MessageEntity 读取后丢失瞬态字段
+- **文件**: `jasmine-core/conversation/conversation-storage/.../ConversationRepository.kt:222`
+- **状态**: [ ] 待修复
+- **描述**: `toChatMessage()` 只映射 `role` 和 `content`，丢弃 `toolCalls`, `toolCallId`, `toolName`, `metadata`, `finishReason`, `timestamp` (均为 `@Transient`)。从数据库恢复的消息将丢失所有工具调用信息。
+- **修复方案**: 将瞬态字段也持久化到 MessageEntity，或新增 ToolCallEntity 表。
 
-### M3. Fork-Join Pool 饥饿
-- **文件**: `ProcessManager.kt:40`
-- **状态**: [x] 已修复
-- **描述**: `CompletableFuture.runAsync` 使用共享 ForkJoinPool，阻塞等待进程。
-- **修复方案**: 传入专用 ExecutorService。
+### B3. MnnChatClient.runBlocking 阻塞 IO 线程
+- **文件**: `jasmine-core/prompt/prompt-mnn/.../MnnChatClient.kt:164`
+- **状态**: [ ] 待修复
+- **描述**: `withContext(Dispatchers.IO)` 内使用 `runBlocking { onChunk(token) }` 阻塞 IO 调度器线程。线程池耗尽时导致死锁。
+- **修复方案**: 使用 `CoroutineScope.launch` 替代 `runBlocking`。
 
-### M4. ProcessManager 实例隔离
-- **文件**: `SandboxToolAdapter.kt:123-129`, `ProcessManagerTool.kt:10`
-- **状态**: [x] 已修复
-- **描述**: `ShellCommandTool` 和 `ManageProcessTool` 可能使用不同的 `ProcessManager` 实例，导致 session 不可见。
-- **修复方案**: 确保共享同一个 ProcessManager 实例。
+### B4. Gemini 流式响应产生重复工具调用
+- **文件**: `jasmine-core/prompt/prompt-executor/.../GeminiClient.kt:300-306`
+- **状态**: [ ] 待修复
+- **描述**: 每个 SSE chunk 事件创建新的 `ToolCall`（带随机 UUID）。Claude 实现有 `toolCallAccumulator` 按 index 累积增量 JSON，但 Gemini 未实现类似机制，同一函数调用跨多个 SSE 事件时产生重复。
+- **修复方案**: 参考 Claude 实现添加 accumulator。
 
-### M5. cancel()/setup() 竞态
-- **文件**: `LinuxSandboxManager.kt:76-85`
-- **状态**: [x] 已修复
-- **描述**: `cancel()` 和 `setup()` 之间的状态转换不一致。
-- **修复方案**: 使用同步机制保护状态转换。
+### B5. GOAPPlanner 动作匹配使用引用相等
+- **文件**: `jasmine-core/agent/agent-planner/.../GOAPPlanner.kt:111-113`
+- **状态**: [ ] 待修复
+- **描述**: `if (action === firstAction)` 使用 `===`（引用相等）。如果 `GOAPAction` 对象被重建（如从缓存/序列化恢复），引用不匹配将抛出 `IllegalStateException`。
+- **修复方案**: 改用 `action.name == firstAction.name` 或基于 ID 的比较。
 
-### M6. WebView 事件在 WebView 就绪前被丢弃
-- **文件**: `ChatScreen.kt:131-152`
-- **状态**: [x] 已修复
-- **描述**: `LaunchedEffect` 立即开始收集 JS 事件，但 WebView 创建是异步的。
-- **修复方案**: 使用 `Channel` 缓冲早期事件直到 WebView 就绪。
+### B6. AgentStrategy 双重记录失败事件
+- **文件**: `jasmine-core/agent/agent-graph/.../AgentStrategy.kt:57-63`
+- **状态**: [ ] 待修复
+- **描述**: 异常时先 emit `StrategyCompleted`（带 ERROR 结果），再重新抛出。外层 `AgentSubgraph` 捕获后 emit `SubgraphFailed`。每次失败产生两个冲突的追踪事件。
+- **修复方案**: 移除 catch 块中的 `StrategyCompleted` emit，只重新抛出。
 
-### M7. UiParser.parse() 每 token 调用
-- **文件**: `ChatScreen.kt:358-359`
-- **状态**: [x] 已修复
-- **描述**: 流式传输中每 token 都重新解析 UI，造成重组卡顿。
-- **修复方案**: 仅在 `isStreaming == false` 时解析，或进行防抖。
+### B7. Runtime.checkRepetition 始终返回 false
+- **文件**: `jasmine-core/assistant/assistant-runtime/.../Runtime.kt:125-130`
+- **状态**: [ ] 待修复
+- **描述**: 重复工具调用检测完全为空桩实现（注释"略，后续具体实现"）。工具循环可能无限重复相同调用。
+- **修复方案**: 实现基于 FunctionName + Arguments hash 的重复检测。
 
-### M8. onUiCallback 与 onSendClick 重复逻辑
-- **文件**: `ChatViewModel.kt:99-183 vs 185-287`
-- **状态**: [x] 已修复
-- **描述**: ~85 行发送逻辑完全重复，维护风险高。
-- **修复方案**: 提取公共方法。
+### B8. 搜索功能无实际搜索数据路径
+- **文件**: `feature/search/impl/.../SearchViewModel.kt`
+- **状态**: [ ] 待修复
+- **描述**: `onSearchTriggered()` 只保存查询到 `RecentSearchRepository`，不执行任何实际文本搜索。`SearchResultUiState.Success` 在无数据时返回。
+- **修复方案**: 实现实际的搜索 UseCase / Repository 调用。
 
-### M9. DuckDuckGoSearchService 可变字段
-- **文件**: `websearch/src/main/kotlin/.../DuckDuckGoSearchService.kt:17-29`
-- **状态**: [x] 已修复
-- **描述**: `@Singleton` 中的 `var` 字段 + 次构造函数重新初始化。
-- **修复方案**: 改为 `val` 并消除次构造函数重复初始化。
+### B9. SearchResultUiState.LoadFailed/SearchNotReady 不可达
+- **文件**: `feature/search/impl/.../SearchResultUiState.kt` + `SearchScreen.kt:101-104`
+- **状态**: [ ] 待修复
+- **描述**: ViewModel 只产生 `Loading`/`EmptyQuery`/`Success`。`LoadFailed` 和 `SearchNotReady` 从未被产生且被 Screen 映射到 `Unit` 忽略。
+- **修复方案**: 删除不可达状态或在 ViewModel 中实现相应路径。
 
-### M10. 两个名为 JasmineDatabase 的类
+### B10. RecentSearchQueriesUiState 无错误处理
+- **文件**: `feature/search/impl/.../SearchViewModel.kt`
+- **状态**: [ ] 待修复
+- **描述**: Flow 通过 `.map { Success(it) }` 映射，无 `.catch {}` 操作符。异常将直接传播导致收集方崩溃。
+- **修复方案**: 添加 `.catch { emit(Error(it)) }`。
+
+### B11. SkillManagerViewModel.skillLoaded 线程不安全
+- **文件**: `feature/skills/impl/.../SkillManagerViewModel.kt:30`
+- **状态**: [ ] 待修复
+- **描述**: `skillLoaded` 是纯 `var Boolean`，在协程上下文中无同步保护。多个并发 `loadSkills()` 可能同时通过 `if (!skillLoaded)` 检查。
+- **修复方案**: 使用 `AtomicBoolean` 或 `Mutex`。
+
+### B12. 沙盒 installPackages() 无同步保护
+- **文件**: `linux-sandbox/sandbox/.../LinuxSandboxManager.kt:267`
+- **状态**: [ ] 待修复
+- **描述**: `setup()` 有 `synchronized(this)` 保护，但 `installPackages()` 只有非原子的 `if (currentJob?.isActive) return` 检查。两个线程可同时启动重复协程。
+- **修复方案**: 添加 `synchronized(this)` 保护 installPackages。
+
+### B13. 沙盒 reset() 不取消运行中的 Job
+- **文件**: `linux-sandbox/sandbox/.../LinuxSandboxManager.kt:299-304`
+- **状态**: [ ] 待修复
+- **描述**: `reset()` 启动协程递归删除沙盒目录但不先取消 `currentJob`。若 `setup()`/`installPackages()` 正在运行，将并发读写被删除的文件。
+- **修复方案**: 在删除前调用 `currentJob?.cancel()`。
+
+### B14. ProcessManager.evictIfNeeded 非原子操作
+- **文件**: `linux-sandbox/sandbox/.../ProcessManager.kt:35-49`
+- **状态**: [ ] 待修复
+- **描述**: 在 `ConcurrentHashMap` 上执行 "读取-过滤-排序-删除" 复合操作，整体非原子。两个线程可能同时驱逐过多条目。
+- **修复方案**: 整个方法加 `synchronized` 或使用 `computeIfAbsent` 模式。
+
+### B15. verifyRootfsChecksum 将整个文件读入内存
+- **文件**: `linux-sandbox/sandbox/.../LinuxSandboxManager.kt:182`
+- **状态**: [ ] 待修复
+- **描述**: `tarGzFile.readBytes()` 将整个压缩包读入单字节数组。虽 Alpine minirootfs ~3-5MB，但无防护，若文件异常大则 OOM。
+- **修复方案**: 使用 `DigestInputStream` 流式计算摘要。
+
+### B16. downloadText() 静默返回空字符串
+- **文件**: `linux-sandbox/sandbox/.../RootfsDownloader.kt:198-202`
+- **状态**: [ ] 待修复
+- **描述**: 与 `download()` 不同，`downloadText()` 无 HTTP 状态码检查，404/500/超时静默返回空字符串。`verifyRootfsChecksum()` 将其解释为"格式错误的校验和"并跳过验证。
+- **修复方案**: 添加 `isSuccessful` 检查或状态码检查。
+
+### B17. pkill 转义被截断可破坏转义
+- **文件**: `linux-sandbox/sandbox/.../ProcessManager.kt:131-134`
+- **状态**: [ ] 待修复
+- **描述**: `.take(200)` 在转义 AFTER 应用。若转义后字符串超 200 字符，将在转义序列中间截断，破坏单引号转义导致命令注入。
+- **修复方案**: 先 `.take()` 再 escape，或使用 `--signal` + PID 精确杀进程。
+
+### B18. ProotExecutor.execute() 废弃 Interrupt 标志
+- **文件**: `linux-sandbox/sandbox/.../ProotExecutor.kt:178-184`
+- **状态**: [ ] 待修复
+- **描述**: `InterruptedException` 被 `catch (Exception)` 捕获后未恢复线程中断标志 (`Thread.currentThread().interrupt()`)，上游协程取消可能挂起。
+- **修复方案**: 在 catch 块中调用 `Thread.currentThread().interrupt()`。
+
+### B19. maxResults unenforced on Abstract/Answer/Definition
+- **文件**: `websearch/.../DuckDuckGoSearchService.kt:99-177`
+- **状态**: [ ] 待修复
+- **描述**: Abstract/Answer/Definition 先于 maxResults 限制加入结果列表，实际结果可超出 maxResults 最多3项。
+- **修复方案**: 在添加前检查当前结果数，或统一在末尾应用限制。
+
+### B20. isDirectUrl 过于激进
+- **文件**: `websearch/.../SearchIntentDetector.kt:217-223`
+- **状态**: [ ] 待修复
+- **描述**: `trimmedQuery.contains(".") && !trimmedQuery.contains(" ") && trimmedQuery.length > 4` 几乎任何带点号的文本（如 "hello.world"）都触发"直接URL"分类。
+- **修复方案**: 使用正规 URL/域名正则匹配。
+
+### B21. 硬编码年份检查
+- **文件**: `websearch/.../SearchIntentDetector.kt:207`
+- **状态**: [ ] 待修复
+- **描述**: 检查 `"2024"`/`"2025"`/`"2026"` 判断是否为"事实性查询"。2027年后无法识别新年份查询。
+- **修复方案**: 使用当前年份计算动态范围。
+
+### B22. Response body consumed before isSuccessful check
+- **文件**: `websearch/.../DuckDuckGoSearchService.kt:61-68`
+- **状态**: [ ] 待修复
+- **描述**: `response.use { resp -> resp.body?.string() }` 先消费响应体，再检查 `response.isSuccessful`。虽 OkHttp 缓存状态码通常正常，但顺序错误。
+- **修复方案**: 先检查 `isSuccessful` 再消费 body。
+
+---
+
+## 资源泄露
+
+### R1. OkHttpClient 永不关闭
+- **文件**: `linux-sandbox/sandbox/.../RootfsDownloader.kt:204-206`
+- **状态**: [ ] 待修复
+- **描述**: `close()` 方法明确注释"no-op here"。`LinuxSandboxManager.destroy()` 调用它但连接池、分发器线程、空闲 socket 永不被释放。
+- **修复方案**: 调用 `dispatcher().executorService().shutdown()` 和 `connectionPool().evictAll()`。
+
+### R2. ProotExecutor.ioExecutor 线程池永不关闭
+- **文件**: `linux-sandbox/sandbox/.../ProotExecutor.kt:44-58`
+- **状态**: [ ] 待修复
+- **描述**: `Companion.shutdown()` 存在但未在 `LinuxSandboxManager.destroy()` 中调用。
+- **修复方案**: 在 destroy() 中调用 `ProotExecutor.shutdown()`。
+
+### R3. ProcessManager.backgroundExecutor 永不关闭
+- **文件**: `linux-sandbox/sandbox/.../ProcessManager.kt:28-31`
+- **状态**: [ ] 待修复
+- **描述**: 伴生对象 `newCachedThreadPool` 无 shutdown 方法。
+- **修复方案**: 添加 shutdown() 并在 destroy 中调用。
+
+### R4. ProcessManager.Session.future 引用永不清理
+- **文件**: `linux-sandbox/sandbox/.../ProcessManager.kt:68-75`
+- **状态**: [ ] 待修复
+- **描述**: 后台任务完成后 `finished = true` 但 `future` 保留对 `CompletableFuture` 的引用，阻止 GC 直到 session 被驱逐（最多30分钟）。
+- **修复方案**: 完成后设为 `null`。
+
+### R5. 流式 CoroutineScope 不取消
+- **文件**: `ClaudeClient.kt:235`, `GeminiClient.kt:251` 等
+- **状态**: [ ] 待修复
+- **描述**: `CoroutineScope(continuation.context + CoroutineName("..."))` 创建的 scope 启动后从不取消。HTTP 调用取消时成为孤儿 scope。
+- **修复方案**: HTTP 响应完成后调用 `streamScope.cancel()`。
+
+### R6. PRoot 强制杀死可能遗留子进程
+- **文件**: `linux-sandbox/sandbox/.../ProotExecutor.kt:159,179`
+- **状态**: [ ] 待修复
+- **描述**: `destroyForcibly()` 发送 SIGKILL 给 PRoot，但 ptrace 追踪器可能来不及传播信号到被追踪的子进程。`--kill-on-exit` 仅在正常退出时生效。
+- **修复方案**: 在 kill 前先给子进程组发送信号。
+
+### R7. GraphAgent LLM session 双重关闭
+- **文件**: `jasmine-core/agent/agent-graph/.../GraphAgent.kt:72-78`
+- **状态**: [ ] 待修复
+- **描述**: `runWithCallbacks()` 从同一个 `ChatClient` 创建 `LLMWriteSession` 和 `LLMReadSession`，两者都在 close 中调用 `client.close()`。第二个 close 遇到已关闭的 HTTP client。
+- **修复方案**: 使用引用计数或由 GraphAgent 管理 client 生命周期。
+
+### R8. consumer-rules.pro 为空
+- **文件**: `linux-sandbox/sandbox/consumer-rules.pro`
+- **状态**: [ ] 待修复
+- **描述**: 只有注释无实际规则。`SandboxState`（sealed interface）和 `ToolSchema`（@Serializable）可能被消费方的 R8 剥离。
+- **修复方案**: 在 consumer-rules.pro 中添加必要的 keep 规则。
+
+---
+
+## 安全隐私
+
+### S1. 明文 Keystore 密码 + 弱密码
+- **文件**: `keystore.properties`
+- **状态**: [ ] 待修复
+- **描述**: `storePassword=jasmine2026`, `keyPassword=jasmine2026` — 密码相同且极弱（字典词+年份）。虽文件已 gitignore，但本地文件系统访问即泄露。
+- **修复方案**: 使用环境变量或 Gradle 属性加密，使用强随机密码。
+
+### S2. Gradle 从腾讯镜像获取（供应链风险）
+- **文件**: `gradle/wrapper/gradle-wrapper.properties`
+- **状态**: [ ] 待修复
+- **描述**: Gradle 从 `mirrors.cloud.tencent.com` 下载而非官方 `services.gradle.org`。镜像可提供被篡改版本。
+- **修复方案**: 验证 SHA256 校验和与官方一致或切回官方 URL。
+
+### S3. 硬编码 Google DNS（隐私泄露）
+- **文件**: `linux-sandbox/.../LinuxDistro.kt:28-29` + `LinuxSandboxManager.kt:227`
+- **状态**: [ ] 待修复
+- **描述**: 沙盒内所有 DNS 查询强制使用 Google 8.8.8.8/8.8.4.4，无条件绑定第三方 DNS。
+- **修复方案**: 允用户配置 DNS 或使用设备默认。
+
+### S4. security-crypto 使用 Alpha 版本
+- **文件**: `gradle/libs.versions.toml:51`
+- **状态**: [ ] 待修复
+- **描述**: `securityCrypto = "1.1.0-alpha06"` 用于加密存储，Alpha 版可能含安全漏洞。
+- **修复方案**: 升级到稳定版（若已发布）。
+
+### S5. Debug 构建信任用户 CA 证书
+- **文件**: `app/src/main/res/xml/network_security_config.xml:9-14`
+- **状态**: [ ] 待修复（已有 mitigate）
+- **描述**: Debug 覆盖信任用户安装的 CA 证书。若 debug apk 意外分发，可被中间人攻击。
+- **修复方案**: 确保 debug 构建不通往生产环境。
+
+### S6. allowBackup=true 无足够排除
+- **文件**: `app/src/main/AndroidManifest.xml:22`
+- **状态**: [ ] 待修复
+- **描述**: 虽 backup_rules 已排除部分，但对话数据库包含敏感 LLM 对话内容。
+- **修复方案**: 全面审查 backup_rules 排除项。
+
+### S7. FileProvider 暴露 logs 目录
+- **文件**: `app/src/main/res/xml/file_paths.xml`
+- **状态**: [ ] 待修复
+- **描述**: FileProvider 暴露 `logs/` 路径，有 URI 权限的接收方可读取日志文件。
+- **修复方案**: 移除 logs 路径或限制权限。
+
+---
+
+## 设计架构
+
+### D1. Tools 和 KnowledgeBase 功能模块为空桩
+- **文件**: `feature/tools/impl/` + `feature/knowledgebase/impl/`
+- **状态**: [ ] 待修复
+- **描述**: 两个 ViewModel 为空，Screen 仅渲染空 Box。编译通过但零功能。
+- **修复方案**: 实现功能或从导航中隐藏。
+
+### D2. Settings 模块无 API 子模块
+- **文件**: `core/navigation/.../FeatureNavKeys.kt`（含 SettingsNavKey）
+- **状态**: [ ] 待修复
+- **描述**: `SettingsNavKey` 放在 `core:navigation` 而非 `feature:settings:api`，破坏了所有其他 feature 的 API/Impl 模式。
+- **修复方案**: 创建 `feature:settings:api` 或接受此模式不一致。
+
+### D3. Search API strings.xml 编码损坏
+- **文件**: `feature/search/api/src/main/res/values/strings.xml`
+- **状态**: [ ] 待修复
+- **描述**: 多个中文字符串含 `�` 替换字符（保存为 ANSI 而非 UTF-8）。运行时显示乱码。
+- **修复方案**: 以 UTF-8 重新保存并修复被破坏的字符串。
+
+### D4. 预发布依赖过多
+- **文件**: `gradle/libs.versions.toml`（14+ alpha/rc 版本）
+- **状态**: [ ] 监控
+- **描述**: Compose BOM、Material3 Adaptive、Compose Foundation、Hilt Lifecycle Compose、Metrics、Tracing、RichText、Security Crypto 均为 alpha/rc 版本。API 可能在不通知下变更。
+- **修复方案**: 尽可能升级到稳定版，记录剩余预览依赖的理由。
+
+### D5. assistant-email 使用 JVM 插件但其他 assistant 使用 Android
+- **文件**: `jasmine-core/assistant/assistant-email/build.gradle.kts`
+- **状态**: [ ] 待修复
+- **描述**: `assistant-email` 使用 `kotlin.jvm` 而非 `android.library`，但其他 `assistant-*` 模块依赖它。可能存在 API 不兼容。
+- **修复方案**: 统一为 `android.library` 或明确其为纯 JVM 模块。
+
+### D6. prompt-mnn 只支持 arm64-v8a
+- **文件**: `jasmine-core/prompt/prompt-mnn/build.gradle.kts:13-14`
+- **状态**: [ ] 待修复
+- **描述**: `ndk { abiFilters += "arm64-v8a" }` 无 x86_64 模拟器支持，无 32 位 ARM 设备支持。
+- **修复方案**: 添加 x86_64（如果 MNN 库支持）以支持模拟器调试。
+
+### D7. config-manager 过度依赖 prompt-executor
+- **文件**: `jasmine-core/config/config-manager/build.gradle.kts:26`
+- **状态**: [ ] 待修复
+- **描述**: `ConfigRepository` 实际需要的类型来自 `prompt-llm`，但依赖了 `prompt-executor`（传递引入 OkHttp/Retrofit）。
+- **修复方案**: 降级依赖为 `prompt-llm`。
+
+### D8. 双 JasmineDatabase 同名类
 - **文件**: `core/database/.../JasmineDatabase.kt` 和 `jasmine-core/conversation/.../JasmineDatabase.kt`
-- **状态**: [x] 已修复
-- **描述**: 两个同名 Room Database 类，第二个绕过 Hilt 手动管理。
-- **修复方案**: 重命名区别或统一 Hilt 管理。
+- **状态**: [x] 已在 M10 中标注已修复
+- **描述**: 两个同名的 Room Database 类，容易混淆。
+- **修复方案**: 确认已修复，重命名其一。
 
-### M11. ConfigRepository 无 Hilt Binding
-- **文件**: `jasmine-core/config/config-manager/.../ConfigRepository.kt`
-- **状态**: [x] 已修复
-- **描述**: `ConfigRepository` 和 `ProviderRegistry` 未被 Hilt 管理，`isInitialized` 非线程安全。
-- **修复方案**: 添加 Hilt Module 或确保线程安全的初始化。
+### D9. 空 Notifier 接口
+- **文件**: `core/notifications/.../Notifier.kt`
+- **状态**: [ ] 待修复
+- **描述**: 接口完全为空（零方法），两个实现（`NoOpNotifier`/`SystemTrayNotifier`）均无任何功能代码。demo/prod flavor 分离做无用功。
+- **修复方案**: 实现功能或删除模块。
 
-### M12. DataStore 迁移列表为空
-- **文件**: `core/datastore/src/main/kotlin/.../di/DataStoreModule.kt:33`
-- **状态**: [x] 已修复
-- **描述**: `migrations = listOf()` — 若 protobuf schema 变更会导致崩溃。
-- **修复方案**: 添加迁移检测/告警机制。
+### D10. `@file:Suppress` 技能回退兼容层
+- **文件**: `feature/skills/api/.../Skill.kt`
+- **状态**: [ ] 观察
+- **描述**: 整个文件是类型别名（重新导出 core.model），有 `@file:Suppress("DELEGATED_MEMBER_HIDING_SUPERTYPE")` 抑制警告。纯回退兼容层。
+- **修复方案**: 消费者直接引用 core.model 后删除此文件。
 
-### M13. 模块绕过约定插件
-- **文件**: 多个 agent-*, assistant-*, rag-*, config-manager, conversation-storage 模块
-- **状态**: [x] 已修复
-- **描述**: 使用原始 `android.library` 而非 `jasmine.android.library`，跳过 Spotless/Lint/资源前缀配置。
-- **修复方案**: 统一使用约定插件。
+### D11. SkillManager 使用次构造函数重新初始化
+- **文件**: `core/domain/.../SkillManager.kt`
+- **状态**: [ ] 待修复
+- **描述**: `@Singleton` 中有多个 `var` 字段和次构造重新初始化，与依赖注入模式冲突。
+- **修复方案**: 全部使用 `@Inject` 构造+`val` 字段。
 
-### M14. compileSdk/Java 版本不一致
-- **文件**: 多个非约定模块
-- **状态**: [x] 已修复
-- **描述**: 约定插件目标 Java 11，部分模块目标 Java 17；有的使用 compileSdk=34 而非 36。
-- **修复方案**: 统一配置源。
-
-### M15. AgentEventBus tryEmit 静默丢弃
-- **文件**: `core/data/src/main/kotlin/.../tools/AgentEventBus.kt:26-28`
-- **状态**: [x] 已修复
-- **描述**: 缓冲区满时 `tryEmit` 返回 false 但被忽略，事件静默丢失。
-- **修复方案**: 记录失败日志或使用 `emit()` 挂起。
-
-### M16. StreamResumeHelper 续传消息可能超预算
-- **文件**: `jasmine-core/prompt/prompt-llm/.../StreamResumeHelper.kt:94-97`
-- **状态**: [x] 已修复
-- **描述**: 续传时未对消息重新进行 context budget 裁剪。
-- **修复方案**: 续传前调用 `trimMessages()`。
+### D12. AnsiParser 仅处理 SGR 和 OSC 序列
+- **文件**: `feature/sandbox/impl/.../AnsiParser.kt`
+- **状态**: [ ] 观察
+- **描述**: CSI 序列无终结 'm' 字节被静默消费并无效果。完整 VT100/ANSI 终端模拟需要处理更多序列类型。
+- **修复方案**: 按需扩展 CSI 序列支持，当前够用但非完整实现。
 
 ---
 
-## 低风险 (Low)
+## 代码质量
 
-### L1. 硬编码 Alpine 版本/DNS/主机名
-- **文件**: `LinuxDistro.kt:7,23-24,27,31`
-- **状态**: [x] 已修复
-- **描述**: Alpine 3.23.3, DNS 8.8.8.8, hostname jasmine-sandbox 硬编码。
-- **修复方案**: 移至配置文件或 BuildConfig。
+### Q1. MCP HttpClient 无重试逻辑
+- **文件**: `jasmine-core/agent/agent-mcp/.../HttpMcpClient.kt`
+- **状态**: [ ] 待修复
+- **描述**: 不像 prompt-executor 有 `executeWithRetry`，MCP HTTP 无重试。网络波动直接导致未处理异常。
+- **修复方案**: 添加重试配置。
 
-### L2. 无 HTTP 超时配置
-- **文件**: `LinuxSandboxManager.kt:35`
-- **状态**: [x] 已修复
-- **描述**: Ktor HttpClient 无超时配置，下载可能永久挂起。
-- **修复方案**: 添加 connectTimeout/requestTimeout。
+### Q2. MCP rpcNotify 忽略 HTTP 错误
+- **文件**: `jasmine-core/agent/agent-mcp/.../HttpMcpClient.kt:175-195`
+- **状态**: [ ] 待修复
+- **描述**: 通知响应关闭前不检查状态码。`notifications/initialized` 发送失败完全不被检测。
+- **修复方案**: 检查响应状态码并记录警告。
 
-### L3. 磁盘使用量计算阻塞线程
-- **文件**: `LinuxSandboxManager.kt:267-270`
-- **状态**: [x] 已修复
-- **描述**: `walkTopDown()` 遍历整个沙盒文件系统每次状态变更都调用，阻塞 Dispatcher。
-- **修复方案**: 缓存计算结果，仅在需要时更新。
+### Q3. API EmbeddingService 吞掉所有错误
+- **文件**: `jasmine-core/rag/rag-embedding-api/.../ApiEmbeddingService.kt:58`
+- **状态**: [ ] 待修复
+- **描述**: `catch (e: Exception) { null }` 使嵌入失败和有效空结果无法区分。
+- **修复方案**: 至少记录日志或返回 Result 类型。
 
-### L4. canonicalPath 在循环内重复计算
-- **文件**: `RootfsDownloader.kt:81`
-- **状态**: [x] 已修复
-- **描述**: `targetDir.canonicalPath` 在 TAR 每个条目循环中重复计算。
-- **修复方案**: 提升到循环外部。
+### Q4. ChatScreen "+" 按钮死控件
+- **文件**: `feature/chat/impl/.../ChatScreen.kt:238`
+- **状态**: [ ] 待修复
+- **描述**: `onAddClick` 回调仅有 TODO 注释 `/* TODO: 将来在此打开工具/附件面板 */`。按钮点击无响应。
+- **修复方案**: 实现功能或隐藏按钮。
 
-### L5. API<26 符号链接静默跳过
-- **文件**: `RootfsDownloader.kt:92-102`
-- **状态**: [x] 已修复
-- **描述**: API 24-25 上符号链接创建被静默跳过。
-- **修复方案**: 至少记录警告日志。
+### Q5. LicensesScreen 使用硬编码中文字符串
+- **文件**: `feature/settings/impl/.../LicensesScreen.kt`
+- **状态**: [ ] 待修复
+- **描述**: `"开源许可证"`、`"返回"` 等硬编码，非字符串资源。不支持国际化。
+- **修复方案**: 使用 `R.string.*` 资源。
 
-### L6. 零长度下载无进度回调
-- **文件**: `RootfsDownloader.kt:42-44`
-- **状态**: [x] 已修复
-- **描述**: 服务器不发送 Content-Length 时无进度回调。
+### Q6. LicensesViewModel 使用脆弱的资源查找
+- **文件**: `feature/settings/impl/.../LicensesViewModel.kt`
+- **状态**: [ ] 待修复
+- **描述**: `context.resources.getIdentifier("third_party_licenses", "raw", context.packageName)` 用字符串查找而非 `R.raw.third_party_licenses`。若资源不存在抛出 `IllegalStateException`。
+- **修复方案**: 添加空检查或降级处理。
+
+### Q7. RenderChip 选中态闪烁
+- **文件**: `jasmine-core/prompt/prompt-ui/.../UiRenderer.kt:637-644`
+- **状态**: [ ] 待修复
+- **描述**: `var selected by remember { mutableStateOf(false) }` 是局部状态，父重组时重置为 false。Chip 选中态不持续。
+- **修复方案**: 将 selected 提升为 node 的属性或外部 StateFlow。
+
+### Q8. ChatViewModel._lastExceptionCause 模式过度复杂
+- **文件**: `feature/chat/impl/.../ChatViewModel.kt:210`
+- **状态**: [ ] 待修复
+- **描述**: 使用 `MutableStateFlow<java.util.Optional<Throwable>>` 承载一次性错误，再用 `onEach {}` 重置。过度复杂。
+- **修复方案**: 使用 `SharedFlow` 或 `Channel`。
+
+### Q9. StreamingClient 硬编码 Dispatchers.Main
+- **文件**: `ClaudeClient.kt:292,299`, `GeminiClient.kt:298`, `OpenAICompatibleClient.kt:293,299`, `VertexAIClient.kt:320`
+- **状态**: [ ] 待修复
+- **描述**: 所有流式客户端使用 `Dispatchers.Main` 推送 token 回调，单元测试环境不可用。
+- **修复方案**: 接受可配置 dispatcher 或使用 `Dispatchers.Main.immediate`。
+
+### Q10. build-proot.sh exit 在子 shell 中无效
+- **文件**: `linux-sandbox/build-proot.sh:84,96`
+- **状态**: [ ] 待修复
+- **描述**: `find_ndk()` 含 `exit 1` 但通过命令替换调用。`exit` 仅终止子 shell，且 `set -euo pipefail` 不触发（变量赋值例外）。脚本以 `NDK=""` 继续。
+- **修复方案**: 检查返回值或使用 `trap` 处理。
+
+### Q11. 下载无 Content-Length 时无进度回调
+- **文件**: `linux-sandbox/.../RootfsDownloader.kt:45-46`
+- **状态**: [ ] 待修复
+- **描述**: `totalBytes > 0` 条件不满足时 `onProgress` 从不调用。UI 显示无进度但实际在下载。
 - **修复方案**: 显示不确定进度指示器。
 
-### L7. JSON ignoreUnknownKeys 丢弃拼写错误
-- **文件**: `SandboxToolAdapter.kt:50`
-- **状态**: [x] 已修复
-- **描述**: 静默丢弃未知 JSON key，使 API 调试困难。
-- **修复方案**: 考虑在调试模式下记录未知键。
+### Q12. Alpine 版本硬编码
+- **文件**: `linux-sandbox/.../LinuxDistro.kt:7`
+- **状态**: [ ] 待修复
+- **描述**: `const val VERSION = "3.23.3"` — 点版本发布后旧归档从 CDN 移除，URL 404 且无回退。
+- **修复方案**: 最低限度添加 fallback URL 或版本协商机制。
 
-### L8. 每命令创建新 ProotExecutor
-- **文件**: `ShellCommandTool.kt:28-33`
-- **状态**: [x] 已修复
-- **描述**: 每个命令创建一个 `ProotExecutor` 实例。
-- **修复方案**: 复用实例。
+### Q13. 验证缺失时静默跳过校验和
+- **文件**: `linux-sandbox/.../LinuxSandboxManager.kt:173-179`
+- **状态**: [ ] 待修复
+- **描述**: 校验和文件为空/格式错误/HTTP 失败时静默跳过。未经验证的 rootfs 被使用。
+- **修复方案**: 至少要求校验和必须有或明确展示警告给用户。
 
-### L9. System.nanoTime() 用于工具调用 ID
-- **文件**: `GeminiClient.kt:167`
-- **状态**: [x] 已修复
-- **描述**: `System.nanoTime()` 不保证唯一性。
-- **修复方案**: 使用 `UUID.randomUUID()`。
+### Q14. getLinuxArch 静默回退
+- **文件**: `linux-sandbox/.../LinuxSandboxManager.kt:62-63`
+- **状态**: [ ] 待修复
+- **描述**: 未知 ABI（如 riscv64）静默回退到 "aarch64"，无日志。下载错误架构会以混淆错误失败。
+- **修复方案**: 添加日志且不应静默回退。
 
-### L10. ChatClientManager.estimateTokens 多余分配
-- **文件**: `ChatClientManager.kt:69`
-- **状态**: [x] 已修复
-- **描述**: 仅用于 token 计数却创建完整 `ChatMessage` 列表。
-- **修复方案**: 直接从 `SimpleChatMessage` 估算。
-
-### L11. ChatClientManager.close() 未先取消进行中的请求
-- **文件**: `ChatClientManager.kt:229-232`
-- **状态**: [x] 已修复
-- **描述**: `close()` 直接 shutdown OkHttp dispatcher 而不先取消进行中的调用。
-- **修复方案**: 先调用 `dispatcher.cancelAll()` 再 shutdown。
-
-### L12. 非原子配置读取
-- **文件**: `ChatClientManager.kt:49-61`
-- **状态**: [x] 已修复
-- **描述**: 从 `ChatProviderRepository` 多次读取配置间可能被其他线程修改。
-- **修复方案**: 使用同步获取或一次性获取所有配置。
-
-### L13. 发送按钮 loading 对 UI 回调不正确
-- **文件**: `ChatScreen.kt:213`
-- **状态**: [x] 已修复
-- **描述**: UI 回调触发的响应也显示 "正在生成回复..." 的 loading 状态。
-- **修复方案**: 区分用户发起的请求和 UI 回调触发的请求。
-
-### L14. allowBackup=true 可能泄露数据
-- **文件**: `app/src/main/AndroidManifest.xml:22`
-- **状态**: [x] 已修复
-- **描述**: 对话数据库和沙盒文件未从备份中排除。
-- **修复方案**: 在 backup_rules.xml 中添加相应排除规则。
-
-### L15. FileProvider 暴露日志目录
-- **文件**: `app/src/main/res/xml/file_paths.xml:1-4`
-- **状态**: [x] 已修复
-- **描述**: FileProvider 的 `logs/` 路径可能被有 URI 权限的接收方读取。
-- **修复方案**: 考虑移除 logs 路径或限制权限。
-
-### L16. Debug 构建信任用户 CA
-- **文件**: `app/src/main/res/xml/network_security_config.xml:9-14`
-- **状态**: [x] 已修复
-- **描述**: Debug 覆盖信任用户安装的 CA 证书。
-- **修复方案**: 确保 debug build 不会意外分发。
-
-### L17. Skill secret 验证缺失
-- **文件**: `core/data/src/main/kotlin/.../tools/RunJsTool.kt:60-61`
-- **状态**: [x] 已修复
-- **描述**: secret 被传递到 JS sandbox 而不检查 skill 是否需要它。
-- **修复方案**: 在传递前检查 `requireSecret` 标志。
-
-### L18. 硬编码版本字符串
-- **文件**: `linux-sandbox/sandbox/build.gradle.kts:41-58`
-- **状态**: [x] 已修复
-- **描述**: ktor, gson, documentfile 依赖用硬编码版本而非版本目录。
-- **修复方案**: 移至 `libs.versions.toml`。
+### Q15. Dispatchers.IO 上 StateFlow 更新被 UI 消费
+- **文件**: `linux-sandbox/.../AndroidSandboxController.kt:13-14`
+- **状态**: [ ] 观察
+- **描述**: init 块在 `Dispatchers.IO` 启动并更新 `_status`。StateFlow 线程安全但 UI 收集方需自行切线程。
+- **修复方案**: 文档说明或添加 `.flowOn(Dispatchers.Main)`。
 
 ---
 
-## 修复顺序建议
+## 修复优先级建议
 
-### 第一阶段 - 安全和稳定性 (1-3 天)
-修复可能被外部触发导致崩溃或安全问题的 Critical 和 High 问题：
-
+### 第一阶段 — 编译通过 (立即)
 | 优先级 | 问题 | 理由 |
 |--------|------|------|
-| 1 | C1: 命令注入 | 可被外部触发 |
-| 2 | C8: 沙盒主机文件系统挂载 | 安全边界问题 |
-| 3 | C2: TimeoutException 未处理 | 导致崩溃 |
-| 4 | C3: runBlocking 阻塞线程 | 多流并发时退化 |
-| 5 | C4: Response 未关闭 | 连接泄漏 |
-| 6 | H12: Shell 黑名单绕过 | 安全 |
-| 7 | H9: TAR 符号链接未验证 | 沙盒逃逸 |
-| 8 | H11: DataModule 未 scoped | 资源泄漏 |
+| 1 | CE3: DuckDuckGoSearchService 双 companion object | Kotlin 不允许 |
+| 2 | CE2: Navigation.kt 缺少 remember 导入 | 编译失败 |
+| 3 | CE1: Runtime.kt 调用 createEmpty() 不存在 | 编译失败 |
+| 4 | CE7: KSP 版本无效 | 依赖解析失败 |
+| 5 | CE8: 重复 resources 标签 | XML 解析失败 |
+| 6 | CE4/CE5/CE6: 测试引用不存在的类 | 编译失败 |
 
-### 第二阶段 - 数据完整性和并发 (2-3 天)
-修复影响功能正确性和数据一致性的问题：
+### 第二阶段 — 数据完整性和线程安全 (2-3天)
+| 优先级 | 问题 | 理由 |
+|--------|------|------|
+| 7 | B1: ConversationRepository 非事务 | 数据不一致 |
+| 8 | B2: MessageEntity 丢失瞬态字段 | 功能缺失 |
+| 9 | B4: Gemini 重复工具调用 | 功能错误 |
+| 10 | B11: skillLoaded 线程不安全 | 竞态 |
+| 11 | B12/B13: 沙盒竞态 | 文件损坏 |
+| 12 | B5: GOAPPlanner === 引用相等 | 运行时崩溃 |
 
+### 第三阶段 — 安全 (1-2天)
+| 优先级 | 问题 | 理由 |
+|--------|------|------|
+| 13 | S1: 明文弱密码 | 密钥泄露 |
+| 14 | S2: 腾讯镜像供应链 | 中间人风险 |
+| 15 | S3-S7: 其他安全项 | 综合安全加固 |
+
+### 第四阶段 — 资源泄露和稳定性 (2-3天)
+| 优先级 | 问题 | 理由 |
+|--------|------|------|
+| 16-23 | R1-R8: 资源泄露 | 长期运行退化 |
+| 24-29 | B3/B6-B10/B14-B22: 逻辑缺陷 | 功能正确性 |
+
+### 第五阶段 — 设计和代码质量 (按需)
 | 优先级 | 问题 |
 |--------|------|
-| 9 | C5: 工具调用结果丢失 |
-| 10 | H6: _isChatRunning 竞态 |
-| 11 | H7: contextManager TOCTOU |
-| 12 | H8: awaitAll() 结果丢失 |
-| 13 | H1: 进程泄漏 |
-| 14 | H2: 线程池未关闭 |
-| 15 | H3: 非线程安全 Job |
-| 16 | M4: ProcessManager 实例隔离 |
-
-### 第三阶段 - 构建和架构清理 (1-2 天)
-修复构建配置和架构一致性问题：
-
-| 优先级 | 问题 |
-|--------|------|
-| 17 | C6: 缺失模块 include |
-| 18 | C7: 孤儿插件 |
-| 19 | M13: 模块绕过约定插件 |
-| 20 | M14: SDK/Java 版本不一致 |
-
-### 第四阶段 - 低优先级改进 (按需)
-修复 Medium 和 Low 级别问题，不阻塞功能但提升代码质量。
+| 30+ | D1-D12, Q1-Q15 |
 
 ---
 

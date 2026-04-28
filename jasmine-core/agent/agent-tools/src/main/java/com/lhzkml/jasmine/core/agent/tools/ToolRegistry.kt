@@ -49,5 +49,7 @@ class ToolRegistry {
         fun build(block: ToolRegistry.() -> Unit): ToolRegistry {
             return ToolRegistry().apply(block)
         }
+
+        fun createEmpty(): ToolRegistry = ToolRegistry()
     }
 }

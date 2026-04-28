@@ -24,7 +24,8 @@
       "Bash(./gradlew --stop)",
       "Bash(rm -rf .gradle/configuration-cache build-logic/convention/build)",
       "Bash(./gradlew :core:designsystem:compileDebugKotlin)",
-      "Bash(echo \"EXIT: $?\")"
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(find *)"
     ]
   }
 }
