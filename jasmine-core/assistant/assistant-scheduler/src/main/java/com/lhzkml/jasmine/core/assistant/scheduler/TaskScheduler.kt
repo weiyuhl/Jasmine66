@@ -68,35 +68,38 @@ class TaskScheduler(
 
             try {
                 val imap = ImapClient(acc.imapHost, acc.imapPort)
-                imap.connect()
-                imap.login(acc.username.ifEmpty { acc.email }, store.getPassword(acc.id))
-                imap.selectInbox()
-                
-                val unseenUids = imap.searchUnseen()
-                val newUids = unseenUids.filter { it > syncState.lastSeenUid }
-                
-                if (newUids.isNotEmpty()) {
-                    val messages = imap.fetchHeaders(newUids.takeLast(5), acc.id)
-                    
-                    // 构建智能分拣提示词 (Email Triage)
-                    val triagePrompt = buildString {
-                        appendLine("[EMAIL_TRIAGE] New emails for ${acc.email}. Score relevance 1-5.")
-                        appendLine("Only report emails rated 4-5. For others, respond exactly: EMAIL_TRIAGE_OK")
-                        messages.forEach { appendLine("- From: ${it.from} | Subject: ${it.subject} | Preview: ${it.preview}") }
+                try {
+                    imap.connect()
+                    imap.login(acc.username.ifEmpty { acc.email }, store.getPassword(acc.id))
+                    imap.selectInbox()
+
+                    val unseenUids = imap.searchUnseen()
+                    val newUids = unseenUids.filter { it > syncState.lastSeenUid }
+
+                    if (newUids.isNotEmpty()) {
+                        val messages = imap.fetchHeaders(newUids.takeLast(5), acc.id)
+
+                        // 构建智能分拣提示词 (Email Triage)
+                        val triagePrompt = buildString {
+                            appendLine("[EMAIL_TRIAGE] New emails for ${acc.email}. Score relevance 1-5.")
+                            appendLine("Only report emails rated 4-5. For others, respond exactly: EMAIL_TRIAGE_OK")
+                            messages.forEach { appendLine("- From: ${it.from} | Subject: ${it.subject} | Preview: ${it.preview}") }
+                        }
+
+                        val response = onTaskDue(triagePrompt)
+                        if (response.trim() != "EMAIL_TRIAGE_OK") {
+                            onAssistantNotification(response)
+                        }
+
+                        store.setSyncState(syncState.copy(
+                            lastSeenUid = newUids.maxByOrNull { it } ?: syncState.lastSeenUid,
+                            lastSyncEpochMs = System.currentTimeMillis(),
+                            unreadCount = unseenUids.size
+                        ))
                     }
-                    
-                    val response = onTaskDue(triagePrompt)
-                    if (response.trim() != "EMAIL_TRIAGE_OK") {
-                        onAssistantNotification(response)
-                    }
-                    
-                    store.setSyncState(syncState.copy(
-                        lastSeenUid = newUids.maxByOrNull { it } ?: syncState.lastSeenUid,
-                        lastSyncEpochMs = System.currentTimeMillis(),
-                        unreadCount = unseenUids.size
-                    ))
+                } finally {
+                    try { imap.logout() } catch (_: Exception) { }
                 }
-                imap.logout()
             } catch (_: Exception) { }
         }
     }

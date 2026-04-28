@@ -42,8 +42,19 @@ class ProotExecutor(
 ) {
 
     companion object {
-        private val ioExecutor: ExecutorService = Executors.newCachedThreadPool { r ->
+        @Volatile
+        private var ioExecutor: ExecutorService = createExecutor()
+
+        private fun createExecutor(): ExecutorService = Executors.newCachedThreadPool { r ->
             Thread(r, "proot-io").apply { isDaemon = true }
+        }
+
+        @Synchronized
+        fun getExecutor(): ExecutorService {
+            if (ioExecutor.isShutdown) {
+                ioExecutor = createExecutor()
+            }
+            return ioExecutor
         }
 
         fun shutdown() {
@@ -148,10 +159,10 @@ class ProotExecutor(
 
             val stdoutFuture = CompletableFuture.supplyAsync({
                 process.inputStream.bufferedReader().use { readBounded(it) }
-            }, ioExecutor)
+            }, getExecutor())
             val stderrFuture = CompletableFuture.supplyAsync({
                 process.errorStream.bufferedReader().use { readBounded(it) }
-            }, ioExecutor)
+            }, getExecutor())
 
             val completed = process.waitFor(effectiveTimeout, TimeUnit.SECONDS)
 

@@ -122,7 +122,7 @@ class ExecuteShellCommandTool(
 
 class ManageProcessTool(
     private val sandboxManager: LinuxSandboxManager,
-    private val processManager: ProcessManager = ProcessManager(sandboxManager),
+    private val processManager: ProcessManager,
 ) : Tool() {
 
     private val sandboxTool = com.android.sandbox.tools.ProcessManagerTool(sandboxManager)
