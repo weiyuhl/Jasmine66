@@ -195,6 +195,7 @@ class ExecuteShellCommandTool(
             val finished = process.waitFor(timeoutSeconds.toLong(), TimeUnit.SECONDS)
 
             if (!finished) {
+                outputFuture.cancel(true)
                 val partialOutput = readAvailableOutput(process)
                 val pid = getProcessId(process)
                 buildString {
@@ -205,7 +206,11 @@ class ExecuteShellCommandTool(
                     if (partialOutput.isNotEmpty()) appendLine(partialOutput) else appendLine("(no output yet)")
                 }.trimEnd()
             } else {
-                val output = outputFuture.get(2, TimeUnit.SECONDS)
+                val output = try {
+                    outputFuture.get(30, TimeUnit.SECONDS)
+                } catch (_: java.util.concurrent.TimeoutException) {
+                    readAvailableOutput(process)
+                }
                 buildString {
                     appendLine("Purpose: $purpose")
                     appendLine("Command: $command")
