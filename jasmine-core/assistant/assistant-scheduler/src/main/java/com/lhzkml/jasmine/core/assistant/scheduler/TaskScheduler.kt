@@ -39,20 +39,22 @@ class TaskScheduler(
     private suspend fun processDueTasks() {
         val dueTasks = taskStore.getDueTasks()
         for (task in dueTasks) {
+            // 标记为 RUNNING，防止并发轮询重复执行
+            taskStore.updateTask(task.copy(status = TaskStatus.RUNNING))
             try {
                 // 1. 调用回调执行 AI 任务
                 val result = onTaskDue(task.prompt)
-                
+
                 // 2. 将提醒内容主动推送到通知/UI（闹钟核心逻辑修复）
                 if (result.isNotBlank() && result != "No response") {
                     onAssistantNotification(result)
                 }
-                
+
                 // 3. 处理执行后状态
-                handleTaskCompletion(task, result)
+                handleTaskCompletion(task.copy(status = TaskStatus.RUNNING), result)
             } catch (e: Exception) {
-                // 失败则保留 PENDING，等待下一次轮询重试
-                taskStore.updateTask(task.copy(lastResult = "Execution failed: ${e.message}"))
+                // 失败则恢复 PENDING，等待下一次轮询重试
+                taskStore.updateTask(task.copy(status = TaskStatus.PENDING, lastResult = "Execution failed: ${e.message}"))
             }
         }
     }

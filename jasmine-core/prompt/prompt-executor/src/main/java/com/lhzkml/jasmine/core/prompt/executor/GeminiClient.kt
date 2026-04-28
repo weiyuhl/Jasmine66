@@ -235,10 +235,11 @@ open class GeminiClient(
                 val requestBody = json.encodeToString(request)
                     .toRequestBody("application/json".toMediaType())
                 
-                val url = "${baseUrl}${streamPath.replace("{model}", model)}?key=${apiKey}&alt=sse"
+                val url = "${baseUrl}${streamPath.replace("{model}", model)}?alt=sse"
                 val httpRequest = Request.Builder()
                     .url(url)
                     .addHeader("Content-Type", "application/json")
+                    .addHeader("x-goog-api-key", apiKey)
                     .post(requestBody)
                     .build()
 
@@ -351,9 +352,10 @@ open class GeminiClient(
     override suspend fun listModels(): List<ModelInfo> {
         return executeWithRetry(retryConfig) {
             try {
-                val url = "${baseUrl}/v1beta/models?key=${apiKey}&pageSize=1000"
+                val url = "${baseUrl}/v1beta/models?pageSize=1000"
                 val httpRequest = Request.Builder()
                     .url(url)
+                    .addHeader("x-goog-api-key", apiKey)
                     .get()
                     .build()
 

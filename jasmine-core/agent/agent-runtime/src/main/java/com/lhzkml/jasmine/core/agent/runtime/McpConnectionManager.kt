@@ -196,42 +196,32 @@ class McpConnectionManager(private val configRepo: ConfigRepository) {
      * @param onStatusChanged 状态变化回调，在每个服务器状态改变时调用
      */
     suspend fun reconnect(onStatusChanged: (() -> Unit)? = null) = withContext(Dispatchers.IO) {
+        // 通知 UI 开始连接（mutex 外，避免死锁）
+        withContext(Dispatchers.Main) { onStatusChanged?.invoke() }
+
+        // 在 mutex 内完成状态重置和连接（不含 Main 线程切换）
         mutex.withLock {
-            // 关闭旧连接
             clients.forEach { try { it.close() } catch (_: Exception) {} }
             clients.clear()
             preloadedTools.clear()
             connectionCache.clear()
 
-            // 获取所有启用的服务器
             val servers = configRepo.getMcpServers().filter { it.enabled && it.url.isNotBlank() }
-
-            // 重置标志
             preloaded = false
             connecting = true
+        }
 
-            // 通知 UI 开始连接（此时 connecting = true，UI 应该显示"连接中"）
-            withContext(Dispatchers.Main) {
-                onStatusChanged?.invoke()
+        // 逐个连接服务器（mutex 外，connectSingleServer 内部有自己的同步）
+        val servers = mutex.withLock { configRepo.getMcpServers().filter { it.enabled && it.url.isNotBlank() } }
+        try {
+            for (server in servers) {
+                connectSingleServer(server)
+                withContext(Dispatchers.Main) { onStatusChanged?.invoke() }
             }
-
-            try {
-                // 逐个连接服务器
-                for (server in servers) {
-                    connectSingleServer(server)
-                    // 每个服务器连接完成后通知 UI
-                    withContext(Dispatchers.Main) {
-                        onStatusChanged?.invoke()
-                    }
-                }
-                preloaded = true
-            } finally {
-                connecting = false
-                // 连接全部完成，最后通知一次
-                withContext(Dispatchers.Main) {
-                    onStatusChanged?.invoke()
-                }
-            }
+            mutex.withLock { preloaded = true }
+        } finally {
+            mutex.withLock { connecting = false }
+            withContext(Dispatchers.Main) { onStatusChanged?.invoke() }
         }
     }
 

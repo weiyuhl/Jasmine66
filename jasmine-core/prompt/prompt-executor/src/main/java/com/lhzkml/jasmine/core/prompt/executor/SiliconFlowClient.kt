@@ -65,29 +65,31 @@ class SiliconFlowClient(
                     httpClient.newCall(httpRequest).execute()
                 }
 
-                if (!response.isSuccessful) {
-                    val body = response.body?.string()
-                    throw ChatClientException.fromStatusCode(provider.name, response.code, body)
-                }
+                response.use { resp ->
+                    if (!resp.isSuccessful) {
+                        val body = resp.body?.string()
+                        throw ChatClientException.fromStatusCode(provider.name, resp.code, body)
+                    }
 
-                val body = response.body?.string() ?: throw ChatClientException(provider.name, "响应为空", ErrorType.PARSE_ERROR)
-                val result = json.decodeFromString<SiliconFlowUserInfoResponse>(body)
-                val data = result.data
-                    ?: throw ChatClientException(provider.name, "响应中没有用户数据", ErrorType.PARSE_ERROR)
+                    val body = resp.body?.string() ?: throw ChatClientException(provider.name, "响应为空", ErrorType.PARSE_ERROR)
+                    val result = json.decodeFromString<SiliconFlowUserInfoResponse>(body)
+                    val data = result.data
+                        ?: throw ChatClientException(provider.name, "响应中没有用户数据", ErrorType.PARSE_ERROR)
 
-                val totalBalance = try { data.totalBalance.toDouble() } catch (_: Exception) { 0.0 }
+                    val totalBalance = try { data.totalBalance.toDouble() } catch (_: Exception) { 0.0 }
 
-                BalanceInfo(
-                    isAvailable = totalBalance > 0,
-                    balances = listOf(
-                        BalanceDetail(
-                            currency = "CNY",
-                            totalBalance = data.totalBalance,
-                            grantedBalance = data.balance,
-                            toppedUpBalance = data.chargeBalance
+                    BalanceInfo(
+                        isAvailable = totalBalance > 0,
+                        balances = listOf(
+                            BalanceDetail(
+                                currency = "CNY",
+                                totalBalance = data.totalBalance,
+                                grantedBalance = data.balance,
+                                toppedUpBalance = data.chargeBalance
+                            )
                         )
                     )
-                )
+                }
             } catch (e: ChatClientException) {
                 throw e
             } catch (e: Exception) {

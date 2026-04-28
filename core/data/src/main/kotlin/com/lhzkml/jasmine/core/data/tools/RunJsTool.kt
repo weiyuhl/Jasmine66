@@ -57,6 +57,14 @@ class RunJsTool @Inject constructor(
         val scriptName = json["scriptName"]?.jsonPrimitive?.content?.trim() ?: "index.html"
         val data = json["data"]?.jsonPrimitive?.content?.trim()?.ifEmpty { "{}" } ?: "{}"
 
+        // Path traversal protection: reject names containing directory traversal sequences
+        if (skillName.contains("..") || scriptName.contains("..") ||
+            skillName.contains("/") || scriptName.contains("/") ||
+            skillName.contains("\\") || scriptName.contains("\\") ||
+            skillName.isBlank() || scriptName.isBlank()) {
+            return@withContext "{\"error\": \"Invalid skill or script name\"}"
+        }
+
         // Only pass secret if the skill's metadata declares it requires one
         val skill = skillManager.getSkillByName(skillName)
         val secret = if (skill?.requireSecret == true) skillManager.getSecret(skillName) else ""

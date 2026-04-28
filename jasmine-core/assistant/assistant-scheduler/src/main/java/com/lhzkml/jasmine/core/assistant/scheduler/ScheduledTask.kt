@@ -6,8 +6,9 @@ import kotlinx.serialization.Serializable
  * 任务状态枚举
  */
 @Serializable
-enum class TaskStatus { 
+enum class TaskStatus {
     PENDING,    // 待处理
+    RUNNING,    // 执行中
     COMPLETED   // 已执行
 }
 

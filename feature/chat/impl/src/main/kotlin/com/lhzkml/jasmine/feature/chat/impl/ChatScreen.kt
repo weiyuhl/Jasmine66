@@ -128,8 +128,8 @@ internal fun ChatScreen(
         )
     }
 
-    // Buffer JS events that arrive before the WebView is ready
-    val pendingJsEvents = remember { mutableListOf<com.lhzkml.jasmine.core.data.tools.CallJsEvent>() }
+    // Buffer JS events that arrive before the WebView is ready (thread-safe)
+    val pendingJsEvents = remember { java.util.concurrent.CopyOnWriteArrayList<com.lhzkml.jasmine.core.data.tools.CallJsEvent>() }
 
     // Drain buffered events once the WebView becomes ready
     LaunchedEffect(sandboxWebView) {

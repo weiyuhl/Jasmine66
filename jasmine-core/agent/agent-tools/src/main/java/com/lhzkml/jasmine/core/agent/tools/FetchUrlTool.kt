@@ -54,13 +54,15 @@ class FetchUrlTool : AutoCloseable {
 
         return withContext(Dispatchers.IO) {
             val response = httpClient.newCall(requestBuilder.build()).execute()
-            
-            val status = response.code
-            if (status !in 200..299) {
-                throw RuntimeException("HTTP $status ${response.message}")
-            }
 
-            url to (response.body?.string() ?: "")
+            response.use { resp ->
+                val status = resp.code
+                if (status !in 200..299) {
+                    throw RuntimeException("HTTP $status ${resp.message}")
+                }
+
+                url to (resp.body?.string() ?: "")
+            }
         }
     }
 

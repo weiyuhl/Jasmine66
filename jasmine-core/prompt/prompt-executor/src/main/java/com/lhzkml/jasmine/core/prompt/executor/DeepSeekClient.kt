@@ -63,25 +63,27 @@ class DeepSeekClient(
                     httpClient.newCall(httpRequest).execute()
                 }
 
-                if (!response.isSuccessful) {
-                    val body = response.body?.string()
-                    throw ChatClientException.fromStatusCode(provider.name, response.code, body)
-                }
-
-                val body = response.body?.string() ?: throw ChatClientException(provider.name, "响应为空", ErrorType.PARSE_ERROR)
-                val result = json.decodeFromString<DeepSeekBalanceResponse>(body)
-
-                BalanceInfo(
-                    isAvailable = result.isAvailable,
-                    balances = result.balanceInfos.map {
-                        BalanceDetail(
-                            currency = it.currency,
-                            totalBalance = it.totalBalance,
-                            grantedBalance = it.grantedBalance,
-                            toppedUpBalance = it.toppedUpBalance
-                        )
+                response.use { resp ->
+                    if (!resp.isSuccessful) {
+                        val body = resp.body?.string()
+                        throw ChatClientException.fromStatusCode(provider.name, resp.code, body)
                     }
-                )
+
+                    val body = resp.body?.string() ?: throw ChatClientException(provider.name, "响应为空", ErrorType.PARSE_ERROR)
+                    val result = json.decodeFromString<DeepSeekBalanceResponse>(body)
+
+                    BalanceInfo(
+                        isAvailable = result.isAvailable,
+                        balances = result.balanceInfos.map {
+                            BalanceDetail(
+                                currency = it.currency,
+                                totalBalance = it.totalBalance,
+                                grantedBalance = it.grantedBalance,
+                                toppedUpBalance = it.toppedUpBalance
+                            )
+                        }
+                    )
+                }
             } catch (e: ChatClientException) {
                 throw e
             } catch (e: Exception) {

@@ -152,24 +152,26 @@ class HttpMcpClient(
         return withContext(Dispatchers.IO) {
             val response = httpClient.newCall(httpRequest).execute()
 
-            // 保存 session ID
-            response.header("Mcp-Session-Id")?.let { sessionId = it }
+            response.use { resp ->
+                // 保存 session ID
+                resp.header("Mcp-Session-Id")?.let { sessionId = it }
 
-            if (!response.isSuccessful) {
-                throw McpException("HTTP ${response.code}: ${response.message}")
+                if (!resp.isSuccessful) {
+                    throw McpException("HTTP ${resp.code}: ${resp.message}")
+                }
+
+                val body = resp.body?.string() ?: throw McpException("Empty response")
+                val jsonBody = extractJsonFromResponse(body)
+                val rpcResponse = json.decodeFromString(JsonRpcResponse.serializer(), jsonBody)
+
+                if (rpcResponse.error != null) {
+                    throw McpException(
+                        "MCP error ${rpcResponse.error.code}: ${rpcResponse.error.message}"
+                    )
+                }
+
+                rpcResponse.result?.jsonObject
             }
-
-            val body = response.body?.string() ?: throw McpException("Empty response")
-            val jsonBody = extractJsonFromResponse(body)
-            val rpcResponse = json.decodeFromString(JsonRpcResponse.serializer(), jsonBody)
-
-            if (rpcResponse.error != null) {
-                throw McpException(
-                    "MCP error ${rpcResponse.error.code}: ${rpcResponse.error.message}"
-                )
-            }
-
-            rpcResponse.result?.jsonObject
         }
     }
 
