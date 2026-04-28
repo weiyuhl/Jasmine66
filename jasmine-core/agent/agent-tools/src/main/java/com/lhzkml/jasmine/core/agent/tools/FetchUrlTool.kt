@@ -25,6 +25,13 @@ class FetchUrlTool : AutoCloseable {
 
     private val httpClient = OkHttpClient.Builder()
         .followRedirects(true)
+        .addNetworkInterceptor { chain ->
+            val host = chain.request().url.host
+            if (isPrivateAddress(host) || host in BLOCKED_HOSTS) {
+                throw java.io.IOException("Access to internal address '$host' is blocked")
+            }
+            chain.proceed(chain.request())
+        }
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
