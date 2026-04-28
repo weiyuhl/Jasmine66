@@ -316,7 +316,12 @@ class SseMcpClient(
             throw McpException("Failed to send RPC request: ${e.message}", e)
         }
 
-        return withTimeout(30_000) { deferred.await() }
+        return try {
+            withTimeout(30_000) { deferred.await() }
+        } finally {
+            // 超时或完成后清理 pendingRequests 防止内存泄漏
+            pendingRequests.remove(id)
+        }
     }
 
     private suspend fun rpcNotify(method: String, params: JsonObject? = null) {

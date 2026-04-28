@@ -162,10 +162,13 @@ class ToolLoopExecutor @Inject constructor(
                         }
                     }
                 } catch (e: Exception) {
+                    // 脱敏：不泄露内部堆栈和路径给 LLM
+                    val safeMessage = e.message?.take(200)?.replace(Regex("[A-Za-z]:\\\\[\\S]+"), "[path]")
+                        ?.replace(Regex("/[a-z]+/[\\w/]+"), "[path]") ?: "Unknown error"
                     ToolResult(
                         callId = call.id,
                         name = call.name,
-                        content = "Error: ${e.message}",
+                        content = "Error: $safeMessage",
                     )
                 }
                 onToolCallResult(call.name, result.content)

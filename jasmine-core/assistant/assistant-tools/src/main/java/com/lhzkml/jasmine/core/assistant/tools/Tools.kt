@@ -227,7 +227,7 @@ class IpLocationTool : Tool() {
 class OpenUrlTool(private val context: Context) : Tool() {
     override val descriptor = ToolDescriptor(
         name = "open_url",
-        description = "Open a URL or link on the user's device. Use this to open web pages, deep links, local files (file:// URIs), or any URL the user wants to visit.",
+        description = "Open a URL or link on the user's device. Use this to open web pages or deep links (http/https only).",
         requiredParameters = listOf(
             ToolParameterDescriptor("url", "The URL to open", ToolParameterType.StringType)
         )

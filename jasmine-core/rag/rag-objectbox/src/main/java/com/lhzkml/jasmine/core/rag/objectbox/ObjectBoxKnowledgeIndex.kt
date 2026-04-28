@@ -47,9 +47,10 @@ class ObjectBoxKnowledgeIndex(private val store: BoxStore) : KnowledgeIndex {
     override suspend fun search(queryVector: FloatArray, topK: Int, libraryIds: Set<String>?): List<ScoredChunk> =
         withContext(Dispatchers.IO) {
             val baseCondition = KnowledgeChunkEntity_.embedding.nearestNeighbors(queryVector, topK)
+            val ids = libraryIds
             val condition = when {
-                libraryIds.isNullOrEmpty() -> baseCondition
-                else -> baseCondition.and(KnowledgeChunkEntity_.libraryId.oneOf(libraryIds!!.toTypedArray()))
+                ids.isNullOrEmpty() -> baseCondition
+                else -> baseCondition.and(KnowledgeChunkEntity_.libraryId.oneOf(ids.toTypedArray()))
             }
             val query = box.query(condition).build()
             query.findWithScores().map { scored ->

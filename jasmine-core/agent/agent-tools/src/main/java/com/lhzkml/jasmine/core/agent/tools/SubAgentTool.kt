@@ -114,7 +114,7 @@ class SubAgentTool(
         val client = clientProvider()
         val model = modelProvider()
 
-        val systemPrompt = String.format(SUBAGENT_SYSTEM_PROMPT_TEMPLATE, task)
+        val systemPrompt = SUBAGENT_SYSTEM_PROMPT_TEMPLATE.replace("%s", task)
         val prompt = Prompt.build("subagent-$subagentType") {
             system(systemPrompt)
             user(task)

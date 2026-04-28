@@ -336,13 +336,14 @@ class FilePersistenceStorageProvider(
 
     /** 找到匹配的 ] 位置，跳过字符串内的 ] */
     private fun findMatchingBracket(json: String, openPos: Int): Int {
+        if (openPos < 0 || openPos >= json.length) return -1
         var depth = 0
         var inString = false
         var i = openPos
         while (i < json.length) {
             val c = json[i]
             if (inString) {
-                if (c == '"' && json[i - 1] != '\\') inString = false
+                if (c == '"' && (i == 0 || json[i - 1] != '\\')) inString = false
             } else {
                 when (c) {
                     '"' -> inString = true

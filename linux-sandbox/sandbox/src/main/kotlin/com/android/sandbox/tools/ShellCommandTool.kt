@@ -43,7 +43,12 @@ class ShellCommandTool(
 
         val timeoutSeconds = ((args["timeout"] as? Number)?.toLong() ?: 30L).coerceIn(1, 60L)
         val workingDir = args["working_dir"] as? String ?: "/root"
-        val envMap = (args["env"] as? Map<String, Any>)?.mapValues { it.value.toString() } ?: emptyMap()
+        // 过滤危险环境变量，防止沙箱逃逸
+        val blockedEnvVars = setOf("LD_PRELOAD", "LD_LIBRARY_PATH", "LD_AUDIT", "LD_DEBUG")
+        val envMap = (args["env"] as? Map<String, Any>)
+            ?.mapValues { it.value.toString() }
+            ?.filterKeys { it.uppercase() !in blockedEnvVars }
+            ?: emptyMap()
         val background = args["background"] as? Boolean ?: false
 
         if (background) {

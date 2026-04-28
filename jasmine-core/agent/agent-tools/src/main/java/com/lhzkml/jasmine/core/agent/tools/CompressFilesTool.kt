@@ -118,6 +118,8 @@ class CompressFilesTool(
         var bytes = 0L
         val files = dir.listFiles() ?: return 0 to 0L
         for (file in files) {
+            // 跳过符号链接防止目录遍历
+            if (file.canonicalFile != file.absoluteFile) continue
             val entryName = "$prefix/${file.name}"
             if (file.isDirectory) {
                 val result = addDirectoryToZip(zos, file, entryName)

@@ -46,10 +46,12 @@ class ProviderRegistry(private val configRepo: ConfigRepository) {
         true
     }
 
-    fun registerProviderPersistent(provider: ProviderConfig): Boolean {
-        if (!registerProvider(provider)) return false
-        saveCustomProviders()
-        return true
+    fun registerProviderPersistent(provider: ProviderConfig): Boolean = synchronized(lock) {
+        if (_providers.any { it.id == provider.id }) return false
+        _providers.add(provider)
+        val custom = _providers.filter { it.isCustom }
+        configRepo.saveCustomProviders(custom)
+        true
     }
 
     fun unregisterProvider(id: String): Boolean = synchronized(lock) {

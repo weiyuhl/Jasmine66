@@ -12,9 +12,9 @@
 |---------|------|--------|--------|--------|
 | CRITICAL | 12 | 7 | 2 | 3 |
 | HIGH | 27 | 19 | 1 | 7 |
-| MEDIUM | 31 | 6 | 0 | 25 |
+| MEDIUM | 31 | 15 | 0 | 16 |
 | LOW | 25 | 0 | 0 | 25 |
-| **合计** | **95** | **32** | **3** | **60** |
+| **合计** | **95** | **41** | **3** | **51** |
 
 ---
 
@@ -277,36 +277,36 @@
 | # | 文件 | 问题 | 状态 |
 |---|------|------|------|
 | M-01 | 4个流式客户端 | `catch (_: Exception) {}` 静默吞掉所有异常 | ✅ 已修复 — 添加 Log.w 日志 |
-| M-02 | `prompt-mnn/.../MnnConfig.kt` | toJson() 手动 JSON 转义不完整（缺 `\b` `\f` 等） | ❌ |
+| M-02 | `prompt-mnn/.../MnnConfig.kt` | toJson() 手动 JSON 转义不完整（缺 `\b` `\f` 等） | ✅ 已修复 |
 | M-03 | `prompt-model/.../PromptBuilder.kt` | mutableListOf 无同步 | ❌ |
 | M-04 | `prompt-llm/.../SystemContextProvider.kt` | providers 列表无同步 | ❌ |
-| M-05 | `agent-tools/.../CompressFilesTool.kt` | 跟随符号链接可泄露文件 | ❌ |
+| M-05 | `agent-tools/.../CompressFilesTool.kt` | 跟随符号链接可泄露文件 | ✅ 已修复 — 跳过符号链接 |
 | M-06 | 多个文件工具 | TOCTOU 路径竞态（验证与操作之间可创建符号链接） | ❌ |
 | M-07 | `agent-tools/.../ExecuteShellCommandTool.kt` | readAvailableOutput 依赖不可靠的 stream.available() | ❌ |
-| M-08 | `agent-mcp/.../SseMcpClient.kt` | pendingRequests 内存泄漏（SSE 断连后 deferred 永不完成） | ❌ |
+| M-08 | `agent-mcp/.../SseMcpClient.kt` | pendingRequests 内存泄漏（SSE 断连后 deferred 永不完成） | ✅ 已修复 — finally 块清理 |
 | M-09 | `agent-tools/.../FetchUrlTool.kt` | htmlToMarkdown 中嵌套表格正则 ReDoS 风险 | ❌ |
 | M-10 | `agent-observe/.../FileTraceWriter.kt` | 构造即打开文件句柄，不用时泄漏 | ❌ |
-| M-11 | `agent-observe/.../PersistenceStorageProvider.kt` | findMatchingBracket 越界风险（arrayStart 为 0 时） | ❌ |
+| M-11 | `agent-observe/.../PersistenceStorageProvider.kt` | findMatchingBracket 越界风险（arrayStart 为 0 时） | ✅ 已修复 — 边界检查 |
 | M-12 | `agent-planner/.../GOAPPlanner.kt` | A* 搜索无状态数量上限，可耗尽内存 | ❌ |
-| M-13 | `agent-tools/.../SubAgentTool.kt` | String.format 注入（task 含 `%s` `%n` 等格式符） | ❌ |
+| M-13 | `agent-tools/.../SubAgentTool.kt` | String.format 注入（task 含 `%s` `%n` 等格式符） | ✅ 已修复 — 改用 replace |
 | M-14 | `core/data/.../sandbox/SkillJsSandbox.kt` | WebView 取消时未清理 JavascriptInterface | ✅ 已修复 — invokeOnCancellation 中 removeJavascriptInterface |
 | M-15 | `core/data/.../log/FileLogger.kt` | sanitizeApiKey 正则覆盖不全（缺 Basic/sk- 前缀等） | ❌ |
 | M-16 | `core/data/.../tools/DeviceControlTool.kt` | startActivity 缺 ActivityNotFoundException 处理 | ✅ 已修复 — 3处 startActivity 添加 try-catch |
 | M-17 | `core/data/.../tools/RunIntentTool.kt` | startActivity 缺 ActivityNotFoundException 处理 | ❌ |
 | M-18 | `core/data/.../repository/ChatClientManager.kt` | getActiveModel() 无锁读取 | ❌ |
 | M-19 | `config/.../InMemoryConfigRepository.kt` | 全类无任何同步保护（@Singleton 多线程访问） | ❌ |
-| M-20 | `config/.../ProviderRegistry.kt` | registerProviderPersistent TOCTOU（两次加锁之间可被修改） | ❌ |
-| M-21 | `core/data/.../repository/ToolLoopExecutor.kt` | 错误消息泄露内部细节（堆栈、文件路径）给 LLM | ❌ |
+| M-20 | `config/.../ProviderRegistry.kt` | registerProviderPersistent TOCTOU（两次加锁之间可被修改） | ✅ 已修复 — 原子化 synchronized |
+| M-21 | `core/data/.../repository/ToolLoopExecutor.kt` | 错误消息泄露内部细节（堆栈、文件路径）给 LLM | ✅ 已修复 — 路径脱敏 |
 | M-22 | `core/domain/.../repository/SkillManager.kt` | convertSkillMdToProto 解析脆弱（`---` 分割不安全） | ❌ |
 | M-23 | `core/network/.../di/NetworkModule.kt` | debug 模式记录完整 HTTP body（含 API Key） | ❌ |
-| M-24 | `core/designsystem/.../DynamicAsyncImage.kt` | 未校验 URL scheme（file:// 可加载本地资源） | ❌ |
+| M-24 | `core/designsystem/.../DynamicAsyncImage.kt` | 未校验 URL scheme（file:// 可加载本地资源） | ✅ 已修复 — 只允许 http/https |
 | M-25 | `assistant-scheduler/.../CronExpression.kt` | `*/0` 死循环（step=0 时 while 永不退出） | ✅ 已修复 — 验证 step > 0 |
 | M-26 | `assistant-tools/.../SchedulingTools.kt` | JSON 注入（task.description 含 `"` `\` 时 JSON 畸形） | ✅ 已修复 — 转义 JSON 特殊字符 |
-| M-27 | `assistant-tools/.../Tools.kt` | OpenUrlTool 文档说支持 file:// 但实现阻止 | ❌ |
+| M-27 | `assistant-tools/.../Tools.kt` | OpenUrlTool 文档说支持 file:// 但实现阻止 | ✅ 已修复 — 文档与实现一致 |
 | M-28 | `assistant-tools/.../HeartbeatTools.kt` | promoteLearning 的 soul_addition 参数静默丢失 | ❌ |
 | M-29 | `assistant-runtime/.../Runtime.kt` | checkRepetition() 始终返回 false（桩实现，循环检测失效） | ❌ |
-| M-30 | `linux-sandbox/.../ShellCommandTool.kt` | env Map 允许设置 LD_PRELOAD 等危险环境变量 | ❌ |
-| M-31 | `rag/rag-objectbox/.../ObjectBoxKnowledgeIndex.kt` | 不必要的 `!!` 断言（smart-cast 应足够） | ❌ |
+| M-30 | `linux-sandbox/.../ShellCommandTool.kt` | env Map 允许设置 LD_PRELOAD 等危险环境变量 | ✅ 已修复 — 黑名单过滤 |
+| M-31 | `rag/rag-objectbox/.../ObjectBoxKnowledgeIndex.kt` | 不必要的 `!!` 断言（smart-cast 应足够） | ✅ 已修复 — 局部变量 smart-cast |
 
 ---
 

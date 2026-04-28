@@ -40,8 +40,10 @@ fun DynamicAsyncImage(
     val iconTint = LocalTintTheme.current.iconTint
     var isLoading by remember { mutableStateOf(true) }
     var isError by remember { mutableStateOf(false) }
+    // 校验 URL scheme，只允许 http/https
+    val safeUrl = if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) imageUrl else ""
     val imageLoader = rememberAsyncImagePainter(
-        model = imageUrl,
+        model = safeUrl,
         onState = { state ->
             isLoading = state is Loading
             isError = state is Error
