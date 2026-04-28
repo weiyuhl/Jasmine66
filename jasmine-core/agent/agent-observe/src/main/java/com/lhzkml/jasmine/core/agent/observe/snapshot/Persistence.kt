@@ -56,17 +56,6 @@ class Persistence(
             versionInitialized = true
         }
     }
-    private var versionInitialized = false
-
-    private suspend fun ensureVersionInitialized(agentId: String) {
-        if (!versionInitialized) {
-            val latest = provider.getLatestCheckpoint(agentId)
-            if (latest != null && latest.version > currentVersion) {
-                currentVersion = latest.version
-            }
-            versionInitialized = true
-        }
-    }
 
     /**
      * 回滚策略

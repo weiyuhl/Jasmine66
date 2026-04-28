@@ -131,7 +131,8 @@ class SseMcpClient(
         sseScope.cancel()
         pendingRequests.values.forEach { it.cancel() }
         pendingRequests.clear()
-        httpClient.close()
+        httpClient.dispatcher.executorService.shutdown()
+        httpClient.connectionPool.evictAll()
     }
 
     // ========== SSE 监听 ==========

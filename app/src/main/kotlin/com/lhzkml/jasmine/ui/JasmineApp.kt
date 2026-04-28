@@ -227,26 +227,26 @@ internal fun JasmineAppContent(
                     topBar = {
                         if (shouldShowTopAppBar) {
                             val destination = TOP_LEVEL_NAV_ITEMS[appState.navigationState.currentTopLevelKey]
-                                ?: return@JasmineNavigationSuiteScaffold
-
-                            TopAppBar(
-                                titleRes = destination.titleTextId,
-                                navigationIcon = JasmineIcons.Menu,
-                                navigationIconContentDescription = stringResource(
-                                    id = settingsR.string.feature_settings_impl_top_app_bar_navigation_icon_description,
-                                ),
-                                actionIcon = null,
-                                actionIconContentDescription = null,
-                                colors = TopAppBarDefaults.topAppBarColors(
-                                    containerColor = Color.Transparent,
-                                ),
-                                onActionClick = { },
-                                onNavigationClick = {
-                                    coroutineScope.launch {
-                                        if (drawerState.isOpen) drawerState.close() else drawerState.open()
-                                    }
-                                },
-                            )
+                            if (destination != null) {
+                                TopAppBar(
+                                    titleRes = destination.titleTextId,
+                                    navigationIcon = JasmineIcons.Menu,
+                                    navigationIconContentDescription = stringResource(
+                                        id = settingsR.string.feature_settings_impl_top_app_bar_navigation_icon_description,
+                                    ),
+                                    actionIcon = null,
+                                    actionIconContentDescription = null,
+                                    colors = TopAppBarDefaults.topAppBarColors(
+                                        containerColor = Color.Transparent,
+                                    ),
+                                    onActionClick = { },
+                                    onNavigationClick = {
+                                        coroutineScope.launch {
+                                            if (drawerState.isOpen) drawerState.close() else drawerState.open()
+                                        }
+                                    },
+                                )
+                            }
                         }
                     },
                     snackbarHost = {

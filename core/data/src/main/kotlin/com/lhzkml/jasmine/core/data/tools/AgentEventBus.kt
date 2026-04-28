@@ -28,8 +28,8 @@ class AgentEventBus @Inject constructor() {
         if (!accepted) {
             android.util.Log.w("AgentEventBus", "Dropping JS event - buffer full (64). url=${event.url}")
             if (event.continuation.isActive) {
-                event.continuation.resumeWithException(
-                    IllegalStateException("JS event buffer full, cannot process skill: ${event.url}")
+                event.continuation.resumeWith(
+                    Result.failure(IllegalStateException("JS event buffer full, cannot process skill: ${event.url}"))
                 )
             }
         }

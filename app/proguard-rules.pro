@@ -26,6 +26,12 @@
 
 # Strip android.util.Log calls in release builds to prevent parameter leakage.
 # FileLogger should be used for all in-app logging instead.
+# Keep kotlinx-datetime classes used by Room converters and data models
+-keep class kotlinx.datetime.** { *; }
+-dontwarn kotlinx.datetime.Clock$System
+-dontwarn kotlinx.datetime.Instant$Companion
+-dontwarn kotlinx.datetime.Instant
+
 -assumenosideeffects class android.util.Log {
     public static int v(...);
     public static int d(...);

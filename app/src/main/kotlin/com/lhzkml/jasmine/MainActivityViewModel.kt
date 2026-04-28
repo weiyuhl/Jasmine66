@@ -25,9 +25,7 @@ class MainActivityViewModel @Inject constructor(
     }.catch { e ->
         android.util.Log.e("MainActivityVM", "UserData flow failed", e)
         emit(Success(UserData(
-            themeBrand = ThemeBrand.DEFAULT,
             darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
-            useDynamicColor = false,
             shouldHideOnboarding = true,
         )))
     }.stateIn(

@@ -1,11 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.jasmine.android.room)
     alias(libs.plugins.jasmine.hilt)
-}
-
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 android {
@@ -29,9 +25,6 @@ android {
 
 dependencies {
     api(project(":jasmine-core:prompt:prompt-model"))
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
     implementation(libs.kotlinx.coroutines.core)
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)

@@ -29,7 +29,12 @@
       "Bash(awk -F/ '{dir=\"\"; for\\(i=1;i<NF;i++\\){dir=dir\"/\"$i}; print dir}')",
       "Bash(awk -F'/' '{print $1}')",
       "Bash(awk -F'/' '{print $1\"/\"$2\"/\"$3}')",
-      "Bash(awk -F'/' '{print $1\"/\"$2}')"
+      "Bash(awk -F'/' '{print $1\"/\"$2}')",
+      "Bash(java *)",
+      "Bash(./gradlew assembleRelease)",
+      "Bash(./gradlew clean *)",
+      "Bash(./gradlew assembleRelease --no-configuration-cache)",
+      "Bash(./gradlew assembleRelease --no-configuration-cache --stacktrace)"
     ]
   }
 }

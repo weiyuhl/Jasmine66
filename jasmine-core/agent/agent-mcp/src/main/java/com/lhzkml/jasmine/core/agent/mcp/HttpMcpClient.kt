@@ -99,7 +99,8 @@ class HttpMcpClient(
     }
 
     override fun close() {
-        httpClient.close()
+        httpClient.dispatcher.executorService.shutdown()
+        httpClient.connectionPool.evictAll()
     }
 
     // ========== JSON-RPC 通信 ==========

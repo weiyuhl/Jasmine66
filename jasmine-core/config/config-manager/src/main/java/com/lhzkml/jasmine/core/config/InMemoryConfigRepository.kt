@@ -4,6 +4,7 @@ import com.lhzkml.jasmine.core.agent.observe.event.EventCategory
 import com.lhzkml.jasmine.core.agent.observe.snapshot.RollbackStrategy
 import com.lhzkml.jasmine.core.agent.observe.trace.TraceEventCategory
 import com.lhzkml.jasmine.core.agent.tools.ShellPolicy
+import com.lhzkml.jasmine.core.agent.tools.ShellPolicyConfig
 import com.lhzkml.jasmine.core.prompt.llm.CompressionStrategyType
 
 /**
@@ -99,8 +100,8 @@ class InMemoryConfigRepository : ConfigRepository {
 
     // Shell
     private var shellPolicy = ShellPolicy.MANUAL
-    private var shellBlacklist = ShellPolicy.DEFAULT_BLACKLIST
-    private var shellWhitelist = ShellPolicy.DEFAULT_WHITELIST
+    private var shellBlacklist = ShellPolicyConfig.DEFAULT_BLACKLIST
+    private var shellWhitelist = ShellPolicyConfig.DEFAULT_WHITELIST
     override fun getShellPolicy() = shellPolicy
     override fun setShellPolicy(policy: ShellPolicy) { shellPolicy = policy }
     override fun getShellBlacklist() = shellBlacklist
@@ -196,7 +197,7 @@ class InMemoryConfigRepository : ConfigRepository {
 
     // Compression
     private var compressionEnabled = true
-    private var compressionStrategy = CompressionStrategyType.AUTO
+    private var compressionStrategy = CompressionStrategyType.TOKEN_BUDGET
     private var compressionMaxTokens = 8000
     private var compressionThreshold = 6000
     private var compressionLastN = 20

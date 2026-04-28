@@ -127,6 +127,7 @@ object SearchIntentDetector {
         "最新", "最新消息", "最近", "当前", "今天", "本周", "发生了什么",
         "关于的消息", "最新更新", "有什么新鲜事", "什么是最新的",
     )
+    }
 
     fun needsWebSearch(query: String): Boolean {
         val lowerQuery = query.lowercase().trim()

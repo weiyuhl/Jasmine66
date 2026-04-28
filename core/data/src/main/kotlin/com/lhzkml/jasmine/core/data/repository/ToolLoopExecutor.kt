@@ -163,8 +163,8 @@ class ToolLoopExecutor @Inject constructor(
                     }
                 } catch (e: Exception) {
                     ToolResult(
-                        toolCallId = call.id,
-                        toolName = call.name,
+                        callId = call.id,
+                        name = call.name,
                         content = "Error: ${e.message}",
                     )
                 }
@@ -175,8 +175,8 @@ class ToolLoopExecutor @Inject constructor(
             val call = toolCalls[index]
             runCatching { deferred.await() }.getOrDefault(
                 ToolResult(
-                    toolCallId = call.id,
-                    toolName = call.name,
+                    callId = call.id,
+                    name = call.name,
                     content = "Tool execution failed",
                 )
             )

@@ -14,7 +14,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DuckDuckGoSearchService @Inject constructor(
+class DuckDuckGoSearchService(
     private val client: OkHttpClient = defaultClient(),
     private val baseUrl: String = DEFAULT_BASE_URL,
 ) : WebSearchService {

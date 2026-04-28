@@ -271,6 +271,24 @@ class FilePersistenceStorageProvider(
         .replace("\t", "\\t")
 
     /** JSON 字符串反转义 */
+    /** 找到 JSON 字符串中未转义的结束引号位置，正确处理反斜杠转义 */
+    private fun findClosingQuote(json: String, startPos: Int): Int {
+        var i = startPos
+        while (i < json.length) {
+            if (json[i] == '"') {
+                var backslashCount = 0
+                var j = i - 1
+                while (j >= 0 && json[j] == '\\') {
+                    backslashCount++
+                    j--
+                }
+                if (backslashCount % 2 == 0) return i
+            }
+            i++
+        }
+        return -1
+    }
+
     private fun jsonUnescape(s: String): String {
         val sb = StringBuilder()
         var i = 0
