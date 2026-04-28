@@ -254,7 +254,7 @@ class SkillManager @Inject constructor(
      */
     fun saveSecret(skillName: String, secret: String) {
         prefs.edit().putString(KEY_SECRET_PREFIX + skillName.lowercase(), secret).apply()
-        Log.d(TAG, "已保存密钥: $skillName")
+        Log.d(TAG, "已保存密钥")
     }
 
     /**

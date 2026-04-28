@@ -41,14 +41,19 @@ class ChatClientManager @Inject constructor(
 
     private var chatClient: ChatClient? = null
     private val stateMutex = Mutex()
+    /** client 代次计数器，每次 refreshState 替换 client 时递增 */
+    private val clientGeneration = java.util.concurrent.atomic.AtomicLong(0)
 
     private var contextManager: ContextManager = ContextManager()
 
     // ==================== State management ====================
 
     fun getActiveModel(): String {
-        val id = providerRepo.getActiveProviderId() ?: return ""
-        return providerRepo.getModel(id)
+        // 读取时持有锁，确保与 refreshState() 的一致性
+        return stateMutex.withLock {
+            val id = providerRepo.getActiveProviderId() ?: return@withLock ""
+            providerRepo.getModel(id)
+        }
     }
 
     fun getSystemPromptPresets(): List<Pair<String, String>> {
@@ -112,6 +117,7 @@ class ChatClientManager @Inject constructor(
             _setupState.value = "Config failed: factory threw exception (${e.message})"
             null
         }
+        clientGeneration.incrementAndGet()
 
         val isOk = chatClient != null
         _isConfigured.value = isOk
@@ -137,18 +143,19 @@ class ChatClientManager @Inject constructor(
         uiEnabled: Boolean = true,
         webSearchEnabled: Boolean = true,
     ): StreamChatResult {
-        // 注意：client 引用在锁外使用，并发 refreshState() 可能关闭旧 client。
-        // 已知限制：用户在流式传输期间切换 provider 会导致当前请求失败。
-        val (client, ctxManager) = stateMutex.withLock {
+        // 捕获 client 引用和代次，检测并发 refreshState() 替换
+        val (client, ctxManager, generation) = stateMutex.withLock {
             val c = chatClient ?: throw IllegalStateException("Send failed: ${_setupState.value}")
-            c to contextManager
+            Triple(c, contextManager, clientGeneration.get())
         }
-        // 验证 client 未被关闭
-        if (client is java.io.Closeable) {
-            try { client.toString() } catch (_: Exception) {
-                throw IllegalStateException("Client was closed during streaming setup")
+
+        // 验证 client 代次未变（检测并发 refreshState 替换）
+        fun assertClientValid() {
+            if (clientGeneration.get() != generation) {
+                throw IllegalStateException("Client was replaced during streaming (generation mismatch)")
             }
         }
+        assertClientValid()
 
         val allTools = toolManager.descriptors()
         val tools = if (webSearchEnabled) allTools else allTools.filter { it.name != "web_search" }

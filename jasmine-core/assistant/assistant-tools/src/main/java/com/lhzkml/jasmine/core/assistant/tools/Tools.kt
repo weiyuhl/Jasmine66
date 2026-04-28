@@ -147,12 +147,22 @@ class CalendarTool(private val context: Context) : Tool() {
             val startDateTime = LocalDateTime.parse(startTimeRaw, formatter)
             val startMillis = startDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
+            // 动态获取第一个可用日历 ID
+            val calendarId = context.contentResolver.query(
+                CalendarContract.Calendars.CONTENT_URI,
+                arrayOf(CalendarContract.Calendars._ID),
+                "${CalendarContract.Calendars.VISIBLE} = 1",
+                null, null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) cursor.getLong(0) else 1L
+            } ?: 1L
+
             val values = ContentValues().apply {
                 put(CalendarContract.Events.DTSTART, startMillis)
                 put(CalendarContract.Events.DTEND, startMillis + 3600000) // Default 1 hour
                 put(CalendarContract.Events.TITLE, title)
                 put(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
-                put(CalendarContract.Events.CALENDAR_ID, 1) // Default to first calendar
+                put(CalendarContract.Events.CALENDAR_ID, calendarId)
             }
 
             context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)
@@ -213,8 +223,10 @@ class IpLocationTool : Tool() {
             val response = withContext(Dispatchers.IO) {
                 httpClient.newCall(request).execute()
             }
-            if (!response.isSuccessful) return "Error: HTTP ${response.code}"
-            response.body?.string() ?: "Error: Empty response"
+            response.use { resp ->
+                if (!resp.isSuccessful) return "Error: HTTP ${resp.code}"
+                resp.body?.string() ?: "Error: Empty response"
+            }
         } catch (e: Exception) {
             "Error: ${e.message}"
         }

@@ -401,6 +401,7 @@ abstract class OpenAICompatibleClient(
 
     override fun close() {
         httpClient.dispatcher.cancelAll()
+        httpClient.dispatcher.executorService.shutdown()
         httpClient.connectionPool.evictAll()
     }
 

@@ -380,18 +380,20 @@ open class ClaudeClient(
 
                 withContext(Dispatchers.IO) {
                     val response = httpClient.newCall(httpRequest).execute()
-                    
-                    if (!response.isSuccessful) {
-                        val body = response.body?.string()
-                        throw ChatClientException.fromStatusCode(provider.name, response.code, body)
+
+                    response.use { resp ->
+                        if (!resp.isSuccessful) {
+                            val body = resp.body?.string()
+                            throw ChatClientException.fromStatusCode(provider.name, resp.code, body)
+                        }
+
+                        val body = resp.body?.string() ?: return@withContext emptyList()
+                        val claudeResponse = json.decodeFromString<com.lhzkml.jasmine.core.prompt.model.ClaudeModelListResponse>(body)
+                        claudeResponse.data.map { ModelInfo(
+                            id = it.id,
+                            displayName = it.displayName.ifEmpty { null }
+                        ) }
                     }
-                    
-                    val body = response.body?.string() ?: return@withContext emptyList()
-                    val claudeResponse = json.decodeFromString<com.lhzkml.jasmine.core.prompt.model.ClaudeModelListResponse>(body)
-                    claudeResponse.data.map { ModelInfo(
-                        id = it.id,
-                        displayName = it.displayName.ifEmpty { null }
-                    ) }
                 }
             } catch (e: ChatClientException) {
                 throw e

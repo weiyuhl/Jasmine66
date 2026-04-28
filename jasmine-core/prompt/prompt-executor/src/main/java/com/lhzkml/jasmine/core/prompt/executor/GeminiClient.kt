@@ -362,31 +362,33 @@ open class GeminiClient(
 
                 withContext(Dispatchers.IO) {
                     val response = httpClient.newCall(httpRequest).execute()
-                    
-                    if (!response.isSuccessful) {
-                        val body = response.body?.string()
-                        throw ChatClientException.fromStatusCode(provider.name, response.code, body)
-                    }
-                    
-                    val body = response.body?.string() ?: return@withContext emptyList()
-                    val geminiResponse = json.decodeFromString<com.lhzkml.jasmine.core.prompt.model.GeminiModelListResponse>(body)
-                    geminiResponse.models
-                        .filter { it.supportedGenerationMethods.contains("generateContent") }
-                        .map { model ->
-                            val id = model.name.removePrefix("models/")
-                            ModelInfo(
-                                id = id,
-                                displayName = model.displayName.ifEmpty { null },
-                                contextLength = model.inputTokenLimit,
-                                maxOutputTokens = model.outputTokenLimit,
-                                supportsThinking = model.thinking,
-                                temperature = model.temperature,
-                                maxTemperature = model.maxTemperature,
-                                topP = model.topP,
-                                topK = model.topK,
-                                description = model.description.ifEmpty { null }
-                            )
+
+                    response.use { resp ->
+                        if (!resp.isSuccessful) {
+                            val body = resp.body?.string()
+                            throw ChatClientException.fromStatusCode(provider.name, resp.code, body)
                         }
+
+                        val body = resp.body?.string() ?: return@withContext emptyList()
+                        val geminiResponse = json.decodeFromString<com.lhzkml.jasmine.core.prompt.model.GeminiModelListResponse>(body)
+                        geminiResponse.models
+                            .filter { it.supportedGenerationMethods.contains("generateContent") }
+                            .map { model ->
+                                val id = model.name.removePrefix("models/")
+                                ModelInfo(
+                                    id = id,
+                                    displayName = model.displayName.ifEmpty { null },
+                                    contextLength = model.inputTokenLimit,
+                                    maxOutputTokens = model.outputTokenLimit,
+                                    supportsThinking = model.thinking,
+                                    temperature = model.temperature,
+                                    maxTemperature = model.maxTemperature,
+                                    topP = model.topP,
+                                    topK = model.topK,
+                                    description = model.description.ifEmpty { null }
+                                )
+                            }
+                    }
                 }
             } catch (e: ChatClientException) {
                 throw e

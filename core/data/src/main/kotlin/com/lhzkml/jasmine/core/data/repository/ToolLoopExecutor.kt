@@ -24,6 +24,7 @@ import kotlin.time.Duration.Companion.seconds
 @Singleton
 class ToolLoopExecutor @Inject constructor(
     private val toolManager: ChatToolManager,
+    private val configRepo: com.lhzkml.jasmine.core.config.ConfigRepository,
 ) {
     private val streamResumeHelper = StreamResumeHelper(maxResumes = 3)
 
@@ -46,7 +47,7 @@ class ToolLoopExecutor @Inject constructor(
         var finalThinking = ""
         var finalFinishReason: String? = null
         var iterations = 0
-        val maxIterations = 15
+        val maxIterations = configRepo.getAgentMaxIterations()
         val recentToolSignatures = mutableListOf<String>()
         val maxRepeatedCalls = 3
 
