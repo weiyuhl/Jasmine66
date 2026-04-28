@@ -72,9 +72,11 @@ data class ShellPolicyConfig(
     }
 
     private fun isBlacklisted(command: String): Boolean {
-        // Use regex-based patterns with word boundaries for robust matching.
+        // Use regex-based patterns with word boundaries for robust matching,
+        // plus customizable string-based blacklist from policy config.
         val normalized = command.trim().lowercase(Locale.getDefault())
-        return BLACKLIST_PATTERNS.any { it.containsMatchIn(normalized) }
+        return BLACKLIST_PATTERNS.any { it.containsMatchIn(normalized) } ||
+            blacklist.any { normalized.contains(it.lowercase(Locale.getDefault())) }
     }
 
     private fun isWhitelisted(command: String): Boolean {
